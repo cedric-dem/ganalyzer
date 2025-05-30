@@ -84,3 +84,82 @@ def getDiscriminator():
         layers.Activation('sigmoid')
         # Output is (1, 1, 1)
     ])
+
+def train(current_epoch, dataset):
+    #TODO
+    pass
+
+def getModelQuantity(filename):
+    current_i=0
+    cont=True
+
+    while cont:
+        cont=os.path.isfile(filename+str(current_i)+'.keras')
+        current_i+=1
+
+    return current_i-2
+
+def getCurrentEpoch():
+    counterGenerator = getModelQuantity(model_path + 'generator_epoch_')
+    counterDiscriminator = getModelQuantity(model_path + 'discriminator_epoch_')
+
+    return max(min(counterGenerator, counterDiscriminator),0)
+
+def sortedAlphanumeric(data):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)',key)]
+    return sorted(data,key = alphanum_key)
+
+def getDataset():
+    _img = []
+
+    files = os.listdir(dataset_path)
+    files = sortedAlphanumeric(files)
+    for i in tqdm(files):
+        if rgb_images:
+            img = cv2.cvtColor(cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        else:
+            img = cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_GRAYSCALE)
+
+        # resizing image
+        # img = cv2.resize(img, (SIZE, SIZE))
+        img = (img - 127.5) / 127.5
+        _img.append(img_to_array(img))
+    return _img
+
+currentEpoch = getCurrentEpoch()
+print("==> will start from epoch  : ", currentEpoch)
+
+_img=getDataset()
+
+batch_size = 32
+dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).batch(batch_size)
+
+if currentEpoch == 0: #if start from scratch
+    print('==> Creating models')
+    generator = getGenerator()
+    discriminator = getDiscriminator()
+
+else:
+    print('==> Loading latest models')
+
+    discriminator = keras.models.load_model( 'discriminator_epoch_' + str(currentEpoch) + ".keras")
+    generator = keras.models.load_model( 'generator_epoch_' + str(currentEpoch) + ".keras")
+
+generator.summary()
+discriminator.summary()
+
+generator_optimizer = tf.keras.optimizers.RMSprop(
+    learning_rate=.0001,
+    clipvalue=1.0,
+)
+
+discriminator_optimizer = tf.keras.optimizers.RMSprop(
+    learning_rate=.0001,
+    clipvalue=1.0,
+)
+
+cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+
+print('==> Number of batches : ',len(dataset))
+#train(current_epoch, dataset)
