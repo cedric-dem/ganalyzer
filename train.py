@@ -86,7 +86,7 @@ def getDiscriminator():
         # Output is (1, 1, 1)
     ])
 
-def train(current_epoch, dataset, generator, discriminator, cross_entropy):
+def train(current_epoch, dataset, cross_entropy,  batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
 
     for epoch in range(current_epoch, 999):
         print("==> current epoch : ",epoch)
@@ -106,7 +106,7 @@ def train(current_epoch, dataset, generator, discriminator, cross_entropy):
         }
 
         for batch in dataset:
-            this_stats = train_steps(batch, cross_entropy)
+            this_stats = train_steps(batch, cross_entropy,  batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
             for key in this_stats:
                 total_stats[key] += this_stats[key]
@@ -127,17 +127,32 @@ def addStatsToFile(epoch, newStats):
 
         writer.writerow([str(epoch)] + [newStats[key] for key in newStats])
 
-def train_steps(images, cross_entropy):
-    # TODO
-    time.sleep(0.03)
+def train_steps(images, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
+    noise = np.random.normal(0, 1, (batch_size, latent_dim))
+
+    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+        generated_images = generator(noise, training=True)
+
+        fake_output = discriminator(generated_images, training=True)
+        real_output = discriminator(images, training=True)
+
+        gen_loss = generator_loss(fake_output, cross_entropy)
+        dis_loss = discriminator_loss(fake_output, real_output, cross_entropy)
+
+    gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
+    gradients_of_discriminator = disc_tape.gradient(dis_loss, discriminator.trainable_variables)
+
+    generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
+    discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+
     return {
-        "median_real": 1,
-        "median_fake": 3,
-        "mean_real": 5,
-        "mean_fake": 5,
-        'gen_loss': 2,
-        'disc_loss': 45
-    }
+        "median_real":np.median(real_output),
+        "median_fake":np.median(fake_output),
+        "mean_real":np.mean(real_output),
+        "mean_fake":np.mean(fake_output),
+        'gen_loss': gen_loss.numpy(),
+        'disc_loss': dis_loss.numpy()
+}
 
 def generator_loss(fake_output, cross_entropy):
     return cross_entropy(tf.ones_like(fake_output),fake_output)
@@ -221,6 +236,6 @@ def launchTraining():
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
     print('==> Number of batches : ',len(dataset))
-    train(currentEpoch, dataset, generator, discriminator, cross_entropy)
+    train(currentEpoch, dataset, cross_entropy,  batch_size, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
 launchTraining()
