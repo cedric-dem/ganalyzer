@@ -1,19 +1,16 @@
+from config import *
+
 import os
 import re
-import cv2
 import time
-import keras
-
-import numpy as np
-import tensorflow as tf
-
 from tqdm import tqdm
+
+import cv2
+import keras
 from keras import layers
 from keras.preprocessing.image import img_to_array
-
-from config import *
-#TODO
-
+import numpy as np
+import tensorflow as tf
 
 def getGenerator():
 
@@ -62,7 +59,7 @@ def getDiscriminator():
     # Size of feature maps in discriminator
     ndf = 64
 
-    model = tf.keras.Sequential([
+    return tf.keras.Sequential([
         # input is (64, 64, nc)
         layers.Conv2D(ndf, kernel_size=4, strides=2, padding='same', use_bias=False, input_shape=(64, 64, nc)),
         layers.LeakyReLU(alpha=0.2),
