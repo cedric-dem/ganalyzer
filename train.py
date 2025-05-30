@@ -86,7 +86,7 @@ def getDiscriminator():
         # Output is (1, 1, 1)
     ])
 
-def train(current_epoch, dataset, generator, discriminator):
+def train(current_epoch, dataset, generator, discriminator, cross_entropy):
 
     for epoch in range(current_epoch, 999):
         print("==> current epoch : ",epoch)
@@ -106,7 +106,7 @@ def train(current_epoch, dataset, generator, discriminator):
         }
 
         for batch in dataset:
-            this_stats = train_steps(batch)
+            this_stats = train_steps(batch, cross_entropy)
 
             for key in this_stats:
                 total_stats[key] += this_stats[key]
@@ -127,7 +127,7 @@ def addStatsToFile(epoch, newStats):
 
         writer.writerow([str(epoch)] + [newStats[key] for key in newStats])
 
-def train_steps(images):
+def train_steps(images, cross_entropy):
     # TODO
     time.sleep(0.03)
     return {
@@ -138,6 +138,14 @@ def train_steps(images):
         'gen_loss': 2,
         'disc_loss': 45
     }
+
+def generator_loss(fake_output, cross_entropy):
+    return cross_entropy(tf.ones_like(fake_output),fake_output)
+
+def discriminator_loss(fake_output, real_output, cross_entropy):
+    fake_loss = cross_entropy(tf.zeros_like(fake_output),fake_output)
+    real_loss = cross_entropy(tf.ones_like(real_output),real_output)
+    return fake_loss + real_loss
 
 def getModelQuantity(filename):
     current_i=0
@@ -213,6 +221,6 @@ def launchTraining():
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
     print('==> Number of batches : ',len(dataset))
-    train(currentEpoch, dataset, generator, discriminator)
+    train(currentEpoch, dataset, generator, discriminator, cross_entropy)
 
 launchTraining()
