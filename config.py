@@ -6,3 +6,4 @@ statistics_file_path=model_path+"statistics.csv"
 
 rgb_images=True
 
+latent_dimension_generator=196
