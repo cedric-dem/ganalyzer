@@ -91,8 +91,8 @@ def train(current_epoch, dataset, generator, discriminator):
     for epoch in range(current_epoch, 999):
         print("==> current epoch : ",epoch)
 
-        generator.save( model_path+'generator_epoch_' + str(current_epoch) + ".keras")
-        discriminator.save( model_path+ 'discriminator_epoch_' + str(current_epoch) + ".keras")
+        generator.save( model_path+'generator_epoch_' + str(epoch) + ".keras")
+        discriminator.save( model_path+ 'discriminator_epoch_' + str(epoch) + ".keras")
 
         start = time.time()
 
@@ -117,18 +117,19 @@ def train(current_epoch, dataset, generator, discriminator):
 
 def addStatsToFile(epoch, newStats):
 
+    exists = os.path.isfile(statistics_file_path)
+
     with open(statistics_file_path, mode='a', newline='', encoding='utf-8') as statfile:
         writer = csv.writer(statfile)
 
-        if not os.path.isfile(statistics_file_path):
+        if not exists:
             writer.writerow(["epoch_id","median_real","median_fake","mean_real","mean_fake", 'gen_loss','disc_loss', "time"])
 
         writer.writerow([str(epoch)] + [newStats[key] for key in newStats])
 
 def train_steps(images):
     # TODO
-    print('==> Train step')
-    time.sleep(0.02)
+    time.sleep(0.03)
     return {
         "median_real": 1,
         "median_fake": 3,
