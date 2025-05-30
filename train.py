@@ -127,39 +127,40 @@ def getDataset():
         _img.append(img_to_array(img))
     return _img
 
-currentEpoch = getCurrentEpoch()
-print("==> will start from epoch  : ", currentEpoch)
+def launchTraining():
+    currentEpoch = getCurrentEpoch()
+    print("==> will start from epoch  : ", currentEpoch)
 
-_img=getDataset()
+    _img=getDataset()
 
-batch_size = 32
-dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).batch(batch_size)
+    batch_size = 32
+    dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).batch(batch_size)
 
-if currentEpoch == 0: #if start from scratch
-    print('==> Creating models')
-    generator = getGenerator()
-    discriminator = getDiscriminator()
+    if currentEpoch == 0: #if start from scratch
+        print('==> Creating models')
+        generator = getGenerator()
+        discriminator = getDiscriminator()
 
-else:
-    print('==> Loading latest models')
+    else:
+        print('==> Loading latest models')
 
-    discriminator = keras.models.load_model( 'discriminator_epoch_' + str(currentEpoch) + ".keras")
-    generator = keras.models.load_model( 'generator_epoch_' + str(currentEpoch) + ".keras")
+        discriminator = keras.models.load_model( 'discriminator_epoch_' + str(currentEpoch) + ".keras")
+        generator = keras.models.load_model( 'generator_epoch_' + str(currentEpoch) + ".keras")
 
-generator.summary()
-discriminator.summary()
+    generator.summary()
+    discriminator.summary()
 
-generator_optimizer = tf.keras.optimizers.RMSprop(
-    learning_rate=.0001,
-    clipvalue=1.0,
-)
+    generator_optimizer = tf.keras.optimizers.RMSprop(
+        learning_rate=.0001,
+        clipvalue=1.0,
+    )
 
-discriminator_optimizer = tf.keras.optimizers.RMSprop(
-    learning_rate=.0001,
-    clipvalue=1.0,
-)
+    discriminator_optimizer = tf.keras.optimizers.RMSprop(
+        learning_rate=.0001,
+        clipvalue=1.0,
+    )
 
-cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+    cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
-print('==> Number of batches : ',len(dataset))
-#train(current_epoch, dataset)
+    print('==> Number of batches : ',len(dataset))
+    #train(current_epoch, dataset)
