@@ -2,6 +2,7 @@ from config import *
 
 import os
 import re
+import csv
 import time
 from tqdm import tqdm
 
@@ -85,9 +86,57 @@ def getDiscriminator():
         # Output is (1, 1, 1)
     ])
 
-def train(current_epoch, dataset):
-    #TODO
-    pass
+def train(current_epoch, dataset, generator, discriminator):
+
+    for epoch in range(current_epoch, 999):
+        print("==> current epoch : ",epoch)
+
+        generator.save( model_path+'generator_epoch_' + str(current_epoch) + ".keras")
+        discriminator.save( model_path+ 'discriminator_epoch_' + str(current_epoch) + ".keras")
+
+        start = time.time()
+
+        total_stats = {
+            "median_real": 0,
+            "median_fake": 0,
+            "mean_real": 0,
+            "mean_fake": 0,
+            'gen_loss': 0,
+            'disc_loss': 0
+        }
+
+        for batch in dataset:
+            this_stats = train_steps(batch)
+
+            for key in this_stats:
+                total_stats[key] += this_stats[key]
+
+        total_stats['time'] = str(np.round(time.time() - start, 2))
+
+        addStatsToFile(epoch, total_stats)
+
+def addStatsToFile(epoch, newStats):
+
+    with open(statistics_file_path, mode='a', newline='', encoding='utf-8') as statfile:
+        writer = csv.writer(statfile)
+
+        if not os.path.isfile(statistics_file_path):
+            writer.writerow(["epoch_id","median_real","median_fake","mean_real","mean_fake", 'gen_loss','disc_loss', "time"])
+
+        writer.writerow([str(epoch)] + [newStats[key] for key in newStats])
+
+def train_steps(images):
+    # TODO
+    print('==> Train step')
+    time.sleep(0.02)
+    return {
+        "median_real": 1,
+        "median_fake": 3,
+        "mean_real": 5,
+        "mean_fake": 5,
+        'gen_loss': 2,
+        'disc_loss': 45
+    }
 
 def getModelQuantity(filename):
     current_i=0
@@ -144,8 +193,8 @@ def launchTraining():
     else:
         print('==> Loading latest models')
 
-        discriminator = keras.models.load_model( 'discriminator_epoch_' + str(currentEpoch) + ".keras")
-        generator = keras.models.load_model( 'generator_epoch_' + str(currentEpoch) + ".keras")
+        discriminator = keras.models.load_model( model_path+'discriminator_epoch_' + str(currentEpoch) + ".keras")
+        generator = keras.models.load_model( model_path+'generator_epoch_' + str(currentEpoch) + ".keras")
 
     generator.summary()
     discriminator.summary()
@@ -163,4 +212,6 @@ def launchTraining():
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
     print('==> Number of batches : ',len(dataset))
-    #train(current_epoch, dataset)
+    train(currentEpoch, dataset, generator, discriminator)
+
+launchTraining()
