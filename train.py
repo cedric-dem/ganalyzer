@@ -119,7 +119,7 @@ def add_statistics_to_file(epoch, new_stats):
         writer = csv.writer(statfile)
 
         if not exists:
-            writer.writerow(["epoch_id","median_real","median_fake","mean_real","mean_fake", 'gen_loss','disc_loss', "time"])
+            writer.writerow(["epoch_id"] + [ key for key in new_stats])
 
         writer.writerow([str(epoch)] + [new_stats[key] for key in new_stats])
 
