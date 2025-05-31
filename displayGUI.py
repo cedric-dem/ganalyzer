@@ -84,7 +84,7 @@ class GUI(object):
         self.refresh_label_mu(default_value_mu)
         self.refresh_label_sigma(default_value_sigma)
 
-        self.randomize_sliders_with_given_sigma(default_value_mu, default_value_sigma)
+        self.randomize_all_sliders(default_value_mu, default_value_sigma)
 
         root.mainloop()
 
@@ -122,7 +122,7 @@ class GUI(object):
         self.image_label.configure(image=img_tk)
         self.image_label.image = img_tk
 
-    def randomize_sliders_with_given_sigma(self, mu, sigma):
+    def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
             for j in range(self.grid_size):
                 val = np.random.normal(loc=mu, scale=sigma)
@@ -149,9 +149,10 @@ class GUI(object):
     def set_input_random(self):
         new_mu_value=self.mu_slider.get()
         new_sigma_value=self.sigma_slider.get()
-        self.randomize_sliders_with_given_sigma(new_mu_value, new_sigma_value)
+        self.randomize_all_sliders(new_mu_value, new_sigma_value)
 
-    def create_parameter_input_label(self, root, x, y):
+    @staticmethod
+    def create_parameter_input_label(root, x, y):
         label = tk.Label(root)
         label.grid(row=y, column=x-1, columnspan=2, pady=10)
         return label

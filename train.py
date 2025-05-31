@@ -96,20 +96,16 @@ def train(current_epoch, dataset, cross_entropy,  batch_size, latent_dim, genera
 
         start = time.time()
 
-        total_stats = {
-            "median_real": 0,
-            "median_fake": 0,
-            "mean_real": 0,
-            "mean_fake": 0,
-            'gen_loss': 0,
-            'disc_loss': 0
-        }
+        total_stats = {}
 
         for batch in dataset:
             this_stats = train_steps(batch, cross_entropy,  batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
             for key in this_stats:
-                total_stats[key] += this_stats[key]
+                if key in total_stats:
+                    total_stats[key] += this_stats[key]
+                else:
+                    total_stats[key]=0
 
         total_stats['time'] = str(np.round(time.time() - start, 2))
 
@@ -223,15 +219,8 @@ def launch_training():
     generator.summary()
     discriminator.summary()
 
-    generator_optimizer = tf.keras.optimizers.RMSprop(
-        learning_rate=.0001,
-        clipvalue=1.0,
-    )
-
-    discriminator_optimizer = tf.keras.optimizers.RMSprop(
-        learning_rate=.0001,
-        clipvalue=1.0,
-    )
+    generator_optimizer = tf.keras.optimizers.RMSprop(learning_rate=.0001, clipvalue=1.0)
+    discriminator_optimizer = tf.keras.optimizers.RMSprop(learning_rate=.0001, clipvalue=1.0)
 
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
