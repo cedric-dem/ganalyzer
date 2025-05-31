@@ -107,7 +107,7 @@ def initialize_gui():
     slider_width= 2 * max_slider_value
 
     root = tk.Tk()
-    root.title(f"Grid {grid_size}x{grid_size} sliders")
+    root.title("GANalyzer")
 
     # Grille de sliders
     slider_grid = [[None for _ in range(grid_size)] for _ in range(grid_size)]
@@ -119,28 +119,31 @@ def initialize_gui():
                 slider.bind("<ButtonRelease-1>", update_image)
                 slider_grid[i][j] = slider
 
-    # Bouton random
-    set_min_button = ttk.Button(root, text="Set low", command=set_sliders_low)
-    set_min_button.grid(row=grid_size, column=0, columnspan=2, pady=10)
+    hint_constant = tk.Label(root, text="Set All Constant Value : ")
+    hint_constant.grid(row=grid_size, column=0, columnspan=2, pady=10)
 
-    very_random_button = ttk.Button(root, text="Set Very Random", command=randomize_sliders_high_variance)
-    very_random_button.grid(row=grid_size, column=1, columnspan=2, pady=10)
+    hint_random = tk.Label(root, text="Set All Random Value ")
+    hint_random.grid(row=grid_size+1, column=0, columnspan=2, pady=10)
 
-    random_button = ttk.Button(root, text="Set Random", command=randomize_sliders_low_variance)
-    random_button.grid(row=grid_size, column=2, columnspan=2, pady=10)
+    k_text = tk.Label(root, text="value =")
+    k_text.grid(row=grid_size, column=2, columnspan=2, pady=10)
 
-    zero_button = ttk.Button(root, text="Set Zero", command=set_sliders_zero)
-    zero_button.grid(row=grid_size, column=3, columnspan=2, pady=10)
+    mu_text = tk.Label(root, text="mu =")
+    mu_text.grid(row=grid_size+1, column=2, columnspan=2, pady=10)
 
-    set_max_button = ttk.Button(root, text="Set high", command=set_sliders_high)
-    set_max_button.grid(row=grid_size, column=4, columnspan=2, pady=10)
+    sigma_text = tk.Label(root, text="sigma =")
+    sigma_text.grid(row=grid_size+1, column=3, columnspan=2, pady=10)
+
+    current_epoch_text = tk.Label(root, text="Crurent Epoch : 15/30")
+    current_epoch_text.grid(row=grid_size+1, column=grid_size-3, columnspan=2, pady=10)
+
 
     # Imag on the right
     image_label = tk.Label(root)
     image_label.grid(row=0, column=grid_size, rowspan=grid_size + 1, padx=20, pady=10)
 
     time_slider = ttk.Scale(root, from_=0, to=nmodels - 1, orient='horizontal', length=600, command=on_epoch_slider_change)
-    time_slider.grid(row=grid_size + 1, column=0, columnspan=grid_size, padx=10, pady=20, sticky='ew')
+    time_slider.grid(row=grid_size + 2, column=0, columnspan=grid_size+1, padx=10, pady=20, sticky='ew')
 
     randomize_sliders_low_variance()
 
