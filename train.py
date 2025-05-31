@@ -115,7 +115,7 @@ def train(current_epoch, dataset, cross_entropy,  batch_size, latent_dim, genera
 
         add_statistics_to_file(epoch, total_stats)
 
-def add_statistics_to_file(epoch, newStats):
+def add_statistics_to_file(epoch, new_stats):
 
     exists = os.path.isfile(statistics_file_path)
 
@@ -125,7 +125,7 @@ def add_statistics_to_file(epoch, newStats):
         if not exists:
             writer.writerow(["epoch_id","median_real","median_fake","mean_real","mean_fake", 'gen_loss','disc_loss', "time"])
 
-        writer.writerow([str(epoch)] + [newStats[key] for key in newStats])
+        writer.writerow([str(epoch)] + [new_stats[key] for key in new_stats])
 
 def train_steps(images, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
     noise = np.random.normal(0, 1, (batch_size, latent_dim))
@@ -173,10 +173,10 @@ def get_number_of_existing_models(filename):
     return current_i-2
 
 def get_current_epoch():
-    counterGenerator = get_number_of_existing_models(model_path + 'generator_epoch_')
-    counterDiscriminator = get_number_of_existing_models(model_path + 'discriminator_epoch_')
+    counter_generator = get_number_of_existing_models(model_path + 'generator_epoch_')
+    counter_discriminator = get_number_of_existing_models(model_path + 'discriminator_epoch_')
 
-    return max(min(counterGenerator, counterDiscriminator),0)
+    return max(min(counter_generator, counter_discriminator),0)
 
 def sorted_alphanumeric(data):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -201,15 +201,15 @@ def get_dataset():
     return _img
 
 def launch_training():
-    currentEpoch = get_current_epoch()
-    print("==> will start from epoch  : ", currentEpoch)
+    current_epoch = get_current_epoch()
+    print("==> will start from epoch  : ", current_epoch)
 
     _img=get_dataset()
 
     batch_size = 32
     dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).shuffle(buffer_size=len(_img), reshuffle_each_iteration=True).batch(batch_size)
 
-    if currentEpoch == 0: #if start from scratch
+    if current_epoch == 0: #if start from scratch
         print('==> Creating models')
         generator = get_generator()
         discriminator = get_discriminator()
@@ -217,8 +217,8 @@ def launch_training():
     else:
         print('==> Loading latest models')
 
-        discriminator = keras.models.load_model( model_path+'discriminator_epoch_' + str(currentEpoch) + ".keras")
-        generator = keras.models.load_model( model_path+'generator_epoch_' + str(currentEpoch) + ".keras")
+        discriminator = keras.models.load_model( model_path+'discriminator_epoch_' + str(current_epoch) + ".keras")
+        generator = keras.models.load_model( model_path+'generator_epoch_' + str(current_epoch) + ".keras")
 
     generator.summary()
     discriminator.summary()
@@ -236,6 +236,6 @@ def launch_training():
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
     print('==> Number of batches : ',len(dataset))
-    train(currentEpoch, dataset, cross_entropy,  batch_size, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
+    train(current_epoch, dataset, cross_entropy,  batch_size, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
 launch_training()

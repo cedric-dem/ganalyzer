@@ -27,8 +27,8 @@ def get_all_models():
     return result
 
 def generate_image_from_input_values(input_raw):
-    global max_magn_twice
-    input_rebound = np.array([input_raw]) / max_magn_twice
+    global slider_width
+    input_rebound = np.array([input_raw]) / slider_width
 
     if rgb_images:
         predicted_raw = generator.predict(input_rebound)[0, :, :, :]
@@ -49,7 +49,7 @@ def set_interval(arr):
 def update_image(event= None):
     global slider_grid
     global image_label
-    values = [slider_grid[i][j].get() for i in range(n) for j in range(n)]
+    values = [slider_grid[i][j].get() for i in range(grid_size) for j in range(grid_size)]
     img_array = generate_image_from_input_values(values)
     if rgb_images:
         img = Image.fromarray(img_array.astype('uint8'), mode='RGB')
@@ -66,32 +66,32 @@ def randomize_sliders_high_variance():
     randomize_sliders_with_given_sigma(2)
 
 def randomize_sliders_with_given_sigma(sigma):
-    global max_magn, n
-    for i in range(n):
-        for j in range(n):
+    global max_slider_value, grid_size
+    for i in range(grid_size):
+        for j in range(grid_size):
             val = np.random.normal(loc=0.0, scale=sigma)
-            val_clipped = max(-max_magn, min(max_magn, val))  # clip entre 0 et 1
+            val_clipped = max(-max_slider_value, min(max_slider_value, val))  # clip entre 0 et 1
 
             slider_grid[i][j].set(val_clipped)
 
     update_image()
 
 def set_sliders_low():
-    for i in range(n):
-        for j in range(n):
-            slider_grid[i][j].set(-max_magn)
+    for i in range(grid_size):
+        for j in range(grid_size):
+            slider_grid[i][j].set(-max_slider_value)
     update_image()
 
 def set_sliders_zero():
-    for i in range(n):
-        for j in range(n):
+    for i in range(grid_size):
+        for j in range(grid_size):
             slider_grid[i][j].set(0)
     update_image()
 
 def set_sliders_high():
-    for i in range(n):
-        for j in range(n):
-            slider_grid[i][j].set(max_magn)
+    for i in range(grid_size):
+        for j in range(grid_size):
+            slider_grid[i][j].set(max_slider_value)
     update_image()
 
 def on_epoch_slider_change(value):
@@ -100,50 +100,47 @@ def on_epoch_slider_change(value):
     update_image()
 
 def initialize_gui():
-    global slider_grid,n
-    n=int(latent_dimension_generator**0.5)
-    global max_magn
-    max_magn=5
+    global slider_width, slider_grid,grid_size, max_slider_value,image_label
+    grid_size=int(latent_dimension_generator ** 0.5)
 
-    global max_magn_twice
-    max_magn_twice=2*max_magn
+    max_slider_value=5
+    slider_width= 2 * max_slider_value
 
     root = tk.Tk()
-    root.title(f"Grid {n}x{n} sliders")
+    root.title(f"Grid {grid_size}x{grid_size} sliders")
 
     # Grille de sliders
-    slider_grid = [[None for _ in range(n)] for _ in range(n)]
-    for i in range(n):
-        for j in range(n):
+    slider_grid = [[None for _ in range(grid_size)] for _ in range(grid_size)]
+    for i in range(grid_size):
+        for j in range(grid_size):
             if i * j <= latent_dimension_generator:
-                slider = ttk.Scale(root, from_=-max_magn, to=max_magn, orient='horizontal', length=100)
+                slider = ttk.Scale(root, from_=-max_slider_value, to=max_slider_value, orient='horizontal', length=100)
                 slider.grid(row=i, column=j, padx=3, pady=3)
                 slider.bind("<ButtonRelease-1>", update_image)
                 slider_grid[i][j] = slider
 
     # Bouton random
     set_min_button = ttk.Button(root, text="Set low", command=set_sliders_low)
-    set_min_button.grid(row=n, column=0, columnspan=2, pady=10)
+    set_min_button.grid(row=grid_size, column=0, columnspan=2, pady=10)
 
     very_random_button = ttk.Button(root, text="Set Very Random", command=randomize_sliders_high_variance)
-    very_random_button.grid(row=n, column=1, columnspan=2, pady=10)
+    very_random_button.grid(row=grid_size, column=1, columnspan=2, pady=10)
 
     random_button = ttk.Button(root, text="Set Random", command=randomize_sliders_low_variance)
-    random_button.grid(row=n, column=2, columnspan=2, pady=10)
+    random_button.grid(row=grid_size, column=2, columnspan=2, pady=10)
 
     zero_button = ttk.Button(root, text="Set Zero", command=set_sliders_zero)
-    zero_button.grid(row=n, column=3, columnspan=2, pady=10)
+    zero_button.grid(row=grid_size, column=3, columnspan=2, pady=10)
 
     set_max_button = ttk.Button(root, text="Set high", command=set_sliders_high)
-    set_max_button.grid(row=n, column=4, columnspan=2, pady=10)
+    set_max_button.grid(row=grid_size, column=4, columnspan=2, pady=10)
 
     # Imag on the right
-    global image_label
     image_label = tk.Label(root)
-    image_label.grid(row=0, column=n, rowspan=n + 1, padx=20, pady=10)
+    image_label.grid(row=0, column=grid_size, rowspan=grid_size + 1, padx=20, pady=10)
 
     time_slider = ttk.Scale(root, from_=0, to=nmodels - 1, orient='horizontal', length=600, command=on_epoch_slider_change)
-    time_slider.grid(row=n + 1, column=0, columnspan=n, padx=10, pady=20, sticky='ew')
+    time_slider.grid(row=grid_size + 1, column=0, columnspan=grid_size, padx=10, pady=20, sticky='ew')
 
     randomize_sliders_low_variance()
 

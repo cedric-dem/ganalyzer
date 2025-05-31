@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 df = pd.read_csv(statistics_file_path)
 
 groups = {
-    "meds mean": ["median_real","median_fake","mean_real","mean_fake"],
+    "median/mean": ["median_real","median_fake","mean_real","mean_fake"],
     "losses": ["gen_loss","disc_loss"],
     "time":["time"]
 }
