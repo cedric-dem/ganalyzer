@@ -63,7 +63,6 @@ def update_image(event= None):
     image_label.configure(image=img_tk)
     image_label.image = img_tk
 
-
 def randomize_sliders_with_given_sigma(mu, sigma):
     global max_slider_value, grid_size
     for i in range(grid_size):
@@ -76,8 +75,7 @@ def randomize_sliders_with_given_sigma(mu, sigma):
     update_image()
 
 def on_epoch_slider_change(value):
-    global generator
-    global current_epoch_text
+    global generator, current_epoch_text
 
     new_epoch=int(float(value))
     generator=allModels[new_epoch]
@@ -144,7 +142,6 @@ def initialize_gui():
 
     btn_set_input_random = ttk.Button(root, text="Set", command=set_input_random)
     btn_set_input_random.grid(row=grid_size+1, column=7, columnspan=2, pady=10)
-
 
     # Image on the right
     image_label = tk.Label(root)
