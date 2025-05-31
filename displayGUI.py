@@ -47,8 +47,7 @@ def set_interval(arr):
 	return np.round(projected).astype(np.uint8)
 
 def update_image(event= None):
-    global slider_grid
-    global image_label
+    global slider_grid, image_label
     values = [slider_grid[i][j].get() for i in range(grid_size) for j in range(grid_size)]
     img_array = generate_image_from_input_values(values)
     if rgb_images:
@@ -73,11 +72,15 @@ def randomize_sliders_with_given_sigma(mu, sigma):
 
 def on_epoch_slider_change(value):
     global generator
-    generator=allModels[int(float(value))]
+    global current_epoch_text
+
+    new_epoch=int(float(value))
+    generator=allModels[new_epoch]
     update_image()
 
+    current_epoch_text.config(text="Current Epoch : "+str(new_epoch)+" / "+str(nmodels-1))
+
 def set_input_constant():
-    print('==> Set k')
     global k_slider
     new_k_value=k_slider.get()
     for i in range(grid_size):
@@ -86,7 +89,6 @@ def set_input_constant():
     update_image()
 
 def set_input_random():
-    print('==> Set rnd')
     global mu_slider, sigma_slider
     new_mu_value=mu_slider.get()
     new_sigma_value=sigma_slider.get()
@@ -103,7 +105,7 @@ def create_parameter_input_slider(root, name, default_value, x, y, can_be_negati
     return slider
 
 def initialize_gui():
-    global slider_width, slider_grid,grid_size, max_slider_value,image_label
+    global grid_size, max_slider_value, slider_width, slider_grid, k_slider, mu_slider, sigma_slider, image_label, current_epoch_text
     grid_size=int(latent_dimension_generator ** 0.5)
 
     max_slider_value=5
@@ -128,7 +130,6 @@ def initialize_gui():
     hint_random = tk.Label(root, text="Set All Random Value ")
     hint_random.grid(row=grid_size+1, column=0, columnspan=2, pady=10)
 
-    global k_slider, mu_slider, sigma_slider
     k_slider=create_parameter_input_slider(root,"k",0, 4, grid_size, True)
     mu_slider=create_parameter_input_slider(root,"mu",0, 2, grid_size+1, True)
     sigma_slider=create_parameter_input_slider(root,"sigma",1, 5, grid_size+1,False)
@@ -144,15 +145,20 @@ def initialize_gui():
     image_label = tk.Label(root)
     image_label.grid(row=0, column=grid_size, rowspan=grid_size + 1, padx=20, pady=10)
 
-    current_epoch_text = tk.Label(root, text="Current Epoch : 15/30")
+    current_epoch_text = tk.Label(root)
     current_epoch_text.grid(row=grid_size+2, column=0, columnspan=2, pady=10)
 
     time_slider = ttk.Scale(root, from_=0, to=nmodels - 1, orient='horizontal', length=600, command=on_epoch_slider_change)
     time_slider.grid(row=grid_size + 2, column=3, columnspan=grid_size-3, padx=10, pady=20, sticky='ew')
 
+    time_slider.set(nmodels-1)
+    on_epoch_slider_change(nmodels-1)
+
     randomize_sliders_with_given_sigma(0,1)
 
     root.mainloop()
+
+global current_epoch_text,k_slider, mu_slider, sigma_slider,slider_width, slider_grid,grid_size, max_slider_value,image_label
 
 # load all the models
 allModels = get_all_models()
