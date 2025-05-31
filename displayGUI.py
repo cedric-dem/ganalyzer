@@ -8,30 +8,26 @@ import numpy as np
 
 import keras
 
+def get_model_path_at_given_epoch(i):
+    return model_path + 'generator_epoch_' + str(i) + ".keras"
+
 def get_all_models():
     result=[]
     i=0
-    again=True
-    while again:
+    this_filename=get_model_path_at_given_epoch(i)
+    while os.path.isfile(this_filename):
+        result.append(keras.models.load_model(this_filename))
+        this_filename=get_model_path_at_given_epoch(i)
         print("=> Attempt to load epoch ",i)
-
-        this_filename= model_path+'generator_epoch_' + str(i) + ".keras"
-
-        again=os.path.isfile(this_filename)
-
-        if again:
-            result.append(keras.models.load_model(this_filename))
-
         i+=1
-
     return result
 
 class GUI(object):
-    def __init__(self, models_lst):
+    def __init__(self, models_list):
 
-        self.nmodels=len(models_lst)
+        self.models_quantity=len(models_list)
         self.generator=None
-        self.allModels=models_lst
+        self.models_list=models_list
 
         default_value_k = 0
         default_value_mu = 0
@@ -79,11 +75,11 @@ class GUI(object):
         self.current_epoch_text = tk.Label(root)
         self.current_epoch_text.grid(row=self.grid_size + 2, column=0, columnspan=2, pady=10)
 
-        time_slider = ttk.Scale(root, from_=0, to=self.nmodels - 1, orient='horizontal', length=600,command=self.on_epoch_slider_change)
+        time_slider = ttk.Scale(root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
         time_slider.grid(row=self.grid_size + 2, column=3, columnspan=self.grid_size - 3, padx=10, pady=20, sticky='ew')
 
-        time_slider.set(self.nmodels - 1)
-        self.on_epoch_slider_change(self.nmodels - 1)
+        time_slider.set(self.models_quantity - 1)
+        self.on_epoch_slider_change(self.models_quantity - 1)
 
         self.refresh_label_k(default_value_k)
         self.refresh_label_mu(default_value_mu)
@@ -99,13 +95,12 @@ class GUI(object):
         if rgb_images:
             predicted_raw = self.generator.predict(input_rebound)[0, :, :, :]
         else:
-
             predicted_raw = self.generator.predict(input_rebound)[0, :, :, 0]
-        predicted_rebound = self.set_interval(predicted_raw)
 
-        return predicted_rebound
+        return  self.set_interval(predicted_raw)
 
-    def set_interval(self, arr):
+    @staticmethod
+    def set_interval(arr):
         min_val = np.min(arr)
         max_val = np.max(arr)
 
@@ -140,10 +135,10 @@ class GUI(object):
 
     def on_epoch_slider_change(self, value):
         new_epoch=int(float(value))
-        self.generator=self.allModels[new_epoch]
+        self.generator=self.models_list[new_epoch]
         self.update_image()
 
-        self.current_epoch_text.config(text="Current Epoch : "+str(new_epoch)+" / "+str(self.nmodels-1))
+        self.current_epoch_text.config(text="Current Epoch : "+str(new_epoch)+" / "+str(self.models_quantity - 1))
 
     def set_input_constant(self):
         new_k_value=self.k_slider.get()
