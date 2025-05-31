@@ -22,6 +22,10 @@ def get_all_models():
 class GUI(object):
     def __init__(self, models_list):
 
+        self.default_value_k = 0
+        self.default_value_mu = 0
+        self.default_value_sigma = 1
+
         self.models_quantity=len(models_list)
         self.generator=None
         self.models_list=models_list
@@ -33,12 +37,21 @@ class GUI(object):
         self.initialize_generator_panel()
         self.initialize_discriminator_panel()
 
+        self.init_sliders()
+
         self.root.mainloop()
 
+    def init_sliders(self):
+        self.time_slider.set(self.models_quantity - 1)
+        self.on_epoch_slider_change(self.models_quantity - 1)
+
+        self.refresh_label_k(self.default_value_k)
+        self.refresh_label_mu(self.default_value_mu)
+        self.refresh_label_sigma(self.default_value_sigma)
+
+        self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
+
     def initialize_input_panel(self):
-        default_value_k = 0
-        default_value_mu = 0
-        default_value_sigma = 1
 
         self.grid_size = int(latent_dimension_generator ** 0.5)
 
@@ -64,9 +77,9 @@ class GUI(object):
         self.mu_label = self.create_parameter_input_label(self.root, 2, self.grid_size + 1)
         self.sigma_label = self.create_parameter_input_label(self.root, 5, self.grid_size + 1)
 
-        self.k_slider = self.create_parameter_input_slider(self.root,  default_value_k, 4, self.grid_size, True, self.refresh_label_k)
-        self.mu_slider = self.create_parameter_input_slider(self.root, default_value_mu, 2, self.grid_size + 1, True, self.refresh_label_mu)
-        self.sigma_slider = self.create_parameter_input_slider(self.root, default_value_sigma, 5, self.grid_size + 1, False, self.refresh_label_sigma)
+        self.k_slider = self.create_parameter_input_slider(self.root,  self.default_value_k, 4, self.grid_size, True, self.refresh_label_k)
+        self.mu_slider = self.create_parameter_input_slider(self.root, self.default_value_mu, 2, self.grid_size + 1, True, self.refresh_label_mu)
+        self.sigma_slider = self.create_parameter_input_slider(self.root, self.default_value_sigma, 5, self.grid_size + 1, False, self.refresh_label_sigma)
 
         btn_set_input_constant = ttk.Button(self.root, text="Set", command=self.set_input_constant)
         btn_set_input_constant.grid(row=self.grid_size, column=7, columnspan=2, pady=10)
@@ -74,27 +87,18 @@ class GUI(object):
         btn_set_input_random = ttk.Button(self.root, text="Set", command=self.set_input_random)
         btn_set_input_random.grid(row=self.grid_size + 1, column=7, columnspan=2, pady=10)
 
-        # Image on the right
-        self.image_label = tk.Label(self.root)
-        self.image_label.grid(row=0, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
+    def initialize_generator_panel(self):
 
         self.current_epoch_text = tk.Label(self.root)
         self.current_epoch_text.grid(row=self.grid_size + 2, column=0, columnspan=2, pady=10)
 
-        time_slider = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
-        time_slider.grid(row=self.grid_size + 2, column=3, columnspan=self.grid_size - 3, padx=10, pady=20, sticky='ew')
+        self.time_slider = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
+        self.time_slider.grid(row=self.grid_size + 2, column=3, columnspan=self.grid_size - 3, padx=10, pady=20, sticky='ew')
 
-        time_slider.set(self.models_quantity - 1)
-        self.on_epoch_slider_change(self.models_quantity - 1)
 
-        self.refresh_label_k(default_value_k)
-        self.refresh_label_mu(default_value_mu)
-        self.refresh_label_sigma(default_value_sigma)
-
-        self.randomize_all_sliders(default_value_mu, default_value_sigma)
-
-    def initialize_generator_panel(self):
-        pass
+        # Image on the right
+        self.image_label = tk.Label(self.root)
+        self.image_label.grid(row=0, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
 
     def initialize_discriminator_panel(self):
         pass
