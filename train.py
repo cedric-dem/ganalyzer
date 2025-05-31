@@ -1,4 +1,3 @@
-from config import *
 from misc import *
 
 import os
@@ -23,7 +22,7 @@ def get_generator():
     nc = 3
 
     return tf.keras.Sequential([
-        # couche 1: (latent_dimension_generator,) -> (ngf*8, 4, 4)
+        # layer 1: (latent_dimension_generator,) -> (ngf*8, 4, 4)
         #layers.Input(shape=(1, 1, nz)),
         layers.Input(shape=(latent_dimension_generator,)),
         layers.Reshape((1, 1, latent_dimension_generator)),
