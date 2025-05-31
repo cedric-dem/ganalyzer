@@ -13,7 +13,7 @@ from keras.preprocessing.image import img_to_array
 import numpy as np
 import tensorflow as tf
 
-def getGenerator():
+def get_generator():
 
     # Size of feature maps in generator
     ngf = 64
@@ -51,7 +51,7 @@ def getGenerator():
     ])
 
 
-def getDiscriminator():
+def get_discriminator():
     if rgb_images:
         nc = 3
     else:
@@ -113,9 +113,9 @@ def train(current_epoch, dataset, cross_entropy,  batch_size, latent_dim, genera
 
         total_stats['time'] = str(np.round(time.time() - start, 2))
 
-        addStatsToFile(epoch, total_stats)
+        add_statistics_to_file(epoch, total_stats)
 
-def addStatsToFile(epoch, newStats):
+def add_statistics_to_file(epoch, newStats):
 
     exists = os.path.isfile(statistics_file_path)
 
@@ -162,7 +162,7 @@ def discriminator_loss(fake_output, real_output, cross_entropy):
     real_loss = cross_entropy(tf.ones_like(real_output),real_output)
     return fake_loss + real_loss
 
-def getModelQuantity(filename):
+def get_number_of_existing_models(filename):
     current_i=0
     cont=True
 
@@ -172,22 +172,22 @@ def getModelQuantity(filename):
 
     return current_i-2
 
-def getCurrentEpoch():
-    counterGenerator = getModelQuantity(model_path + 'generator_epoch_')
-    counterDiscriminator = getModelQuantity(model_path + 'discriminator_epoch_')
+def get_current_epoch():
+    counterGenerator = get_number_of_existing_models(model_path + 'generator_epoch_')
+    counterDiscriminator = get_number_of_existing_models(model_path + 'discriminator_epoch_')
 
     return max(min(counterGenerator, counterDiscriminator),0)
 
-def sortedAlphanumeric(data):
+def sorted_alphanumeric(data):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)',key)]
     return sorted(data,key = alphanum_key)
 
-def getDataset():
+def get_dataset():
     _img = []
 
     files = os.listdir(dataset_path)
-    files = sortedAlphanumeric(files)
+    files = sorted_alphanumeric(files)
     for i in tqdm(files):
         if rgb_images:
             img = cv2.cvtColor(cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
@@ -200,19 +200,19 @@ def getDataset():
         _img.append(img_to_array(img))
     return _img
 
-def launchTraining():
-    currentEpoch = getCurrentEpoch()
+def launch_training():
+    currentEpoch = get_current_epoch()
     print("==> will start from epoch  : ", currentEpoch)
 
-    _img=getDataset()
+    _img=get_dataset()
 
     batch_size = 32
     dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).shuffle(buffer_size=len(_img), reshuffle_each_iteration=True).batch(batch_size)
 
     if currentEpoch == 0: #if start from scratch
         print('==> Creating models')
-        generator = getGenerator()
-        discriminator = getDiscriminator()
+        generator = get_generator()
+        discriminator = get_discriminator()
 
     else:
         print('==> Loading latest models')
@@ -238,4 +238,4 @@ def launchTraining():
     print('==> Number of batches : ',len(dataset))
     train(currentEpoch, dataset, cross_entropy,  batch_size, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
-launchTraining()
+launch_training()
