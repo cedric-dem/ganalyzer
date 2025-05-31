@@ -12,7 +12,7 @@ def get_all_models():
     result=[]
     i=0
     this_filename=get_generator_model_path_at_given_epoch(0)
-    while os.path.isfile(this_filename):
+    while os.path.isfile(this_filename) and i<10:
         result.append(keras.models.load_model(this_filename))
         this_filename=get_generator_model_path_at_given_epoch(i)
         print("=> Attempt to load epoch ",i)
@@ -26,6 +26,16 @@ class GUI(object):
         self.generator=None
         self.models_list=models_list
 
+        self.root = tk.Tk()
+        self.root.title("GANalyzer")
+
+        self.initialize_input_panel()
+        self.initialize_generator_panel()
+        self.initialize_discriminator_panel()
+
+        self.root.mainloop()
+
+    def initialize_input_panel(self):
         default_value_k = 0
         default_value_mu = 0
         default_value_sigma = 1
@@ -35,46 +45,43 @@ class GUI(object):
         self.max_slider_value = 5
         self.slider_width = 2 * self.max_slider_value
 
-        root = tk.Tk()
-        root.title("GANalyzer")
-
         # Grid of sliders
         self.slider_grid = [[None for _ in range(self.grid_size)] for _ in range(self.grid_size)]
         for i in range(self.grid_size):
             for j in range(self.grid_size):
-                slider = ttk.Scale(root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal', length=100)
+                slider = ttk.Scale(self.root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal', length=100)
                 slider.grid(row=i, column=j, padx=3, pady=3)
                 slider.bind("<ButtonRelease-1>", self.update_image)
                 self.slider_grid[i][j] = slider
 
-        hint_constant = tk.Label(root, text="Set All Constant Value : ")
+        hint_constant = tk.Label(self.root, text="Set All Constant Value : ")
         hint_constant.grid(row=self.grid_size, column=0, columnspan=2, pady=10)
 
-        hint_random = tk.Label(root, text="Set All Random Value ")
+        hint_random = tk.Label(self.root, text="Set All Random Value ")
         hint_random.grid(row=self.grid_size + 1, column=0, columnspan=2, pady=10)
 
-        self.k_label = self.create_parameter_input_label(root, 4, self.grid_size)
-        self.mu_label = self.create_parameter_input_label(root, 2, self.grid_size + 1)
-        self.sigma_label = self.create_parameter_input_label(root, 5, self.grid_size + 1)
+        self.k_label = self.create_parameter_input_label(self.root, 4, self.grid_size)
+        self.mu_label = self.create_parameter_input_label(self.root, 2, self.grid_size + 1)
+        self.sigma_label = self.create_parameter_input_label(self.root, 5, self.grid_size + 1)
 
-        self.k_slider = self.create_parameter_input_slider(root,  default_value_k, 4, self.grid_size, True, self.refresh_label_k)
-        self.mu_slider = self.create_parameter_input_slider(root, default_value_mu, 2, self.grid_size + 1, True, self.refresh_label_mu)
-        self.sigma_slider = self.create_parameter_input_slider(root, default_value_sigma, 5, self.grid_size + 1, False, self.refresh_label_sigma)
+        self.k_slider = self.create_parameter_input_slider(self.root,  default_value_k, 4, self.grid_size, True, self.refresh_label_k)
+        self.mu_slider = self.create_parameter_input_slider(self.root, default_value_mu, 2, self.grid_size + 1, True, self.refresh_label_mu)
+        self.sigma_slider = self.create_parameter_input_slider(self.root, default_value_sigma, 5, self.grid_size + 1, False, self.refresh_label_sigma)
 
-        btn_set_input_constant = ttk.Button(root, text="Set", command=self.set_input_constant)
+        btn_set_input_constant = ttk.Button(self.root, text="Set", command=self.set_input_constant)
         btn_set_input_constant.grid(row=self.grid_size, column=7, columnspan=2, pady=10)
 
-        btn_set_input_random = ttk.Button(root, text="Set", command=self.set_input_random)
+        btn_set_input_random = ttk.Button(self.root, text="Set", command=self.set_input_random)
         btn_set_input_random.grid(row=self.grid_size + 1, column=7, columnspan=2, pady=10)
 
         # Image on the right
-        self.image_label = tk.Label(root)
+        self.image_label = tk.Label(self.root)
         self.image_label.grid(row=0, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
 
-        self.current_epoch_text = tk.Label(root)
+        self.current_epoch_text = tk.Label(self.root)
         self.current_epoch_text.grid(row=self.grid_size + 2, column=0, columnspan=2, pady=10)
 
-        time_slider = ttk.Scale(root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
+        time_slider = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
         time_slider.grid(row=self.grid_size + 2, column=3, columnspan=self.grid_size - 3, padx=10, pady=20, sticky='ew')
 
         time_slider.set(self.models_quantity - 1)
@@ -86,7 +93,11 @@ class GUI(object):
 
         self.randomize_all_sliders(default_value_mu, default_value_sigma)
 
-        root.mainloop()
+    def initialize_generator_panel(self):
+        pass
+
+    def initialize_discriminator_panel(self):
+        pass
 
     def generate_image_from_input_values(self, input_raw):
         input_rebound = np.array([input_raw]) / self.slider_width
