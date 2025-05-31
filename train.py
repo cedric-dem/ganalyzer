@@ -207,7 +207,7 @@ def launchTraining():
     _img=getDataset()
 
     batch_size = 32
-    dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).batch(batch_size)
+    dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).shuffle(buffer_size=len(_img), reshuffle_each_iteration=True).batch(batch_size)
 
     if currentEpoch == 0: #if start from scratch
         print('==> Creating models')
