@@ -45,7 +45,7 @@ def set_interval(arr):
 
     delta = max_val - min_val
     if delta>0:
-        projected = (arr - min_val) / (delta) * 254
+        projected = (arr - min_val) / delta * 254
     else:
         projected = arr
 
@@ -97,14 +97,15 @@ def set_input_random():
     new_sigma_value=sigma_slider.get()
     randomize_sliders_with_given_sigma(new_mu_value, new_sigma_value)
 
-
 def create_parameter_input_slider(root, name, default_value, x, y, can_be_negative, method_refresh_text):
-    label = tk.Label(root, text=name+" = "+str(float(default_value)))
+    label = tk.Label(root)
     label.grid(row=y, column=x-1, columnspan=2, pady=10)
     if can_be_negative:
-        slider = ttk.Scale(root, from_=-max_slider_value, to=max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
+        this_min_value=-max_slider_value
     else:
-        slider = ttk.Scale(root, from_=0, to=max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
+        this_min_value=0
+    slider = ttk.Scale(root, from_=this_min_value, to=max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
+
     slider.grid(row=y, column=x+1, padx=3, pady=3)
     return label, slider
 
