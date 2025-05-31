@@ -97,18 +97,37 @@ def set_input_random():
     new_sigma_value=sigma_slider.get()
     randomize_sliders_with_given_sigma(new_mu_value, new_sigma_value)
 
-def create_parameter_input_slider(root, name, default_value, x, y, can_be_negative):
+
+def create_parameter_input_slider(root, name, default_value, x, y, can_be_negative, method_refresh_text):
     label = tk.Label(root, text=name+" = "+str(float(default_value)))
     label.grid(row=y, column=x-1, columnspan=2, pady=10)
     if can_be_negative:
-        slider = ttk.Scale(root, from_=-max_slider_value, to=max_slider_value, orient='horizontal', length=100)
+        slider = ttk.Scale(root, from_=-max_slider_value, to=max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
     else:
-        slider = ttk.Scale(root, from_=0, to=max_slider_value, orient='horizontal', length=100)
+        slider = ttk.Scale(root, from_=0, to=max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
     slider.grid(row=y, column=x+1, padx=3, pady=3)
-    return slider
+    return label, slider
+
+def refresh_label_k(event):
+    global k_label
+    k_label.config(text="K = "+ str(round(float(event), 2)))
+
+def refresh_label_mu(event):
+    global mu_label
+    mu_label.config(text="Mu = "+ str(round(float(event), 2)))
+
+def refresh_label_sigma(event):
+    global sigma_label
+    sigma_label.config(text="Sigma = "+ str(round(float(event), 2)))
+
 
 def initialize_gui():
-    global grid_size, max_slider_value, slider_width, slider_grid, k_slider, mu_slider, sigma_slider, image_label, current_epoch_text
+    global grid_size, max_slider_value, slider_width, slider_grid, k_slider, mu_slider, sigma_slider, image_label, current_epoch_text, k_label, mu_label, sigma_label
+
+    default_value_k=0
+    default_value_mu=0
+    default_value_sigma=1
+
     grid_size=int(latent_dimension_generator ** 0.5)
 
     max_slider_value=5
@@ -133,9 +152,9 @@ def initialize_gui():
     hint_random = tk.Label(root, text="Set All Random Value ")
     hint_random.grid(row=grid_size+1, column=0, columnspan=2, pady=10)
 
-    k_slider=create_parameter_input_slider(root,"k",0, 4, grid_size, True)
-    mu_slider=create_parameter_input_slider(root,"mu",0, 2, grid_size+1, True)
-    sigma_slider=create_parameter_input_slider(root,"sigma",1, 5, grid_size+1,False)
+    k_label, k_slider=create_parameter_input_slider(root,"k",0, 4, grid_size, True, refresh_label_k)
+    mu_label, mu_slider=create_parameter_input_slider(root,"mu",0, 2, grid_size+1, True, refresh_label_mu)
+    sigma_label, sigma_slider=create_parameter_input_slider(root,"sigma",1, 5, grid_size+1,False, refresh_label_sigma)
 
     btn_set_input_constant = ttk.Button(root, text="Set", command=set_input_constant)
     btn_set_input_constant.grid(row=grid_size, column=7, columnspan=2, pady=10)
@@ -156,11 +175,15 @@ def initialize_gui():
     time_slider.set(nmodels-1)
     on_epoch_slider_change(nmodels-1)
 
-    randomize_sliders_with_given_sigma(0,1)
+    refresh_label_k(default_value_k)
+    refresh_label_mu(default_value_mu)
+    refresh_label_sigma(default_value_sigma)
+
+    randomize_sliders_with_given_sigma(default_value_mu,default_value_sigma)
 
     root.mainloop()
 
-global current_epoch_text,k_slider, mu_slider, sigma_slider,slider_width, slider_grid,grid_size, max_slider_value,image_label
+global current_epoch_text,k_slider, mu_slider, sigma_slider,slider_width, slider_grid,grid_size, max_slider_value,image_label, k_label, mu_label, sigma_label
 
 # load all the models
 allModels = get_all_models()
