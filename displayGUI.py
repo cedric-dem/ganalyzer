@@ -55,9 +55,9 @@ class GUI(object):
         hint_random = tk.Label(root, text="Set All Random Value ")
         hint_random.grid(row=self.grid_size + 1, column=0, columnspan=2, pady=10)
 
-        self.k_label, self.k_slider = self.create_parameter_input_slider(root, "k", 0, 4, self.grid_size, True, self.refresh_label_k)
-        self.mu_label, self.mu_slider = self.create_parameter_input_slider(root, "mu", 0, 2, self.grid_size + 1, True, self.refresh_label_mu)
-        self.sigma_label, self.sigma_slider = self.create_parameter_input_slider(root, "sigma", 1, 5, self.grid_size + 1, False, self.refresh_label_sigma)
+        self.k_label, self.k_slider = self.create_parameter_input_slider(root,  default_value_k, 4, self.grid_size, True, self.refresh_label_k)
+        self.mu_label, self.mu_slider = self.create_parameter_input_slider(root, default_value_mu, 2, self.grid_size + 1, True, self.refresh_label_mu)
+        self.sigma_label, self.sigma_slider = self.create_parameter_input_slider(root, default_value_sigma, 5, self.grid_size + 1, False, self.refresh_label_sigma)
 
         btn_set_input_constant = ttk.Button(root, text="Set", command=self.set_input_constant)
         btn_set_input_constant.grid(row=self.grid_size, column=7, columnspan=2, pady=10)
@@ -149,7 +149,7 @@ class GUI(object):
         new_sigma_value=self.sigma_slider.get()
         self.randomize_sliders_with_given_sigma(new_mu_value, new_sigma_value)
 
-    def create_parameter_input_slider(self, root, name, default_value, x, y, can_be_negative, method_refresh_text):
+    def create_parameter_input_slider(self, root, default_value, x, y, can_be_negative, method_refresh_text):
         label = tk.Label(root)
         label.grid(row=y, column=x-1, columnspan=2, pady=10)
         if can_be_negative:
@@ -159,6 +159,7 @@ class GUI(object):
         slider = ttk.Scale(root, from_=this_min_value, to=self.max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
 
         slider.grid(row=y, column=x+1, padx=3, pady=3)
+        slider.set(default_value)
         return label, slider
 
     def refresh_label_k(self, event):
