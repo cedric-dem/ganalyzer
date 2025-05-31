@@ -3,6 +3,8 @@ from config import *
 import os
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
+import numpy as np
 
 import keras
 
@@ -24,17 +26,64 @@ def getAllModels():
 
     return result
 
-def update_image():
-    pass
+
+def generate_image_from_values(input_raw):
+    global max_magn_twice
+    input_rebound = np.array([input_raw]) / max_magn_twice
+
+    if rgb_images:
+        predicted_raw = generator.predict(input_rebound)[0, :, :, :]
+    else:
+
+        predicted_raw = generator.predict(input_rebound)[0, :, :, 0]
+    predicted_rebound = setInterval(predicted_raw)
+
+    return predicted_rebound
+
+def setInterval(arr):
+	min_val = np.min(arr)
+	max_val = np.max(arr)
+
+	projected = (arr - min_val) / (max_val - min_val) * 254
+	return np.round(projected).astype(np.uint8)
+
+
+def update_image(event= None):
+    global slider_grid
+    global image_label
+    values = [slider_grid[i][j].get() for i in range(n) for j in range(n)]
+    img_array = generate_image_from_values(values)
+    if rgb_images:
+        img = Image.fromarray(img_array.astype('uint8'), mode='RGB')
+    else:
+        img = Image.fromarray(img_array, mode='L')
+    img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
+    image_label.configure(image=img_tk)
+    image_label.image = img_tk
+
 
 def set_all_sliders_min():
     pass
 
-def randomize_high_variance():
-    pass
-
 def randomize_all_sliders():
-    pass
+    randomize_with_given_amplitude_all_sliders(1)
+
+def randomize_high_variance():
+    randomize_with_given_amplitude_all_sliders(2)
+
+def randomize_with_given_amplitude_all_sliders(sigma):
+    global max_magn, n
+    for i in range(n):
+        for j in range(n):
+            #slider_grid[i][j].set(random.randint(0, 255))
+
+            val = np.random.normal(loc=0.0, scale=sigma)
+            val_clipped = max(-max_magn, min(max_magn, val))  # clip entre 0 et 1
+
+            slider_grid[i][j].set(val_clipped)
+
+    update_image()
+
 
 def set_all_sliders_max():
     pass
@@ -46,8 +95,12 @@ def set_all_sliders_zer():
     pass
 
 def initializeGUI():
+    global slider_grid,n
     n=int(latent_dimension_generator**0.5)
+    global max_magn
     max_magn=5
+
+    global max_magn_twice
     max_magn_twice=2*max_magn
 
     root = tk.Tk()
@@ -80,6 +133,7 @@ def initializeGUI():
     set_max_button.grid(row=n, column=4, columnspan=2, pady=10)
 
     # Imag on the right
+    global image_label
     image_label = tk.Label(root)
     image_label.grid(row=0, column=n, rowspan=n + 1, padx=20, pady=10)
 
