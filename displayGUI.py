@@ -40,11 +40,16 @@ def generate_image_from_input_values(input_raw):
     return predicted_rebound
 
 def set_interval(arr):
-	min_val = np.min(arr)
-	max_val = np.max(arr)
+    min_val = np.min(arr)
+    max_val = np.max(arr)
 
-	projected = (arr - min_val) / (max_val - min_val) * 254
-	return np.round(projected).astype(np.uint8)
+    delta = max_val - min_val
+    if delta>0:
+        projected = (arr - min_val) / (delta) * 254
+    else:
+        projected = arr
+
+    return np.round(projected).astype(np.uint8)
 
 def update_image(event= None):
     global slider_grid, image_label
