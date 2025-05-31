@@ -115,8 +115,8 @@ def add_statistics_to_file(epoch, new_stats):
 
     exists = os.path.isfile(statistics_file_path)
 
-    with open(statistics_file_path, mode='a', newline='', encoding='utf-8') as statfile:
-        writer = csv.writer(statfile)
+    with open(statistics_file_path, mode='a', newline='', encoding='utf-8') as statistics_file:
+        writer = csv.writer(statistics_file)
 
         if not exists:
             writer.writerow(["epoch_id"] + [ key for key in new_stats])
@@ -160,13 +160,9 @@ def discriminator_loss(fake_output, real_output, cross_entropy):
 
 def get_number_of_existing_models(filename):
     current_i=0
-    again=True
-
-    while again:
-        again=os.path.isfile(filename+str(current_i)+'.keras')
+    while os.path.isfile(filename+str(current_i)+'.keras'):
         current_i+=1
-
-    return current_i-2
+    return current_i-1
 
 def get_current_epoch():
     counter_generator = get_number_of_existing_models(model_path + 'generator_epoch_')
