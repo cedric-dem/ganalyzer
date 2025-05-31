@@ -1,4 +1,5 @@
 from config import *
+from misc import *
 
 import os
 import re
@@ -91,8 +92,8 @@ def train(current_epoch, dataset, cross_entropy,  batch_size, latent_dim, genera
     for epoch in range(current_epoch, 999):
         print("==> current epoch : ",epoch)
 
-        generator.save( model_path+'generator_epoch_' + str(epoch) + ".keras")
-        discriminator.save( model_path+ 'discriminator_epoch_' + str(epoch) + ".keras")
+        generator.save(get_generator_model_path_at_given_epoch(epoch))
+        discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
 
         start = time.time()
 
@@ -164,10 +165,10 @@ def discriminator_loss(fake_output, real_output, cross_entropy):
 
 def get_number_of_existing_models(filename):
     current_i=0
-    cont=True
+    again=True
 
-    while cont:
-        cont=os.path.isfile(filename+str(current_i)+'.keras')
+    while again:
+        again=os.path.isfile(filename+str(current_i)+'.keras')
         current_i+=1
 
     return current_i-2
@@ -217,8 +218,8 @@ def launch_training():
     else:
         print('==> Loading latest models')
 
-        discriminator = keras.models.load_model( model_path+'discriminator_epoch_' + str(current_epoch) + ".keras")
-        generator = keras.models.load_model( model_path+'generator_epoch_' + str(current_epoch) + ".keras")
+        discriminator = keras.models.load_model( get_discriminator_model_path_at_given_epoch(current_epoch))
+        generator = keras.models.load_model( get_generator_model_path_at_given_epoch(current_epoch))
 
     generator.summary()
     discriminator.summary()

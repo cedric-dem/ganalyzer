@@ -1,4 +1,4 @@
-from config import *
+from misc import *
 
 import os
 import tkinter as tk
@@ -8,16 +8,13 @@ import numpy as np
 
 import keras
 
-def get_model_path_at_given_epoch(i):
-    return model_path + 'generator_epoch_' + str(i) + ".keras"
-
 def get_all_models():
     result=[]
     i=0
-    this_filename=get_model_path_at_given_epoch(i)
+    this_filename=get_generator_model_path_at_given_epoch(0)
     while os.path.isfile(this_filename):
         result.append(keras.models.load_model(this_filename))
-        this_filename=get_model_path_at_given_epoch(i)
+        this_filename=get_generator_model_path_at_given_epoch(i)
         print("=> Attempt to load epoch ",i)
         i+=1
     return result
