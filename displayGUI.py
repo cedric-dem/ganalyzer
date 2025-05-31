@@ -12,7 +12,7 @@ def getAllModels():
     result=[]
     i=0
     again=True
-    while again  and i<10:
+    while again:#  and i<10:
         print("=> Attempt to load epoch ",i)
 
         this_filename= model_path+'generator_epoch_' + str(i) + ".keras"
@@ -61,10 +61,6 @@ def update_image(event= None):
     image_label.configure(image=img_tk)
     image_label.image = img_tk
 
-
-def set_all_sliders_min():
-    pass
-
 def randomize_all_sliders():
     randomize_with_given_amplitude_all_sliders(1)
 
@@ -84,15 +80,28 @@ def randomize_with_given_amplitude_all_sliders(sigma):
 
     update_image()
 
-
-def set_all_sliders_max():
-    pass
-
-def on_time_slider_change(value):
-    pass
+def set_all_sliders_min():
+    for i in range(n):
+        for j in range(n):
+            slider_grid[i][j].set(-max_magn)
+    update_image()
 
 def set_all_sliders_zer():
-    pass
+    for i in range(n):
+        for j in range(n):
+            slider_grid[i][j].set(0)
+    update_image()
+
+def set_all_sliders_max():
+    for i in range(n):
+        for j in range(n):
+            slider_grid[i][j].set(max_magn)
+    update_image()
+
+def on_time_slider_change(value):
+    global generator
+    generator=allModels[int(float(value))]
+    update_image()
 
 def initializeGUI():
     global slider_grid,n
