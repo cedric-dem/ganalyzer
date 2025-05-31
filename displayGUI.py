@@ -26,170 +26,159 @@ def get_all_models():
 
     return result
 
-def generate_image_from_input_values(input_raw):
-    global slider_width
-    input_rebound = np.array([input_raw]) / slider_width
+class GUI(object):
+    def __init__(self, models_lst):
 
-    if rgb_images:
-        predicted_raw = generator.predict(input_rebound)[0, :, :, :]
-    else:
+        self.nmodels=len(models_lst)
+        self.generator=None
+        self.allModels=models_lst
 
-        predicted_raw = generator.predict(input_rebound)[0, :, :, 0]
-    predicted_rebound = set_interval(predicted_raw)
+        default_value_k = 0
+        default_value_mu = 0
+        default_value_sigma = 1
 
-    return predicted_rebound
+        self.grid_size = int(latent_dimension_generator ** 0.5)
 
-def set_interval(arr):
-    min_val = np.min(arr)
-    max_val = np.max(arr)
+        self.max_slider_value = 5
+        self.slider_width = 2 * self.max_slider_value
 
-    delta = max_val - min_val
-    if delta>0:
-        projected = (arr - min_val) / delta * 254
-    else:
-        projected = arr
+        root = tk.Tk()
+        root.title("GANalyzer")
 
-    return np.round(projected).astype(np.uint8)
+        # Grid of sldiers
+        self.slider_grid = [[None for _ in range(self.grid_size)] for _ in range(self.grid_size)]
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                if i * j <= latent_dimension_generator:
+                    slider = ttk.Scale(root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal',
+                                       length=100)
+                    slider.grid(row=i, column=j, padx=3, pady=3)
+                    slider.bind("<ButtonRelease-1>", self.update_image)
+                    self.slider_grid[i][j] = slider
 
-def update_image(event= None):
-    global slider_grid, image_label
-    values = [slider_grid[i][j].get() for i in range(grid_size) for j in range(grid_size)]
-    img_array = generate_image_from_input_values(values)
-    if rgb_images:
-        img = Image.fromarray(img_array.astype('uint8'), mode='RGB')
-    else:
-        img = Image.fromarray(img_array, mode='L')
-    img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
-    image_label.configure(image=img_tk)
-    image_label.image = img_tk
+        hint_constant = tk.Label(root, text="Set All Constant Value : ")
+        hint_constant.grid(row=self.grid_size, column=0, columnspan=2, pady=10)
 
-def randomize_sliders_with_given_sigma(mu, sigma):
-    global max_slider_value, grid_size
-    for i in range(grid_size):
-        for j in range(grid_size):
-            val = np.random.normal(loc=mu, scale=sigma)
-            val_clipped = max(-max_slider_value, min(max_slider_value, val))  # clip entre 0 et 1
+        hint_random = tk.Label(root, text="Set All Random Value ")
+        hint_random.grid(row=self.grid_size + 1, column=0, columnspan=2, pady=10)
 
-            slider_grid[i][j].set(val_clipped)
+        self.k_label, self.k_slider = self.create_parameter_input_slider(root, "k", 0, 4, self.grid_size, True, self.refresh_label_k)
+        self.mu_label, self.mu_slider = self.create_parameter_input_slider(root, "mu", 0, 2, self.grid_size + 1, True, self.refresh_label_mu)
+        self.sigma_label, self.sigma_slider = self.create_parameter_input_slider(root, "sigma", 1, 5, self.grid_size + 1, False, self.refresh_label_sigma)
 
-    update_image()
+        btn_set_input_constant = ttk.Button(root, text="Set", command=self.set_input_constant)
+        btn_set_input_constant.grid(row=self.grid_size, column=7, columnspan=2, pady=10)
 
-def on_epoch_slider_change(value):
-    global generator, current_epoch_text
+        btn_set_input_random = ttk.Button(root, text="Set", command=self.set_input_random)
+        btn_set_input_random.grid(row=self.grid_size + 1, column=7, columnspan=2, pady=10)
 
-    new_epoch=int(float(value))
-    generator=allModels[new_epoch]
-    update_image()
+        # Image on the right
+        self.image_label = tk.Label(root)
+        self.image_label.grid(row=0, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
 
-    current_epoch_text.config(text="Current Epoch : "+str(new_epoch)+" / "+str(nmodels-1))
+        self.current_epoch_text = tk.Label(root)
+        self.current_epoch_text.grid(row=self.grid_size + 2, column=0, columnspan=2, pady=10)
 
-def set_input_constant():
-    global k_slider
-    new_k_value=k_slider.get()
-    for i in range(grid_size):
-        for j in range(grid_size):
-            slider_grid[i][j].set(new_k_value)
-    update_image()
+        time_slider = ttk.Scale(root, from_=0, to=self.nmodels - 1, orient='horizontal', length=600,command=self.on_epoch_slider_change)
+        time_slider.grid(row=self.grid_size + 2, column=3, columnspan=self.grid_size - 3, padx=10, pady=20, sticky='ew')
 
-def set_input_random():
-    global mu_slider, sigma_slider
-    new_mu_value=mu_slider.get()
-    new_sigma_value=sigma_slider.get()
-    randomize_sliders_with_given_sigma(new_mu_value, new_sigma_value)
+        time_slider.set(self.nmodels - 1)
+        self.on_epoch_slider_change(self.nmodels - 1)
 
-def create_parameter_input_slider(root, name, default_value, x, y, can_be_negative, method_refresh_text):
-    label = tk.Label(root)
-    label.grid(row=y, column=x-1, columnspan=2, pady=10)
-    if can_be_negative:
-        this_min_value=-max_slider_value
-    else:
-        this_min_value=0
-    slider = ttk.Scale(root, from_=this_min_value, to=max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
+        self.refresh_label_k(default_value_k)
+        self.refresh_label_mu(default_value_mu)
+        self.refresh_label_sigma(default_value_sigma)
 
-    slider.grid(row=y, column=x+1, padx=3, pady=3)
-    return label, slider
+        self.randomize_sliders_with_given_sigma(default_value_mu, default_value_sigma)
 
-def refresh_label_k(event):
-    global k_label
-    k_label.config(text="K = "+ str(round(float(event), 2)))
+        root.mainloop()
 
-def refresh_label_mu(event):
-    global mu_label
-    mu_label.config(text="Mu = "+ str(round(float(event), 2)))
+    def generate_image_from_input_values(self, input_raw):
+        input_rebound = np.array([input_raw]) / self.slider_width
 
-def refresh_label_sigma(event):
-    global sigma_label
-    sigma_label.config(text="Sigma = "+ str(round(float(event), 2)))
+        if rgb_images:
+            predicted_raw = self.generator.predict(input_rebound)[0, :, :, :]
+        else:
 
+            predicted_raw = self.generator.predict(input_rebound)[0, :, :, 0]
+        predicted_rebound = self.set_interval(predicted_raw)
 
-def initialize_gui():
-    global grid_size, max_slider_value, slider_width, slider_grid, k_slider, mu_slider, sigma_slider, image_label, current_epoch_text, k_label, mu_label, sigma_label
+        return predicted_rebound
 
-    default_value_k=0
-    default_value_mu=0
-    default_value_sigma=1
+    def set_interval(self, arr):
+        min_val = np.min(arr)
+        max_val = np.max(arr)
 
-    grid_size=int(latent_dimension_generator ** 0.5)
+        delta = max_val - min_val
+        if delta>0:
+            projected = (arr - min_val) / delta * 254
+        else:
+            projected = arr
 
-    max_slider_value=5
-    slider_width= 2 * max_slider_value
+        return np.round(projected).astype(np.uint8)
 
-    root = tk.Tk()
-    root.title("GANalyzer")
+    def update_image(self, event= None):
+        values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
+        img_array = self.generate_image_from_input_values(values)
+        if rgb_images:
+            img = Image.fromarray(img_array.astype('uint8'), mode='RGB')
+        else:
+            img = Image.fromarray(img_array, mode='L')
+        img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
+        self.image_label.configure(image=img_tk)
+        self.image_label.image = img_tk
 
-    # Grille de sliders
-    slider_grid = [[None for _ in range(grid_size)] for _ in range(grid_size)]
-    for i in range(grid_size):
-        for j in range(grid_size):
-            if i * j <= latent_dimension_generator:
-                slider = ttk.Scale(root, from_=-max_slider_value, to=max_slider_value, orient='horizontal', length=100)
-                slider.grid(row=i, column=j, padx=3, pady=3)
-                slider.bind("<ButtonRelease-1>", update_image)
-                slider_grid[i][j] = slider
+    def randomize_sliders_with_given_sigma(self, mu, sigma):
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                val = np.random.normal(loc=mu, scale=sigma)
+                val_clipped = max(-self.max_slider_value, min(self.max_slider_value, val))  # clip entre 0 et 1
 
-    hint_constant = tk.Label(root, text="Set All Constant Value : ")
-    hint_constant.grid(row=grid_size, column=0, columnspan=2, pady=10)
+                self.slider_grid[i][j].set(val_clipped)
 
-    hint_random = tk.Label(root, text="Set All Random Value ")
-    hint_random.grid(row=grid_size+1, column=0, columnspan=2, pady=10)
+        self.update_image()
 
-    k_label, k_slider=create_parameter_input_slider(root,"k",0, 4, grid_size, True, refresh_label_k)
-    mu_label, mu_slider=create_parameter_input_slider(root,"mu",0, 2, grid_size+1, True, refresh_label_mu)
-    sigma_label, sigma_slider=create_parameter_input_slider(root,"sigma",1, 5, grid_size+1,False, refresh_label_sigma)
+    def on_epoch_slider_change(self, value):
+        new_epoch=int(float(value))
+        self.generator=self.allModels[new_epoch]
+        self.update_image()
 
-    btn_set_input_constant = ttk.Button(root, text="Set", command=set_input_constant)
-    btn_set_input_constant.grid(row=grid_size, column=7, columnspan=2, pady=10)
+        self.current_epoch_text.config(text="Current Epoch : "+str(new_epoch)+" / "+str(self.nmodels-1))
 
-    btn_set_input_random = ttk.Button(root, text="Set", command=set_input_random)
-    btn_set_input_random.grid(row=grid_size+1, column=7, columnspan=2, pady=10)
+    def set_input_constant(self):
+        new_k_value=self.k_slider.get()
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                self.slider_grid[i][j].set(new_k_value)
+        self.update_image()
 
-    # Image on the right
-    image_label = tk.Label(root)
-    image_label.grid(row=0, column=grid_size, rowspan=grid_size + 1, padx=20, pady=10)
+    def set_input_random(self):
+        new_mu_value=self.mu_slider.get()
+        new_sigma_value=self.sigma_slider.get()
+        self.randomize_sliders_with_given_sigma(new_mu_value, new_sigma_value)
 
-    current_epoch_text = tk.Label(root)
-    current_epoch_text.grid(row=grid_size+2, column=0, columnspan=2, pady=10)
+    def create_parameter_input_slider(self, root, name, default_value, x, y, can_be_negative, method_refresh_text):
+        label = tk.Label(root)
+        label.grid(row=y, column=x-1, columnspan=2, pady=10)
+        if can_be_negative:
+            this_min_value=-self.max_slider_value
+        else:
+            this_min_value=0
+        slider = ttk.Scale(root, from_=this_min_value, to=self.max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
 
-    time_slider = ttk.Scale(root, from_=0, to=nmodels - 1, orient='horizontal', length=600, command=on_epoch_slider_change)
-    time_slider.grid(row=grid_size + 2, column=3, columnspan=grid_size-3, padx=10, pady=20, sticky='ew')
+        slider.grid(row=y, column=x+1, padx=3, pady=3)
+        return label, slider
 
-    time_slider.set(nmodels-1)
-    on_epoch_slider_change(nmodels-1)
+    def refresh_label_k(self, event):
+        self.k_label.config(text="K = "+ str(round(float(event), 2)))
 
-    refresh_label_k(default_value_k)
-    refresh_label_mu(default_value_mu)
-    refresh_label_sigma(default_value_sigma)
+    def refresh_label_mu(self, event):
+        self.mu_label.config(text="Mu = "+ str(round(float(event), 2)))
 
-    randomize_sliders_with_given_sigma(default_value_mu,default_value_sigma)
-
-    root.mainloop()
-
-global current_epoch_text,k_slider, mu_slider, sigma_slider,slider_width, slider_grid,grid_size, max_slider_value,image_label, k_label, mu_label, sigma_label
+    def refresh_label_sigma(self, event):
+        self.sigma_label.config(text="Sigma = "+ str(round(float(event), 2)))
 
 # load all the models
 allModels = get_all_models()
-nmodels = len(allModels)
-print('==> Number of loaded models : ',nmodels)
-generator = allModels[0]
-
-initialize_gui()
+print('==> Number of loaded models : ',len(allModels))
+main_gui=GUI(allModels)
