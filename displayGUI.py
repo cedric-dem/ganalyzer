@@ -42,7 +42,7 @@ class GUI(object):
         self.root.mainloop()
 
     def init_sliders(self):
-        self.time_slider.set(self.models_quantity - 1)
+        self.epoch_slider_generator.set(self.models_quantity - 1)
         self.on_epoch_slider_change(self.models_quantity - 1)
 
         self.refresh_label_k(self.default_value_k)
@@ -88,17 +88,19 @@ class GUI(object):
         btn_set_input_random.grid(row=self.grid_size + 1, column=7, columnspan=2, pady=10)
 
     def initialize_generator_panel(self):
+        self.input_panel_height = self.grid_size + 2
 
         self.current_epoch_text = tk.Label(self.root)
-        self.current_epoch_text.grid(row=self.grid_size + 2, column=0, columnspan=2, pady=10)
+        self.current_epoch_text.grid(row=self.input_panel_height+3, column=0, columnspan=2, pady=10)
 
-        self.time_slider = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
-        self.time_slider.grid(row=self.grid_size + 2, column=3, columnspan=self.grid_size - 3, padx=10, pady=20, sticky='ew')
+        self.epoch_slider_generator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
+        self.epoch_slider_generator.grid(row=self.input_panel_height + 3, column=3, columnspan=self.grid_size - 3, padx=10, pady=20, sticky='ew')
 
+        self.image_in_generator = tk.Label(self.root)
+        self.image_in_generator.grid(row=self.input_panel_height, column=self.grid_size - 2, rowspan=self.grid_size + 1, padx=20, pady=10)
 
-        # Image on the right
-        self.image_label = tk.Label(self.root)
-        self.image_label.grid(row=0, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
+        self.image_out_generator = tk.Label(self.root)
+        self.image_out_generator.grid(row=self.input_panel_height, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
 
     def initialize_discriminator_panel(self):
         pass
@@ -128,14 +130,22 @@ class GUI(object):
 
     def update_image(self, event= None):
         values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
+
+        #update image_out_generator
         img_array = self.generate_image_from_input_values(values)
         if rgb_images:
             img = Image.fromarray(img_array.astype('uint8'), mode='RGB')
         else:
             img = Image.fromarray(img_array, mode='L')
         img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
-        self.image_label.configure(image=img_tk)
-        self.image_label.image = img_tk
+        self.image_out_generator.configure(image=img_tk)
+        self.image_out_generator.image = img_tk
+
+        #update image_in_generator
+        img = Image.fromarray(np.array(values).reshape((self.grid_size, self.grid_size)), mode='L')
+        img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
+        self.image_in_generator.configure(image=img_tk)
+        self.image_in_generator.image = img_tk
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
