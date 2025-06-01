@@ -142,10 +142,17 @@ class GUI(object):
         self.image_out_generator.image = img_tk
 
         #update image_in_generator
-        img = Image.fromarray(np.array(values).reshape((self.grid_size, self.grid_size)), mode='L')
+        input_before_reshape=np.array(values).reshape((self.grid_size, self.grid_size))
+        input_after_reshape=self.project(input_before_reshape,254,-self.max_slider_value, self.max_slider_value).astype(np.uint8)
+
+        img = Image.fromarray(input_after_reshape, mode='L')
         img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
         self.image_in_generator.configure(image=img_tk)
         self.image_in_generator.image = img_tk
+
+    @staticmethod
+    def project(arr, to, project_from, project_to):
+        return ((arr-project_from)/(project_to-project_from))*to
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
