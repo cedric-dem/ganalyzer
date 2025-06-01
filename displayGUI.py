@@ -83,32 +83,32 @@ class GUI(object):
         for i in range(self.grid_size):
             for j in range(self.grid_size):
                 slider = ttk.Scale(self.root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal', length=100)
-                slider.grid(row=i, column=j, padx=3, pady=3)
+                slider.grid(row=i+1, column=j, padx=3, pady=3)
                 slider.bind("<ButtonRelease-1>", self.update_images_generator)
                 self.slider_grid[i][j] = slider
 
         hint_constant = tk.Label(self.root, text="Set All Constant Value : ")
-        hint_constant.grid(row=self.grid_size, column=0, columnspan=2, pady=10)
+        hint_constant.grid(row=self.grid_size+1, column=0, columnspan=2, pady=10)
 
         hint_random = tk.Label(self.root, text="Set All Random Value ")
-        hint_random.grid(row=self.grid_size + 1, column=0, columnspan=2, pady=10)
+        hint_random.grid(row=self.grid_size + 2, column=0, columnspan=2, pady=10)
 
-        self.k_label = self.create_parameter_input_label(self.root, 4, self.grid_size)
-        self.mu_label = self.create_parameter_input_label(self.root, 2, self.grid_size + 1)
-        self.sigma_label = self.create_parameter_input_label(self.root, 5, self.grid_size + 1)
+        self.k_label = self.create_parameter_input_label(self.root, 4, self.grid_size + 1)
+        self.mu_label = self.create_parameter_input_label(self.root, 2, self.grid_size + 2)
+        self.sigma_label = self.create_parameter_input_label(self.root, 5, self.grid_size + 2)
 
-        self.k_slider = self.create_parameter_input_slider(self.root,  self.default_value_k, 4, self.grid_size, True, self.refresh_label_k)
-        self.mu_slider = self.create_parameter_input_slider(self.root, self.default_value_mu, 2, self.grid_size + 1, True, self.refresh_label_mu)
-        self.sigma_slider = self.create_parameter_input_slider(self.root, self.default_value_sigma, 5, self.grid_size + 1, False, self.refresh_label_sigma)
+        self.k_slider = self.create_parameter_input_slider(self.root,  self.default_value_k, 4, self.grid_size +1, True, self.refresh_label_k)
+        self.mu_slider = self.create_parameter_input_slider(self.root, self.default_value_mu, 2, self.grid_size + 2, True, self.refresh_label_mu)
+        self.sigma_slider = self.create_parameter_input_slider(self.root, self.default_value_sigma, 5, self.grid_size + 2, False, self.refresh_label_sigma)
 
         btn_set_input_constant = ttk.Button(self.root, text="Set", command=self.set_input_constant)
-        btn_set_input_constant.grid(row=self.grid_size, column=7, columnspan=2, pady=10)
+        btn_set_input_constant.grid(row=self.grid_size+1, column=7, columnspan=2, pady=10)
 
         btn_set_input_random = ttk.Button(self.root, text="Set", command=self.set_input_random)
-        btn_set_input_random.grid(row=self.grid_size + 1, column=7, columnspan=2, pady=10)
+        btn_set_input_random.grid(row=self.grid_size + 2, column=7, columnspan=2, pady=10)
 
     def initialize_generator_panel(self):
-        self.input_panel_height = self.grid_size + 2
+        self.input_panel_height = self.grid_size + 3
 
         generator_hint = tk.Label(self.root,text="Generator", bg="#666666")
         generator_hint.grid(row=self.input_panel_height, column=0, columnspan=15, pady=10,sticky='we')
