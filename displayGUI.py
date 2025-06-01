@@ -48,6 +48,7 @@ class GUI(object):
         self.models_list=models_list
 
         self.root = tk.Tk()
+        self.root.configure(bg="black")
         self.root.title("GANalyzer")
 
         self.initialize_input_panel()
@@ -69,7 +70,7 @@ class GUI(object):
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
     def initialize_input_panel(self):
-        input_data_panel_hint = tk.Label(self.root,text="Set Input Data", bg="green")
+        input_data_panel_hint = tk.Label(self.root,text="Set Input Data", bg="#666666")
         input_data_panel_hint.grid(row=0, column=0, columnspan=15, pady=10,sticky='we')
 
         self.grid_size = int(latent_dimension_generator ** 0.5)
@@ -109,7 +110,7 @@ class GUI(object):
     def initialize_generator_panel(self):
         self.input_panel_height = self.grid_size + 2
 
-        generator_hint = tk.Label(self.root,text="Generator", bg="green")
+        generator_hint = tk.Label(self.root,text="Generator", bg="#666666")
         generator_hint.grid(row=self.input_panel_height, column=0, columnspan=15, pady=10,sticky='we')
 
         self.current_epoch_text = tk.Label(self.root)
@@ -127,7 +128,7 @@ class GUI(object):
     def initialize_discriminator_panel(self):
         self.input_and_generator_panel_height = self.input_panel_height + 15
 
-        discriminator_hint = tk.Label(self.root,text="Discriminator", bg="green")
+        discriminator_hint = tk.Label(self.root,text="Discriminator", bg="#666666")
         discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, pady=10,sticky='we')
 
     def generate_image_from_input_values(self, input_raw):
