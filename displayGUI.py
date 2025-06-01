@@ -19,6 +19,22 @@ def get_all_models():
         i+=1
     return result
 
+def set_interval(arr):
+    min_val = np.min(arr)
+    max_val = np.max(arr)
+
+    delta = max_val - min_val
+    if delta>0:
+        projected = (arr - min_val) / delta * 254
+    else:
+        projected = arr
+
+    return np.round(projected).astype(np.uint8)
+
+def project_array(arr, to, project_from, project_to):
+    return ((arr-project_from)/(project_to-project_from))*to
+
+
 class GUI(object):
     def __init__(self, models_list):
 
@@ -64,7 +80,7 @@ class GUI(object):
             for j in range(self.grid_size):
                 slider = ttk.Scale(self.root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal', length=100)
                 slider.grid(row=i, column=j, padx=3, pady=3)
-                slider.bind("<ButtonRelease-1>", self.update_image)
+                slider.bind("<ButtonRelease-1>", self.update_images_generator)
                 self.slider_grid[i][j] = slider
 
         hint_constant = tk.Label(self.root, text="Set All Constant Value : ")
@@ -113,22 +129,9 @@ class GUI(object):
         else:
             predicted_raw = self.generator.predict(input_rebound)[0, :, :, 0]
 
-        return  self.set_interval(predicted_raw)
+        return  set_interval(predicted_raw)
 
-    @staticmethod
-    def set_interval(arr):
-        min_val = np.min(arr)
-        max_val = np.max(arr)
-
-        delta = max_val - min_val
-        if delta>0:
-            projected = (arr - min_val) / delta * 254
-        else:
-            projected = arr
-
-        return np.round(projected).astype(np.uint8)
-
-    def update_image(self, event= None):
+    def update_images_generator(self, event= None):
         values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
 
         #update image_out_generator
@@ -143,16 +146,12 @@ class GUI(object):
 
         #update image_in_generator
         input_before_reshape=np.array(values).reshape((self.grid_size, self.grid_size))
-        input_after_reshape=self.project(input_before_reshape,254,-self.max_slider_value, self.max_slider_value).astype(np.uint8)
+        input_after_reshape=project_array(input_before_reshape,254,-self.max_slider_value, self.max_slider_value).astype(np.uint8)
 
         img = Image.fromarray(input_after_reshape, mode='L')
         img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
         self.image_in_generator.configure(image=img_tk)
         self.image_in_generator.image = img_tk
-
-    @staticmethod
-    def project(arr, to, project_from, project_to):
-        return ((arr-project_from)/(project_to-project_from))*to
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
@@ -162,12 +161,12 @@ class GUI(object):
 
                 self.slider_grid[i][j].set(val_clipped)
 
-        self.update_image()
+        self.update_images_generator()
 
     def on_epoch_slider_change(self, value):
         new_epoch=int(float(value))
         self.generator=self.models_list[new_epoch]
-        self.update_image()
+        self.update_images_generator()
 
         self.current_epoch_text.config(text="Current Epoch : "+str(new_epoch)+" / "+str(self.models_quantity - 1))
 
@@ -176,7 +175,7 @@ class GUI(object):
         for i in range(self.grid_size):
             for j in range(self.grid_size):
                 self.slider_grid[i][j].set(new_k_value)
-        self.update_image()
+        self.update_images_generator()
 
     def set_input_random(self):
         new_mu_value=self.mu_slider.get()
