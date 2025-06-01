@@ -69,6 +69,8 @@ class GUI(object):
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
     def initialize_input_panel(self):
+        input_data_panel_hint = tk.Label(self.root,text="Set Input Data", bg="green")
+        input_data_panel_hint.grid(row=0, column=0, columnspan=15, pady=10,sticky='we')
 
         self.grid_size = int(latent_dimension_generator ** 0.5)
 
@@ -107,20 +109,26 @@ class GUI(object):
     def initialize_generator_panel(self):
         self.input_panel_height = self.grid_size + 2
 
+        generator_hint = tk.Label(self.root,text="Generator", bg="green")
+        generator_hint.grid(row=self.input_panel_height, column=0, columnspan=15, pady=10,sticky='we')
+
         self.current_epoch_text = tk.Label(self.root)
-        self.current_epoch_text.grid(row=self.input_panel_height+3, column=0, columnspan=2, pady=10)
+        self.current_epoch_text.grid(row=self.input_panel_height+4, column=0, columnspan=2, pady=10)
 
         self.epoch_slider_generator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
-        self.epoch_slider_generator.grid(row=self.input_panel_height + 4, column=0, columnspan=self.grid_size - 6, padx=10, pady=20, sticky='ew')
+        self.epoch_slider_generator.grid(row=self.input_panel_height + 5, column=0, columnspan=self.grid_size - 6, padx=10, pady=20, sticky='ew')
 
         self.image_in_generator = tk.Label(self.root)
-        self.image_in_generator.grid(row=self.input_panel_height, column=self.grid_size - 2, rowspan=self.grid_size + 1, padx=20, pady=10)
+        self.image_in_generator.grid(row=self.input_panel_height+1, column=self.grid_size - 2, rowspan=self.grid_size + 1, padx=20, pady=10)
 
         self.image_out_generator = tk.Label(self.root)
-        self.image_out_generator.grid(row=self.input_panel_height, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
+        self.image_out_generator.grid(row=self.input_panel_height+1, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
 
     def initialize_discriminator_panel(self):
-        pass
+        self.input_and_generator_panel_height = self.input_panel_height + 15
+
+        discriminator_hint = tk.Label(self.root,text="Discriminator", bg="green")
+        discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, pady=10,sticky='we')
 
     def generate_image_from_input_values(self, input_raw):
         input_rebound = np.array([input_raw]) / self.slider_width
