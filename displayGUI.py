@@ -34,9 +34,10 @@ def set_interval(arr):
 def project_array(arr, to, project_from, project_to):
     return ((arr-project_from)/(project_to-project_from))*to
 
-
 class GUI(object):
     def __init__(self, models_list):
+
+        self.image_size=150
 
         self.default_value_k = 0
         self.default_value_mu = 0
@@ -110,7 +111,7 @@ class GUI(object):
         self.current_epoch_text.grid(row=self.input_panel_height+3, column=0, columnspan=2, pady=10)
 
         self.epoch_slider_generator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_epoch_slider_change)
-        self.epoch_slider_generator.grid(row=self.input_panel_height + 3, column=3, columnspan=self.grid_size - 3, padx=10, pady=20, sticky='ew')
+        self.epoch_slider_generator.grid(row=self.input_panel_height + 4, column=0, columnspan=self.grid_size - 6, padx=10, pady=20, sticky='ew')
 
         self.image_in_generator = tk.Label(self.root)
         self.image_in_generator.grid(row=self.input_panel_height, column=self.grid_size - 2, rowspan=self.grid_size + 1, padx=20, pady=10)
@@ -140,7 +141,7 @@ class GUI(object):
             img = Image.fromarray(img_array.astype('uint8'), mode='RGB')
         else:
             img = Image.fromarray(img_array, mode='L')
-        img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
+        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
         self.image_out_generator.configure(image=img_tk)
         self.image_out_generator.image = img_tk
 
@@ -149,7 +150,7 @@ class GUI(object):
         input_after_reshape=project_array(input_before_reshape,254,-self.max_slider_value, self.max_slider_value).astype(np.uint8)
 
         img = Image.fromarray(input_after_reshape, mode='L')
-        img_tk = ImageTk.PhotoImage(img.resize((140, 140), Image.NEAREST))
+        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
         self.image_in_generator.configure(image=img_tk)
         self.image_in_generator.image = img_tk
 
