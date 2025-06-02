@@ -58,10 +58,7 @@ class GUI(object):
         self.slider_grid = [[None for _ in range(self.grid_size)] for _ in range(self.grid_size)]
         for i in range(self.grid_size):
             for j in range(self.grid_size):
-                slider = ttk.Scale(self.root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal', length=100)
-                slider.grid(row=i+1, column=j, padx=3, pady=3)
-                slider.bind("<ButtonRelease-1>", self.update_images_generator)
-                self.slider_grid[i][j] = slider
+                self.slider_grid[i][j] = self.get_grid_slider(i, j)
 
         hint_constant = tk.Label(self.root, text="Set All Constant Value : ")
         hint_constant.grid(row=self.grid_size+1, column=0, columnspan=2, pady=10)
@@ -82,6 +79,13 @@ class GUI(object):
 
         btn_set_input_random = ttk.Button(self.root, text="Set", command=self.set_input_random)
         btn_set_input_random.grid(row=self.grid_size + 2, column=7, columnspan=2, pady=10)
+
+    def get_grid_slider(self, i, j):
+        slider = ttk.Scale(self.root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal',
+                           length=100)
+        slider.grid(row=i + 1, column=j, padx=3, pady=3)
+        slider.bind("<ButtonRelease-1>", self.update_images_generator)
+        return slider
 
     def initialize_generator_panel(self):
         self.input_panel_height = self.grid_size + 3
@@ -118,8 +122,8 @@ class GUI(object):
         self.image_in_discriminator = tk.Label(self.root)
         self.image_in_discriminator.grid(row=self.input_and_generator_panel_height+1, column=self.grid_size - 2, rowspan=self.grid_size + 1, padx=20, pady=10)
 
-        self.image_out_discriminator = tk.Label(self.root)
-        self.image_out_discriminator.grid(row=self.input_and_generator_panel_height+1, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10)
+        self.prediction_out_discriminator = tk.Label(self.root)
+        self.prediction_out_discriminator.grid(row=self.input_and_generator_panel_height + 1, column=self.grid_size, rowspan=self.grid_size + 1, padx=20, pady=10,sticky='nsew')
 
     def generate_image_from_input_values(self, input_raw):
         input_rebound = np.array([input_raw]) / self.slider_width
@@ -165,9 +169,10 @@ class GUI(object):
         self.image_in_discriminator.configure(image=img_tk)
         self.image_in_discriminator.image = img_tk
 
-        #update image_in_generator
+        #update prediction discriminator
         #TODO
-
+        #predictied_output=self.predictor.predict(self.generated_image)
+        self.prediction_out_discriminator.config(text="Prediction : ")#+str(predicted_output))
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
