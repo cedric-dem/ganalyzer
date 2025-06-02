@@ -132,32 +132,42 @@ class GUI(object):
         return  set_interval(predicted_raw)
 
     def update_images_generator(self, event= None):
-        values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
-
-        #update image_out_generator
-        img_array = self.generate_image_from_input_values(values)
-        if rgb_images:
-            img = Image.fromarray(img_array.astype('uint8'), mode='RGB')
-        else:
-            img = Image.fromarray(img_array, mode='L')
-        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-        self.image_out_generator.configure(image=img_tk)
-        self.image_out_generator.image = img_tk
-
         #update image_in_generator
+        values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
         input_before_reshape=np.array(values).reshape((self.grid_size, self.grid_size))
         input_after_reshape=project_array(input_before_reshape,254,-self.max_slider_value, self.max_slider_value).astype(np.uint8)
-
         img = Image.fromarray(input_after_reshape, mode='L')
         img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
         self.image_in_generator.configure(image=img_tk)
         self.image_in_generator.image = img_tk
 
+        #update image_out_generator
+        self.generated_image = self.generate_image_from_input_values(values)
+        if rgb_images:
+            img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
+        else:
+            img = Image.fromarray(self.generated_image, mode='L')
+        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
+        self.image_out_generator.configure(image=img_tk)
+        self.image_out_generator.image = img_tk
+
+        # Update discriminator
         self.update_images_discriminator()
 
     def update_images_discriminator(self):
+
+        #update image_in_discriminator
+        if rgb_images:
+            img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
+        else:
+            img = Image.fromarray(self.generated_image, mode='L')
+        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
+        self.image_in_discriminator.configure(image=img_tk)
+        self.image_in_discriminator.image = img_tk
+
+        #update image_in_generator
         #TODO
-        pass
+
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
