@@ -1,6 +1,6 @@
-model_name="test_0"
+model_name = "test_0"
 
-model_path = "model_"+model_name+"/"
+model_path = "model_" + model_name + "/"
 
 statistics_file_path = model_path + "statistics.csv"
 

@@ -3,63 +3,60 @@ from config import *
 from keras import layers
 import tensorflow as tf
 
-if model_name=="test_0":
+if model_name == "test_0":
+
     def get_discriminator():
-        model = tf.keras.Sequential([
-            layers.Input(shape=(64, 64, 3)),
-
-            layers.Conv2D(64, kernel_size=5, strides=2, padding='same'),
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
-
-            layers.Conv2D(128, kernel_size=5, strides=2, padding='same'),
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
-
-            layers.Conv2D(256, kernel_size=5, strides=2, padding='same'),  # descente en taille
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
-
-            layers.Conv2D(512, kernel_size=3, strides=1, padding='same'),  # couche supplémentaire pour complexifier
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
-
-            layers.Flatten(),
-            layers.Dense(1, activation='sigmoid')
-        ])
+        model = tf.keras.Sequential(
+            [
+                layers.Input(shape=(64, 64, 3)),
+                layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),  # descente en taille
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Conv2D(512, kernel_size=3, strides=1, padding="same"),  # couche supplémentaire pour complexifier
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Flatten(),
+                layers.Dense(1, activation="sigmoid"),
+            ]
+        )
         return model
 
     def get_generator():
-        model = tf.keras.Sequential([
-            layers.Input(shape=(latent_dimension_generator ,)),
-
-            # Projection et reshape initial (par ex. 8x8x256)
-            layers.Dense(8 * 8 * 256, use_bias=False),
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
-            layers.Reshape((8, 8, 256)),  # => (8, 8, 256)
-
-            # Upsampling 1 => (16, 16, 128)
-            layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding='same', use_bias=False),
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
-
-            # Upsampling 2 => (32, 32, 64)
-            layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding='same', use_bias=False),
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
-
-            # Upsampling 3 => (64, 64, 32)
-            layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding='same', use_bias=False),
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
-
-            # Couche de sortie => (64, 64, 3)
-            layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding='same', activation='tanh')
-        ])
+        model = tf.keras.Sequential(
+            [
+                layers.Input(shape=(latent_dimension_generator,)),
+                # Projection et reshape initial (par ex. 8x8x256)
+                layers.Dense(8 * 8 * 256, use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                layers.Reshape((8, 8, 256)),  # => (8, 8, 256)
+                # Upsampling 1 => (16, 16, 128)
+                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                # Upsampling 2 => (32, 32, 64)
+                layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                # Upsampling 3 => (64, 64, 32)
+                layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                # Couche de sortie => (64, 64, 3)
+                layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"),
+            ]
+        )
         return model
 
-if model_name=="test_1":
+
+if model_name == "test_1":
+
     def get_generator():
 
         # Size of feature maps in generator
@@ -95,7 +92,6 @@ if model_name=="test_1":
             ]
         )
 
-
     def get_discriminator():
         if rgb_images:
             nc = 3
@@ -128,5 +124,6 @@ if model_name=="test_1":
                 # Output is (1, 1, 1)
             ]
         )
+
 else:
     raise Exception("model not found")
