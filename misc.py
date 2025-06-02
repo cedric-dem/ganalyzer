@@ -24,17 +24,14 @@ def get_all_models(model_type):
         i+=1
     return result
 
-def set_interval(arr):
-    min_val = np.min(arr)
-    max_val = np.max(arr)
-
-    delta = max_val - min_val
-    if delta>0:
-        projected = (arr - min_val) / delta * 254
-    else:
-        projected = arr
-
+def find_limits_and_project(arr):
+    projected=project_array(arr, 254, np.min(arr), np.max(arr))
     return np.round(projected).astype(np.uint8)
 
 def project_array(arr, to, project_from, project_to):
-    return ((arr-project_from)/(project_to-project_from))*to
+    delta=project_to-project_from
+    if delta>0:
+        result = ((arr-project_from) / delta) * to
+    else:
+        result = arr
+    return result
