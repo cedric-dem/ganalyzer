@@ -19,7 +19,7 @@ def get_all_models(model_type):
     this_filename=get_model_path_at_given_epoch(model_type,0)
     while os.path.isfile(this_filename) and i<10:
         result.append(keras.models.load_model(this_filename))
-        this_filename=get_model_path_at_given_epoch(model_type,0)
+        this_filename=get_model_path_at_given_epoch(model_type,i)
         print("=> Attempt to load epoch ",i)
         i+=1
     return result
