@@ -146,45 +146,59 @@ class GUI(object):
         if not self.initializing: #TODO maybe put that if before method call ?
             print('==> Update Generator')
 
-            #update image_in_generator
             values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
-            input_before_reshape=np.array(values).reshape((self.grid_size, self.grid_size))
-            input_after_reshape=project_array(input_before_reshape,254,-self.max_slider_value, self.max_slider_value).astype(np.uint8)
-            img = Image.fromarray(input_after_reshape, mode='L')
-            img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-            self.image_in_generator.configure(image=img_tk)
-            self.image_in_generator.image = img_tk
+
+            #update image_in_generator
+            self.refresh_image_in_generator(values)
 
             #update image_out_generator
-            self.generated_image = self.generate_image_from_input_values(values)
-            if rgb_images:
-                img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
-            else:
-                img = Image.fromarray(self.generated_image, mode='L')
-            img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-            self.image_out_generator.configure(image=img_tk)
-            self.image_out_generator.image = img_tk
+            self.refresh_image_out_generator(values)
 
             # Update discriminator
             self.update_discriminator()
+
+    def refresh_image_in_generator(self, values):
+        input_before_reshape = np.array(values).reshape((self.grid_size, self.grid_size))
+        input_after_reshape = project_array(input_before_reshape, 254, -self.max_slider_value,
+                                            self.max_slider_value).astype(np.uint8)
+        img = Image.fromarray(input_after_reshape, mode='L')
+        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
+        self.image_in_generator.configure(image=img_tk)
+        self.image_in_generator.image = img_tk
+
+    def refresh_image_out_generator(self, values):
+        self.generated_image = self.generate_image_from_input_values(values)
+        if rgb_images:
+            img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
+        else:
+            img = Image.fromarray(self.generated_image, mode='L')
+        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
+        self.image_out_generator.configure(image=img_tk)
+        self.image_out_generator.image = img_tk
 
     def update_discriminator(self):
         if not self.initializing: #TODO maybe put that if before method call ?
             print('==> Update Discriminator')
 
             #update image_in_discriminator
-            if rgb_images:
-                img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
-            else:
-                img = Image.fromarray(self.generated_image, mode='L')
-            img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-            self.image_in_discriminator.configure(image=img_tk)
-            self.image_in_discriminator.image = img_tk
+            self.refresh_image_in_discriminator()
 
             #update prediction discriminator
-            input_image_discriminator=np.array([((self.generated_image- 127.5) / 127.5).astype(np.float64)])
-            predicted_output=self.discriminator.predict(input_image_discriminator)[0][0][0][0]
-            self.prediction_out_discriminator.config(text="Prediction : "+str(round(predicted_output,2)))
+            self.refresh_prediction_discriminator()
+
+    def refresh_image_in_discriminator(self):
+        if rgb_images:
+            img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
+        else:
+            img = Image.fromarray(self.generated_image, mode='L')
+        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
+        self.image_in_discriminator.configure(image=img_tk)
+        self.image_in_discriminator.image = img_tk
+
+    def refresh_prediction_discriminator(self):
+        input_image_discriminator = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
+        predicted_output = self.discriminator.predict(input_image_discriminator)[0][0][0][0]
+        self.prediction_out_discriminator.config(text="Prediction : " + str(round(predicted_output, 2)))
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
