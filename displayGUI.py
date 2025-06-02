@@ -14,7 +14,7 @@ class GUI(object):
         self.default_value_mu = 0
         self.default_value_sigma = 1
 
-        self.models_quantity=len(models_list_generator)
+        self.models_quantity=min(len(models_list_generator),len(models_list_discriminator))
         self.generator=None
         self.discriminator = None
         self.models_list_generator=models_list_generator
@@ -136,6 +136,8 @@ class GUI(object):
         return  set_interval(predicted_raw)
 
     def update_images_generator(self, event= None):
+        print('==> Update images Gene')
+
         #update image_in_generator
         values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
         input_before_reshape=np.array(values).reshape((self.grid_size, self.grid_size))
@@ -159,6 +161,7 @@ class GUI(object):
         self.update_images_discriminator()
 
     def update_images_discriminator(self):
+        print('==> Update images Disc')
 
         #update image_in_discriminator
         if rgb_images:
@@ -170,9 +173,9 @@ class GUI(object):
         self.image_in_discriminator.image = img_tk
 
         #update prediction discriminator
-        #TODO
-        #predictied_output=self.predictor.predict(self.generated_image)
-        self.prediction_out_discriminator.config(text="Prediction : ")#+str(predicted_output))
+        input_image_discriminator=np.array([((self.generated_image- 127.5) / 127.5).astype(np.float64)])
+        predicted_output=self.discriminator.predict(input_image_discriminator)[0][0][0][0]
+        self.prediction_out_discriminator.config(text="Prediction : "+str(round(predicted_output,2)))
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
@@ -185,6 +188,7 @@ class GUI(object):
         self.update_images_generator()
 
     def on_generator_epoch_slider_change(self, value):
+        #new_epoch=int(float(self.epoch_slider_generator.get()))
         new_epoch=int(float(value))
         self.generator=self.models_list_generator[new_epoch]
         self.update_images_generator()
@@ -192,9 +196,10 @@ class GUI(object):
         self.current_epoch_generator_text.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
 
     def on_discriminator_epoch_slider_change(self, value):
+        #new_epoch=int(float(self.epoch_slider_discriminator.get()))
         new_epoch=int(float(value))
         self.discriminator=self.models_list_discriminator[new_epoch]
-        self.update_images_generator()
+        self.update_images_discriminator()
 
         self.current_epoch_discriminator_text.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
 
