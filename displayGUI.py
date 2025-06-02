@@ -77,13 +77,13 @@ class GUI(object):
         label_hint_random = tk.Label(self.root, text="Set All Random Value ")
         label_hint_random.grid(row=self.input_image_grid_size + 2, column=0, columnspan=2, pady=10)
 
-        self.label_k = self.create_parameter_input_label(self.root, 4, self.input_image_grid_size + 1)
-        self.label_mu = self.create_parameter_input_label(self.root, 2, self.input_image_grid_size + 2)
-        self.label_sigma = self.create_parameter_input_label(self.root, 5, self.input_image_grid_size + 2)
+        self.label_k = self.create_parameter_input_label(4, self.input_image_grid_size + 1)
+        self.label_mu = self.create_parameter_input_label(2, self.input_image_grid_size + 2)
+        self.label_sigma = self.create_parameter_input_label( 5, self.input_image_grid_size + 2)
 
-        self.slider_k = self.create_parameter_input_slider(self.root, self.default_value_k, 4, self.input_image_grid_size + 1, True, self.refresh_label_k)
-        self.slider_mu = self.create_parameter_input_slider(self.root, self.default_value_mu, 2, self.input_image_grid_size + 2, True, self.refresh_label_mu)
-        self.slider_sigma = self.create_parameter_input_slider(self.root, self.default_value_sigma, 5, self.input_image_grid_size + 2, False, self.refresh_label_sigma)
+        self.slider_k = self.create_parameter_input_slider(self.default_value_k, 4, self.input_image_grid_size + 1, True, self.refresh_label_k)
+        self.slider_mu = self.create_parameter_input_slider(self.default_value_mu, 2, self.input_image_grid_size + 2, True, self.refresh_label_mu)
+        self.slider_sigma = self.create_parameter_input_slider(self.default_value_sigma, 5, self.input_image_grid_size + 2, False, self.refresh_label_sigma)
 
         button_set_input_constant = ttk.Button(self.root, text="Set", command=self.set_input_constant)
         button_set_input_constant.grid(row=self.input_image_grid_size + 1, column=7, columnspan=2, pady=10)
@@ -247,18 +247,17 @@ class GUI(object):
         new_sigma_value = self.slider_sigma.get()
         self.randomize_all_sliders(new_mu_value, new_sigma_value)
 
-    @staticmethod
-    def create_parameter_input_label(root, x, y):
-        label = tk.Label(root)
+    def create_parameter_input_label(self, x, y):
+        label = tk.Label(self.root)
         label.grid(row=y, column=x - 1, columnspan=2, pady=10)
         return label
 
-    def create_parameter_input_slider(self, root, default_value, x, y, can_be_negative, method_refresh_text):
+    def create_parameter_input_slider(self, default_value, x, y, can_be_negative, method_refresh_text):
         if can_be_negative:
             this_min_value = -self.max_slider_value
         else:
             this_min_value = 0
-        slider = ttk.Scale(root, from_=this_min_value, to=self.max_slider_value, orient="horizontal", length=100, command=method_refresh_text)
+        slider = ttk.Scale(self.root, from_=this_min_value, to=self.max_slider_value, orient="horizontal", length=100, command=method_refresh_text)
 
         slider.grid(row=y, column=x + 1, padx=3, pady=3)
         slider.set(default_value)
