@@ -24,7 +24,6 @@ class GUI(object):
         self.root.configure(bg="black")
         self.root.title("GANalyzer")
 
-
         self.initializing=True
 
         self.initialize_input_panel()
@@ -159,22 +158,23 @@ class GUI(object):
 
     def refresh_image_in_generator(self, values):
         input_before_reshape = np.array(values).reshape((self.grid_size, self.grid_size))
-        input_after_reshape = project_array(input_before_reshape, 254, -self.max_slider_value,
-                                            self.max_slider_value).astype(np.uint8)
-        img = Image.fromarray(input_after_reshape, mode='L')
+        input_after_reshape = project_array(input_before_reshape, 254, -self.max_slider_value, self.max_slider_value).astype(np.uint8)
+
+        self.refresh_tk_image(input_after_reshape, False,  self.image_in_generator)
+
+    def refresh_tk_image(self, input_matrix, is_color, tk_image):
+        if is_color:
+            img = Image.fromarray(input_matrix.astype('uint8'), mode='RGB')
+        else:
+            img = Image.fromarray(input_matrix, mode='L')
+
         img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-        self.image_in_generator.configure(image=img_tk)
-        self.image_in_generator.image = img_tk
+        tk_image.configure(image=img_tk)
+        tk_image.image = img_tk
 
     def refresh_image_out_generator(self, values):
         self.generated_image = self.generate_image_from_input_values(values)
-        if rgb_images:
-            img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
-        else:
-            img = Image.fromarray(self.generated_image, mode='L')
-        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-        self.image_out_generator.configure(image=img_tk)
-        self.image_out_generator.image = img_tk
+        self.refresh_tk_image(self.generated_image, rgb_images,  self.image_out_generator)
 
     def update_discriminator(self):
         if not self.initializing: #TODO maybe put that if before method call ?
@@ -187,13 +187,7 @@ class GUI(object):
             self.refresh_prediction_discriminator()
 
     def refresh_image_in_discriminator(self):
-        if rgb_images:
-            img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
-        else:
-            img = Image.fromarray(self.generated_image, mode='L')
-        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-        self.image_in_discriminator.configure(image=img_tk)
-        self.image_in_discriminator.image = img_tk
+        self.refresh_tk_image(self.generated_image, rgb_images, self.image_in_discriminator)
 
     def refresh_prediction_discriminator(self):
         input_image_discriminator = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
@@ -266,6 +260,8 @@ class GUI(object):
 
     def refresh_label_sigma(self, event):
         self.sigma_label.config(text="Sigma = "+ str(round(float(event), 2)))
+
+
 
 # load all the models
 generator_list = get_all_models("generator")
