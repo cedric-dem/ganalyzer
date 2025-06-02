@@ -1,38 +1,9 @@
 from misc import *
 
-import os
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import numpy as np
-
-import keras
-
-def get_all_models():
-    result=[]
-    i=0
-    this_filename=get_generator_model_path_at_given_epoch(0)
-    while os.path.isfile(this_filename) and i<10:
-        result.append(keras.models.load_model(this_filename))
-        this_filename=get_generator_model_path_at_given_epoch(i)
-        print("=> Attempt to load epoch ",i)
-        i+=1
-    return result
-
-def set_interval(arr):
-    min_val = np.min(arr)
-    max_val = np.max(arr)
-
-    delta = max_val - min_val
-    if delta>0:
-        projected = (arr - min_val) / delta * 254
-    else:
-        projected = arr
-
-    return np.round(projected).astype(np.uint8)
-
-def project_array(arr, to, project_from, project_to):
-    return ((arr-project_from)/(project_to-project_from))*to
 
 class GUI(object):
     def __init__(self, models_list):
@@ -162,6 +133,12 @@ class GUI(object):
         img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
         self.image_in_generator.configure(image=img_tk)
         self.image_in_generator.image = img_tk
+
+        self.update_images_discriminator()
+
+    def update_images_discriminator(self):
+        #TODO
+        pass
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
