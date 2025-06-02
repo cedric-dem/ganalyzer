@@ -284,7 +284,7 @@ t0 = time.time()
 generator_list = get_all_models("generator")
 discriminators_list = get_all_models("discriminator")
 t1 = time.time()
-print("==> Time taken to load : ",round(t1-t0,2))
+print("==> Time taken to load : ", round(t1 - t0, 2))
 
 print("==> Number of loaded models : ", len(generator_list))
 
