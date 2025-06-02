@@ -190,7 +190,10 @@ class GUI(object):
 
     def refresh_prediction_discriminator(self):
         input_image_discriminator = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
-        predicted_output = self.discriminator.predict(input_image_discriminator)[0][0][0][0]
+        if model_name== "test_0":
+            predicted_output = self.discriminator.predict(input_image_discriminator)[0][0][0][0]
+        elif model_name== "test_1":
+            predicted_output = self.discriminator.predict(input_image_discriminator)[0][0]
         self.label_prediction_out_discriminator.config(text="Prediction : " + str(round(predicted_output, 2)))
 
     def randomize_all_sliders(self, mu, sigma):
