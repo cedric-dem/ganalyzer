@@ -168,17 +168,10 @@ def get_current_epoch():
     return max(min(counter_generator, counter_discriminator), 0)
 
 
-def sorted_alphanumeric(data):
-    convert = lambda text: int(text) if text.isdigit() else text.lower()
-    alphanum_key = lambda key: [convert(c) for c in re.split("([0-9]+)", key)]
-    return sorted(data, key=alphanum_key)
-
-
 def get_dataset():
     _img = []
 
     files = os.listdir(dataset_path)
-    files = sorted_alphanumeric(files)
     for i in tqdm(files):
         if rgb_images:
             img = cv2.cvtColor(cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
