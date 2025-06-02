@@ -1,4 +1,5 @@
 from misc import *
+from models import *
 
 import os
 import csv
@@ -7,7 +8,6 @@ from tqdm import tqdm
 
 import cv2
 import keras
-from keras import layers
 from keras.preprocessing.image import img_to_array
 import numpy as np
 import tensorflow as tf

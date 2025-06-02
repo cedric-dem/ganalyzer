@@ -55,7 +55,7 @@ if model_name == "test_0":
         return model
 
 
-if model_name == "test_1":
+elif model_name == "test_1":
 
     def get_generator():
 
