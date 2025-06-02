@@ -13,13 +13,13 @@ def get_discriminator_model_path_at_given_epoch(i):
 def get_model_path_at_given_epoch(model_type, i):
     return model_path + model_type +'_epoch_' + str(i) + ".keras"
 
-def get_all_models():
+def get_all_models(model_type):
     result=[]
     i=0
-    this_filename=get_generator_model_path_at_given_epoch(0)
-    while os.path.isfile(this_filename): # and i<10:
+    this_filename=get_model_path_at_given_epoch(model_type,0)
+    while os.path.isfile(this_filename) and i<10:
         result.append(keras.models.load_model(this_filename))
-        this_filename=get_generator_model_path_at_given_epoch(i)
+        this_filename=get_model_path_at_given_epoch(model_type,0)
         print("=> Attempt to load epoch ",i)
         i+=1
     return result
