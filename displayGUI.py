@@ -52,8 +52,8 @@ class GUI(object):
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
     def initialize_input_panel(self):
-        input_data_panel_hint = tk.Label(self.root,text="Set Input Data", bg="#666666")
-        input_data_panel_hint.grid(row=0, column=0, columnspan=15, pady=10,sticky='we')
+        title_input_data_panel_hint = tk.Label(self.root,text="Set Input Data", bg="#666666")
+        title_input_data_panel_hint.grid(row=0, column=0, columnspan=15, pady=10,sticky='we')
 
         self.input_image_grid_size = int(latent_dimension_generator ** 0.5)
 
@@ -96,8 +96,8 @@ class GUI(object):
     def initialize_generator_panel(self):
         self.input_panel_height = self.input_image_grid_size + 3
 
-        generator_hint = tk.Label(self.root,text="Generator", bg="#666666")
-        generator_hint.grid(row=self.input_panel_height, column=0, columnspan=15, pady=10,sticky='we')
+        title_generator_hint = tk.Label(self.root,text="Generator", bg="#666666")
+        title_generator_hint.grid(row=self.input_panel_height, column=0, columnspan=15, pady=10,sticky='we')
 
         self.label_current_epoch_generator = tk.Label(self.root)
         self.label_current_epoch_generator.grid(row=self.input_panel_height + 4, column=0, columnspan=2, pady=10)
@@ -115,8 +115,8 @@ class GUI(object):
     def initialize_discriminator_panel(self):
         self.input_and_generator_panel_height = self.input_panel_height + 15
 
-        discriminator_hint = tk.Label(self.root,text="Discriminator", bg="#666666")
-        discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, pady=10,sticky='we')
+        title_discriminator_hint = tk.Label(self.root,text="Discriminator", bg="#666666")
+        title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, pady=10,sticky='we')
 
         self.label_current_epoch_discriminator = tk.Label(self.root)
         self.label_current_epoch_discriminator.grid(row=self.input_and_generator_panel_height + 4, column=0, columnspan=2, pady=10)
@@ -161,7 +161,7 @@ class GUI(object):
 
         self.refresh_tk_image(input_after_reshape, False,  self.image_in_generator)
 
-    def refresh_tk_image(self, input_matrix, is_color, tk_image):
+    def refresh_tk_image(self, input_matrix, is_color, tk_image: tk.Label):
         if is_color:
             img = Image.fromarray(input_matrix.astype('uint8'), mode='RGB')
         else:
@@ -173,7 +173,7 @@ class GUI(object):
 
     def refresh_image_out_generator(self, values):
         self.generated_image = self.generate_image_from_input_values(values)
-        self.refresh_tk_image(self.generated_image, rgb_images,  self.image_out_generator)
+        self.refresh_tk_image(self.generated_image, rgb_images, self.image_out_generator)
 
     def update_discriminator(self):
         if not self.initializing: #TODO maybe put that if before method call ?
