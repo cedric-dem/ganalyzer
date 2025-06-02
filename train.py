@@ -13,6 +13,7 @@ from keras.preprocessing.image import img_to_array
 import numpy as np
 import tensorflow as tf
 
+
 def get_generator():
 
     # Size of feature maps in generator
@@ -21,75 +22,72 @@ def get_generator():
     # Number of channels in the training images. For color images this is 3
     nc = 3
 
-    return tf.keras.Sequential([
-        # layer 1: (latent_dimension_generator,) -> (ngf*8, 4, 4)
-        #layers.Input(shape=(1, 1, nz)),
-        layers.Input(shape=(latent_dimension_generator,)),
-        layers.Reshape((1, 1, latent_dimension_generator)),
-        layers.Conv2DTranspose(ngf * 8, kernel_size=4, strides=1, padding='valid', use_bias=False),
-        layers.BatchNormalization(),
-        layers.ReLU(),
-
-        # (ngf*8, 4, 4) -> (ngf*4, 8, 8)
-        layers.Conv2DTranspose(ngf * 4, kernel_size=4, strides=2, padding='same', use_bias=False),
-        layers.BatchNormalization(),
-        layers.ReLU(),
-
-        # (ngf*4, 8, 8) -> (ngf*2, 16, 16)
-        layers.Conv2DTranspose(ngf * 2, kernel_size=4, strides=2, padding='same', use_bias=False),
-        layers.BatchNormalization(),
-        layers.ReLU(),
-
-        # (ngf*2, 16, 16) -> (ngf, 32, 32)
-        layers.Conv2DTranspose(ngf, kernel_size=4, strides=2, padding='same', use_bias=False),
-        layers.BatchNormalization(),
-        layers.ReLU(),
-
-        # (ngf, 32, 32) -> (nc, 64, 64)
-        layers.Conv2DTranspose(nc, kernel_size=4, strides=2, padding='same', use_bias=False),
-        layers.Activation('tanh')
-    ])
+    return tf.keras.Sequential(
+        [
+            # layer 1: (latent_dimension_generator,) -> (ngf*8, 4, 4)
+            # layers.Input(shape=(1, 1, nz)),
+            layers.Input(shape=(latent_dimension_generator,)),
+            layers.Reshape((1, 1, latent_dimension_generator)),
+            layers.Conv2DTranspose(ngf * 8, kernel_size=4, strides=1, padding="valid", use_bias=False),
+            layers.BatchNormalization(),
+            layers.ReLU(),
+            # (ngf*8, 4, 4) -> (ngf*4, 8, 8)
+            layers.Conv2DTranspose(ngf * 4, kernel_size=4, strides=2, padding="same", use_bias=False),
+            layers.BatchNormalization(),
+            layers.ReLU(),
+            # (ngf*4, 8, 8) -> (ngf*2, 16, 16)
+            layers.Conv2DTranspose(ngf * 2, kernel_size=4, strides=2, padding="same", use_bias=False),
+            layers.BatchNormalization(),
+            layers.ReLU(),
+            # (ngf*2, 16, 16) -> (ngf, 32, 32)
+            layers.Conv2DTranspose(ngf, kernel_size=4, strides=2, padding="same", use_bias=False),
+            layers.BatchNormalization(),
+            layers.ReLU(),
+            # (ngf, 32, 32) -> (nc, 64, 64)
+            layers.Conv2DTranspose(nc, kernel_size=4, strides=2, padding="same", use_bias=False),
+            layers.Activation("tanh"),
+        ]
+    )
 
 
 def get_discriminator():
     if rgb_images:
         nc = 3
     else:
-        nc=1
+        nc = 1
 
     # Size of feature maps in discriminator
     ndf = 64
 
-    return tf.keras.Sequential([
-        # input is (64, 64, nc)
-        layers.Conv2D(ndf, kernel_size=4, strides=2, padding='same', use_bias=False, input_shape=(64, 64, nc)),
-        layers.LeakyReLU(alpha=0.2),
+    return tf.keras.Sequential(
+        [
+            # input is (64, 64, nc)
+            layers.Conv2D(ndf, kernel_size=4, strides=2, padding="same", use_bias=False, input_shape=(64, 64, nc)),
+            layers.LeakyReLU(alpha=0.2),
+            # (32, 32, ndf)
+            layers.Conv2D(ndf * 2, kernel_size=4, strides=2, padding="same", use_bias=False),
+            layers.BatchNormalization(),
+            layers.LeakyReLU(alpha=0.2),
+            # (16, 16, ndf*2)
+            layers.Conv2D(ndf * 4, kernel_size=4, strides=2, padding="same", use_bias=False),
+            layers.BatchNormalization(),
+            layers.LeakyReLU(alpha=0.2),
+            # (8, 8, ndf*4)
+            layers.Conv2D(ndf * 8, kernel_size=4, strides=2, padding="same", use_bias=False),
+            layers.BatchNormalization(),
+            layers.LeakyReLU(alpha=0.2),
+            # (4, 4, ndf*8)
+            layers.Conv2D(1, kernel_size=4, strides=1, padding="valid", use_bias=False),
+            layers.Activation("sigmoid"),
+            # Output is (1, 1, 1)
+        ]
+    )
 
-        # (32, 32, ndf)
-        layers.Conv2D(ndf * 2, kernel_size=4, strides=2, padding='same', use_bias=False),
-        layers.BatchNormalization(),
-        layers.LeakyReLU(alpha=0.2),
 
-        # (16, 16, ndf*2)
-        layers.Conv2D(ndf * 4, kernel_size=4, strides=2, padding='same', use_bias=False),
-        layers.BatchNormalization(),
-        layers.LeakyReLU(alpha=0.2),
-
-        # (8, 8, ndf*4)
-        layers.Conv2D(ndf * 8, kernel_size=4, strides=2, padding='same', use_bias=False),
-        layers.BatchNormalization(),
-        layers.LeakyReLU(alpha=0.2),
-
-        # (4, 4, ndf*8)
-        layers.Conv2D(1, kernel_size=4, strides=1, padding='valid', use_bias=False),
-        layers.Activation('sigmoid')
-        # Output is (1, 1, 1)
-    ])
-
-def train(current_epoch, dataset, cross_entropy,  batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
+def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
 
     for epoch in range(current_epoch, 999):
-        print("==> current epoch : ",epoch)
+        print("==> current epoch : ", epoch)
 
         generator.save(get_generator_model_path_at_given_epoch(epoch))
         discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
@@ -99,29 +97,31 @@ def train(current_epoch, dataset, cross_entropy,  batch_size, latent_dim, genera
         total_stats = {}
 
         for batch in dataset:
-            this_stats = train_steps(batch, cross_entropy,  batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer)
+            this_stats = train_steps(batch, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
             for key in this_stats:
                 if key in total_stats:
                     total_stats[key] += this_stats[key]
                 else:
-                    total_stats[key]=0
+                    total_stats[key] = 0
 
-        total_stats['time'] = str(np.round(time.time() - start, 2))
+        total_stats["time"] = str(np.round(time.time() - start, 2))
 
         add_statistics_to_file(epoch, total_stats)
+
 
 def add_statistics_to_file(epoch, new_stats):
 
     exists = os.path.isfile(statistics_file_path)
 
-    with open(statistics_file_path, mode='a', newline='', encoding='utf-8') as statistics_file:
+    with open(statistics_file_path, mode="a", newline="", encoding="utf-8") as statistics_file:
         writer = csv.writer(statistics_file)
 
         if not exists:
-            writer.writerow(["epoch_id"] + [ key for key in new_stats])
+            writer.writerow(["epoch_id"] + [key for key in new_stats])
 
         writer.writerow([str(epoch)] + [new_stats[key] for key in new_stats])
+
 
 def train_steps(images, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
     noise = np.random.normal(0, 1, (batch_size, latent_dim))
@@ -141,39 +141,38 @@ def train_steps(images, cross_entropy, batch_size, latent_dim, generator, discri
     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
-    return {
-        "median_real":np.median(real_output),
-        "median_fake":np.median(fake_output),
-        "mean_real":np.mean(real_output),
-        "mean_fake":np.mean(fake_output),
-        'gen_loss': gen_loss.numpy(),
-        'disc_loss': dis_loss.numpy()
-}
+    return {"median_real": np.median(real_output), "median_fake": np.median(fake_output), "mean_real": np.mean(real_output), "mean_fake": np.mean(fake_output), "gen_loss": gen_loss.numpy(), "disc_loss": dis_loss.numpy()}
+
 
 def generator_loss(fake_output, cross_entropy):
-    return cross_entropy(tf.ones_like(fake_output),fake_output)
+    return cross_entropy(tf.ones_like(fake_output), fake_output)
+
 
 def discriminator_loss(fake_output, real_output, cross_entropy):
-    fake_loss = cross_entropy(tf.zeros_like(fake_output),fake_output)
-    real_loss = cross_entropy(tf.ones_like(real_output),real_output)
+    fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
+    real_loss = cross_entropy(tf.ones_like(real_output), real_output)
     return fake_loss + real_loss
 
+
 def get_number_of_existing_models(filename):
-    current_i=0
-    while os.path.isfile(filename+str(current_i)+'.keras'):
-        current_i+=1
-    return current_i-1
+    current_i = 0
+    while os.path.isfile(filename + str(current_i) + ".keras"):
+        current_i += 1
+    return current_i - 1
+
 
 def get_current_epoch():
-    counter_generator = get_number_of_existing_models(model_path + 'generator_epoch_')
-    counter_discriminator = get_number_of_existing_models(model_path + 'discriminator_epoch_')
+    counter_generator = get_number_of_existing_models(model_path + "generator_epoch_")
+    counter_discriminator = get_number_of_existing_models(model_path + "discriminator_epoch_")
 
-    return max(min(counter_generator, counter_discriminator),0)
+    return max(min(counter_generator, counter_discriminator), 0)
+
 
 def sorted_alphanumeric(data):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
-    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)',key)]
-    return sorted(data,key = alphanum_key)
+    alphanum_key = lambda key: [convert(c) for c in re.split("([0-9]+)", key)]
+    return sorted(data, key=alphanum_key)
+
 
 def get_dataset():
     _img = []
@@ -192,35 +191,37 @@ def get_dataset():
         _img.append(img_to_array(img))
     return _img
 
+
 def launch_training():
     current_epoch = get_current_epoch()
     print("==> will start from epoch  : ", current_epoch)
 
-    _img=get_dataset()
+    _img = get_dataset()
 
     batch_size = 32
     dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).shuffle(buffer_size=len(_img), reshuffle_each_iteration=True).batch(batch_size)
 
-    if current_epoch == 0: #if start from scratch
-        print('==> Creating models')
+    if current_epoch == 0:  # if start from scratch
+        print("==> Creating models")
         generator = get_generator()
         discriminator = get_discriminator()
 
     else:
-        print('==> Loading latest models')
+        print("==> Loading latest models")
 
-        discriminator = keras.models.load_model( get_discriminator_model_path_at_given_epoch(current_epoch))
-        generator = keras.models.load_model( get_generator_model_path_at_given_epoch(current_epoch))
+        discriminator = keras.models.load_model(get_discriminator_model_path_at_given_epoch(current_epoch))
+        generator = keras.models.load_model(get_generator_model_path_at_given_epoch(current_epoch))
 
     generator.summary()
     discriminator.summary()
 
-    generator_optimizer = tf.keras.optimizers.RMSprop(learning_rate=.0001, clipvalue=1.0)
-    discriminator_optimizer = tf.keras.optimizers.RMSprop(learning_rate=.0001, clipvalue=1.0)
+    generator_optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.0001, clipvalue=1.0)
+    discriminator_optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.0001, clipvalue=1.0)
 
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
-    print('==> Number of batches : ',len(dataset))
-    train(current_epoch, dataset, cross_entropy,  batch_size, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
+    print("==> Number of batches : ", len(dataset))
+    train(current_epoch, dataset, cross_entropy, batch_size, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
+
 
 launch_training()

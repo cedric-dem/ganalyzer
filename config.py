@@ -1,9 +1,9 @@
-model_path="model/"
+model_path = "model/"
 
-dataset_path="data/"
+dataset_path = "data/"
 
-statistics_file_path=model_path+"statistics.csv"
+statistics_file_path = model_path + "statistics.csv"
 
-rgb_images=True
+rgb_images = True
 
-latent_dimension_generator=196
+latent_dimension_generator = 196

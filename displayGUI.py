@@ -5,26 +5,27 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import numpy as np
 
+
 class GUI(object):
     def __init__(self, models_list_generator, models_list_discriminator):
 
-        self.image_size=150
+        self.image_size = 150
 
         self.default_value_k = 0
         self.default_value_mu = 0
         self.default_value_sigma = 1
 
-        self.models_quantity=min(len(models_list_generator),len(models_list_discriminator))
-        self.generator=None
+        self.models_quantity = min(len(models_list_generator), len(models_list_discriminator))
+        self.generator = None
         self.discriminator = None
-        self.models_list_generator=models_list_generator
-        self.models_list_discriminator=models_list_discriminator
+        self.models_list_generator = models_list_generator
+        self.models_list_discriminator = models_list_discriminator
 
         self.root = tk.Tk()
         self.root.configure(bg="black")
         self.root.title("GANalyzer")
 
-        self.initializing=True
+        self.initializing = True
 
         self.initialize_input_panel()
         self.initialize_generator_panel()
@@ -32,7 +33,7 @@ class GUI(object):
 
         self.init_sliders()
 
-        self.initializing=False
+        self.initializing = False
 
         self.update_generator()
 
@@ -52,10 +53,10 @@ class GUI(object):
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
     def initialize_input_panel(self):
-        title_input_data_panel_hint = tk.Label(self.root,text="Set Input Data", bg="#666666")
-        title_input_data_panel_hint.grid(row=0, column=0, columnspan=15, pady=10,sticky='we')
+        title_input_data_panel_hint = tk.Label(self.root, text="Set Input Data", bg="#666666")
+        title_input_data_panel_hint.grid(row=0, column=0, columnspan=15, pady=10, sticky="we")
 
-        self.input_image_grid_size = int(latent_dimension_generator ** 0.5)
+        self.input_image_grid_size = int(latent_dimension_generator**0.5)
 
         self.max_slider_value = 5
         self.slider_width = 2 * self.max_slider_value
@@ -87,8 +88,7 @@ class GUI(object):
         button_set_input_random.grid(row=self.input_image_grid_size + 2, column=7, columnspan=2, pady=10)
 
     def get_grid_slider(self, i, j):
-        slider = ttk.Scale(self.root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal',
-                           length=100)
+        slider = ttk.Scale(self.root, from_=-self.max_slider_value, to=self.max_slider_value, orient="horizontal", length=100)
         slider.grid(row=i + 1, column=j, padx=3, pady=3)
         slider.bind("<ButtonRelease-1>", self.update_generator)
         return slider
@@ -96,40 +96,40 @@ class GUI(object):
     def initialize_generator_panel(self):
         self.input_panel_height = self.input_image_grid_size + 3
 
-        title_generator_hint = tk.Label(self.root,text="Generator", bg="#666666")
-        title_generator_hint.grid(row=self.input_panel_height, column=0, columnspan=15, pady=10,sticky='we')
+        title_generator_hint = tk.Label(self.root, text="Generator", bg="#666666")
+        title_generator_hint.grid(row=self.input_panel_height, column=0, columnspan=15, pady=10, sticky="we")
 
         self.label_current_epoch_generator = tk.Label(self.root)
         self.label_current_epoch_generator.grid(row=self.input_panel_height + 4, column=0, columnspan=2, pady=10)
 
-        #TODO : convert if possible to on click release to avoid computation
-        self.slider_epoch_generator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_generator_epoch_slider_change)
-        self.slider_epoch_generator.grid(row=self.input_panel_height + 5, column=0, columnspan=self.input_image_grid_size - 6, padx=10, pady=20, sticky='ew')
+        # TODO : convert if possible to on click release to avoid computation
+        self.slider_epoch_generator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient="horizontal", length=600, command=self.on_generator_epoch_slider_change)
+        self.slider_epoch_generator.grid(row=self.input_panel_height + 5, column=0, columnspan=self.input_image_grid_size - 6, padx=10, pady=20, sticky="ew")
 
         self.image_in_generator = tk.Label(self.root)
-        self.image_in_generator.grid(row=self.input_panel_height+1, column=self.input_image_grid_size - 2, rowspan=self.input_image_grid_size + 1, padx=20, pady=10)
+        self.image_in_generator.grid(row=self.input_panel_height + 1, column=self.input_image_grid_size - 2, rowspan=self.input_image_grid_size + 1, padx=20, pady=10)
 
         self.image_out_generator = tk.Label(self.root)
-        self.image_out_generator.grid(row=self.input_panel_height+1, column=self.input_image_grid_size, rowspan=self.input_image_grid_size + 1, padx=20, pady=10)
+        self.image_out_generator.grid(row=self.input_panel_height + 1, column=self.input_image_grid_size, rowspan=self.input_image_grid_size + 1, padx=20, pady=10)
 
     def initialize_discriminator_panel(self):
         self.input_and_generator_panel_height = self.input_panel_height + 15
 
-        title_discriminator_hint = tk.Label(self.root,text="Discriminator", bg="#666666")
-        title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, pady=10,sticky='we')
+        title_discriminator_hint = tk.Label(self.root, text="Discriminator", bg="#666666")
+        title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, pady=10, sticky="we")
 
         self.label_current_epoch_discriminator = tk.Label(self.root)
         self.label_current_epoch_discriminator.grid(row=self.input_and_generator_panel_height + 4, column=0, columnspan=2, pady=10)
 
-        #TODO : convert if possible to on click release to avoid computation
-        self.slider_epoch_discriminator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient='horizontal', length=600, command=self.on_discriminator_epoch_slider_change)
-        self.slider_epoch_discriminator.grid(row=self.input_and_generator_panel_height + 5, column=0, columnspan=self.input_image_grid_size - 6, padx=10, pady=20, sticky='ew')
+        # TODO : convert if possible to on click release to avoid computation
+        self.slider_epoch_discriminator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient="horizontal", length=600, command=self.on_discriminator_epoch_slider_change)
+        self.slider_epoch_discriminator.grid(row=self.input_and_generator_panel_height + 5, column=0, columnspan=self.input_image_grid_size - 6, padx=10, pady=20, sticky="ew")
 
         self.image_in_discriminator = tk.Label(self.root)
-        self.image_in_discriminator.grid(row=self.input_and_generator_panel_height+1, column=self.input_image_grid_size - 2, rowspan=self.input_image_grid_size + 1, padx=20, pady=10)
+        self.image_in_discriminator.grid(row=self.input_and_generator_panel_height + 1, column=self.input_image_grid_size - 2, rowspan=self.input_image_grid_size + 1, padx=20, pady=10)
 
         self.label_prediction_out_discriminator = tk.Label(self.root)
-        self.label_prediction_out_discriminator.grid(row=self.input_and_generator_panel_height + 1, column=self.input_image_grid_size, rowspan=self.input_image_grid_size + 1, padx=20, pady=10, sticky='nsew')
+        self.label_prediction_out_discriminator.grid(row=self.input_and_generator_panel_height + 1, column=self.input_image_grid_size, rowspan=self.input_image_grid_size + 1, padx=20, pady=10, sticky="nsew")
 
     def generate_image_from_input_values(self, input_raw):
         input_rebound = np.array([input_raw]) / self.slider_width
@@ -139,17 +139,17 @@ class GUI(object):
         else:
             predicted_raw = self.generator.predict(input_rebound)[0, :, :, 0]
 
-        return  find_limits_and_project(predicted_raw)
+        return find_limits_and_project(predicted_raw)
 
-    def update_generator(self, event= None):
-        if not self.initializing: #TODO maybe put that if before method call ?
+    def update_generator(self, event=None):
+        if not self.initializing:  # TODO maybe put that if before method call ?
 
             values = [self.slider_grid[i][j].get() for i in range(self.input_image_grid_size) for j in range(self.input_image_grid_size)]
 
-            #update image_in_generator
+            # update image_in_generator
             self.refresh_image_in_generator(values)
 
-            #update image_out_generator
+            # update image_out_generator
             self.refresh_image_out_generator(values)
 
             # Update discriminator
@@ -159,13 +159,13 @@ class GUI(object):
         input_before_reshape = np.array(values).reshape((self.input_image_grid_size, self.input_image_grid_size))
         input_after_reshape = project_array(input_before_reshape, 254, -self.max_slider_value, self.max_slider_value).astype(np.uint8)
 
-        self.refresh_tk_image(input_after_reshape, False,  self.image_in_generator)
+        self.refresh_tk_image(input_after_reshape, False, self.image_in_generator)
 
     def refresh_tk_image(self, input_matrix, is_color, tk_image: tk.Label):
         if is_color:
-            img = Image.fromarray(input_matrix.astype('uint8'), mode='RGB')
+            img = Image.fromarray(input_matrix.astype("uint8"), mode="RGB")
         else:
-            img = Image.fromarray(input_matrix, mode='L')
+            img = Image.fromarray(input_matrix, mode="L")
 
         img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
         tk_image.configure(image=img_tk)
@@ -176,11 +176,11 @@ class GUI(object):
         self.refresh_tk_image(self.generated_image, rgb_images, self.image_out_generator)
 
     def update_discriminator(self):
-        if not self.initializing: #TODO maybe put that if before method call ?
-            #update image_in_discriminator
+        if not self.initializing:  # TODO maybe put that if before method call ?
+            # update image_in_discriminator
             self.refresh_image_in_discriminator()
 
-            #update prediction discriminator
+            # update prediction discriminator
             self.refresh_prediction_discriminator()
 
     def refresh_image_in_discriminator(self):
@@ -202,24 +202,24 @@ class GUI(object):
         self.update_generator()
 
     def on_generator_epoch_slider_change(self, value):
-        #new_epoch=int(float(self.epoch_slider_generator.get()))
-        new_epoch=int(float(value))
-        self.generator=self.models_list_generator[new_epoch]
+        # new_epoch=int(float(self.epoch_slider_generator.get()))
+        new_epoch = int(float(value))
+        self.generator = self.models_list_generator[new_epoch]
 
         self.update_generator()
 
         self.label_current_epoch_generator.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
 
     def on_discriminator_epoch_slider_change(self, value):
-        #new_epoch=int(float(self.epoch_slider_discriminator.get()))
-        new_epoch=int(float(value))
-        self.discriminator=self.models_list_discriminator[new_epoch]
+        # new_epoch=int(float(self.epoch_slider_discriminator.get()))
+        new_epoch = int(float(value))
+        self.discriminator = self.models_list_discriminator[new_epoch]
         self.update_discriminator()
 
         self.label_current_epoch_discriminator.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
 
     def set_input_constant(self):
-        new_k_value=self.slider_k.get()
+        new_k_value = self.slider_k.get()
         for i in range(self.input_image_grid_size):
             for j in range(self.input_image_grid_size):
                 self.slider_grid[i][j].set(new_k_value)
@@ -227,24 +227,24 @@ class GUI(object):
         self.update_generator()
 
     def set_input_random(self):
-        new_mu_value=self.slider_mu.get()
-        new_sigma_value=self.slider_sigma.get()
+        new_mu_value = self.slider_mu.get()
+        new_sigma_value = self.slider_sigma.get()
         self.randomize_all_sliders(new_mu_value, new_sigma_value)
 
     @staticmethod
     def create_parameter_input_label(root, x, y):
         label = tk.Label(root)
-        label.grid(row=y, column=x-1, columnspan=2, pady=10)
+        label.grid(row=y, column=x - 1, columnspan=2, pady=10)
         return label
 
     def create_parameter_input_slider(self, root, default_value, x, y, can_be_negative, method_refresh_text):
         if can_be_negative:
-            this_min_value=-self.max_slider_value
+            this_min_value = -self.max_slider_value
         else:
-            this_min_value=0
-        slider = ttk.Scale(root, from_=this_min_value, to=self.max_slider_value, orient='horizontal', length=100, command= method_refresh_text)
+            this_min_value = 0
+        slider = ttk.Scale(root, from_=this_min_value, to=self.max_slider_value, orient="horizontal", length=100, command=method_refresh_text)
 
-        slider.grid(row=y, column=x+1, padx=3, pady=3)
+        slider.grid(row=y, column=x + 1, padx=3, pady=3)
         slider.set(default_value)
 
         return slider
@@ -258,10 +258,11 @@ class GUI(object):
     def refresh_label_sigma(self, event):
         self.label_sigma.config(text="Sigma = " + str(round(float(event), 2)))
 
+
 # load all the models
 generator_list = get_all_models("generator")
 discriminators_list = get_all_models("discriminator")
 
-print('==> Number of loaded models : ',len(generator_list))
+print("==> Number of loaded models : ", len(generator_list))
 
-main_gui=GUI(generator_list, discriminators_list)
+main_gui = GUI(generator_list, discriminators_list)
