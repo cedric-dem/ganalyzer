@@ -79,7 +79,7 @@ class GUI(object):
 
         self.label_k = self.create_parameter_input_label(4, self.input_image_grid_size + 1)
         self.label_mu = self.create_parameter_input_label(2, self.input_image_grid_size + 2)
-        self.label_sigma = self.create_parameter_input_label( 5, self.input_image_grid_size + 2)
+        self.label_sigma = self.create_parameter_input_label(5, self.input_image_grid_size + 2)
 
         self.slider_k = self.create_parameter_input_slider(self.default_value_k, 4, self.input_image_grid_size + 1, True, self.refresh_label_k)
         self.slider_mu = self.create_parameter_input_slider(self.default_value_mu, 2, self.input_image_grid_size + 2, True, self.refresh_label_mu)

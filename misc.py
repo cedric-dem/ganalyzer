@@ -19,11 +19,16 @@ def get_model_path_at_given_epoch(model_type, i):
 
 def get_all_models(model_type):
     result = []
-    i = 0
-    this_filename = get_model_path_at_given_epoch(model_type, 0)
-    while os.path.isfile(this_filename) and i < 4:
-        result.append(keras.models.load_model(this_filename))
+
+    models_quantity = get_current_epoch()
+    if load_all_models:
+        i = 0
+    else:
+        i = models_quantity - 10
+
+    while i < models_quantity:
         this_filename = get_model_path_at_given_epoch(model_type, i)
+        result.append(keras.models.load_model(this_filename))
         print("=> Attempt to load " + model_type + " epoch ", i)
         i += 1
     return result
@@ -41,3 +46,17 @@ def project_array(arr, to, project_from, project_to):
     else:
         result = arr
     return result
+
+
+def get_number_of_existing_models(filename):
+    current_i = 0
+    while os.path.isfile(filename + str(current_i) + ".keras"):
+        current_i += 1
+    return current_i - 1
+
+
+def get_current_epoch():
+    counter_generator = get_number_of_existing_models(model_path + "generator_epoch_")
+    counter_discriminator = get_number_of_existing_models(model_path + "discriminator_epoch_")
+
+    return max(min(counter_generator, counter_discriminator), 0)
