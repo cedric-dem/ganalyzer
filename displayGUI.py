@@ -15,6 +15,10 @@ class GUI(object):
         self.default_value_mu = 0
         self.default_value_sigma = 1
 
+        self.debounce_time = 50
+        self.debounce_id_generator = None
+        self.debounce_id_discriminator = None
+
         self.models_quantity = min(len(models_list_generator), len(models_list_discriminator))
         self.generator = None
         self.discriminator = None
@@ -102,8 +106,7 @@ class GUI(object):
         self.label_current_epoch_generator = tk.Label(self.root)
         self.label_current_epoch_generator.grid(row=self.input_panel_height + 4, column=0, columnspan=2, pady=10)
 
-        # TODO : convert if possible to on click release to avoid computation
-        self.slider_epoch_generator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient="horizontal", length=600, command=self.on_generator_epoch_slider_change)
+        self.slider_epoch_generator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient="horizontal", length=600, command=self.on_generator_epoch_slider_change_debounced)
         self.slider_epoch_generator.grid(row=self.input_panel_height + 5, column=0, columnspan=self.input_image_grid_size - 6, padx=10, pady=20, sticky="ew")
 
         self.image_in_generator = tk.Label(self.root)
@@ -121,8 +124,7 @@ class GUI(object):
         self.label_current_epoch_discriminator = tk.Label(self.root)
         self.label_current_epoch_discriminator.grid(row=self.input_and_generator_panel_height + 4, column=0, columnspan=2, pady=10)
 
-        # TODO : convert if possible to on click release to avoid computation
-        self.slider_epoch_discriminator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient="horizontal", length=600, command=self.on_discriminator_epoch_slider_change)
+        self.slider_epoch_discriminator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient="horizontal", length=600, command=self.on_discriminator_epoch_slider_change_debounced)
         self.slider_epoch_discriminator.grid(row=self.input_and_generator_panel_height + 5, column=0, columnspan=self.input_image_grid_size - 6, padx=10, pady=20, sticky="ew")
 
         self.image_in_discriminator = tk.Label(self.root)
@@ -201,6 +203,13 @@ class GUI(object):
 
         self.update_generator()
 
+    def on_generator_epoch_slider_change_debounced(self, value):
+        if self.debounce_id_generator:
+            self.root.after_cancel(self.debounce_id_generator)
+
+        # Schedule the real handler to run after debounce_time
+        self.debounce_id_generator = self.root.after(self.debounce_time, self.on_generator_epoch_slider_change, value)
+
     def on_generator_epoch_slider_change(self, value):
         # new_epoch=int(float(self.epoch_slider_generator.get()))
         new_epoch = int(float(value))
@@ -209,6 +218,13 @@ class GUI(object):
         self.update_generator()
 
         self.label_current_epoch_generator.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
+
+    def on_discriminator_epoch_slider_change_debounced(self, value):
+        if self.debounce_id_discriminator:
+            self.root.after_cancel(self.debounce_id_discriminator)
+
+        # Schedule the real handler to run after debounce_time
+        self.debounce_id_discriminator = self.root.after(self.debounce_time, self.on_discriminator_epoch_slider_change, value)
 
     def on_discriminator_epoch_slider_change(self, value):
         # new_epoch=int(float(self.epoch_slider_discriminator.get()))
