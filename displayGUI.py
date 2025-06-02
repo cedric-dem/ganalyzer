@@ -24,11 +24,18 @@ class GUI(object):
         self.root.configure(bg="black")
         self.root.title("GANalyzer")
 
+
+        self.initializing=True
+
         self.initialize_input_panel()
         self.initialize_generator_panel()
         self.initialize_discriminator_panel()
 
         self.init_sliders()
+
+        self.initializing=False
+
+        self.update_generator()
 
         self.root.mainloop()
 
@@ -84,7 +91,7 @@ class GUI(object):
         slider = ttk.Scale(self.root, from_=-self.max_slider_value, to=self.max_slider_value, orient='horizontal',
                            length=100)
         slider.grid(row=i + 1, column=j, padx=3, pady=3)
-        slider.bind("<ButtonRelease-1>", self.update_images_generator)
+        slider.bind("<ButtonRelease-1>", self.update_generator)
         return slider
 
     def initialize_generator_panel(self):
@@ -135,47 +142,49 @@ class GUI(object):
 
         return  set_interval(predicted_raw)
 
-    def update_images_generator(self, event= None):
-        print('==> Update images Gene')
+    def update_generator(self, event= None):
+        if not self.initializing: #TODO maybe put that if before method call ?
+            print('==> Update Generator')
 
-        #update image_in_generator
-        values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
-        input_before_reshape=np.array(values).reshape((self.grid_size, self.grid_size))
-        input_after_reshape=project_array(input_before_reshape,254,-self.max_slider_value, self.max_slider_value).astype(np.uint8)
-        img = Image.fromarray(input_after_reshape, mode='L')
-        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-        self.image_in_generator.configure(image=img_tk)
-        self.image_in_generator.image = img_tk
+            #update image_in_generator
+            values = [self.slider_grid[i][j].get() for i in range(self.grid_size) for j in range(self.grid_size)]
+            input_before_reshape=np.array(values).reshape((self.grid_size, self.grid_size))
+            input_after_reshape=project_array(input_before_reshape,254,-self.max_slider_value, self.max_slider_value).astype(np.uint8)
+            img = Image.fromarray(input_after_reshape, mode='L')
+            img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
+            self.image_in_generator.configure(image=img_tk)
+            self.image_in_generator.image = img_tk
 
-        #update image_out_generator
-        self.generated_image = self.generate_image_from_input_values(values)
-        if rgb_images:
-            img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
-        else:
-            img = Image.fromarray(self.generated_image, mode='L')
-        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-        self.image_out_generator.configure(image=img_tk)
-        self.image_out_generator.image = img_tk
+            #update image_out_generator
+            self.generated_image = self.generate_image_from_input_values(values)
+            if rgb_images:
+                img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
+            else:
+                img = Image.fromarray(self.generated_image, mode='L')
+            img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
+            self.image_out_generator.configure(image=img_tk)
+            self.image_out_generator.image = img_tk
 
-        # Update discriminator
-        self.update_images_discriminator()
+            # Update discriminator
+            self.update_discriminator()
 
-    def update_images_discriminator(self):
-        print('==> Update images Disc')
+    def update_discriminator(self):
+        if not self.initializing: #TODO maybe put that if before method call ?
+            print('==> Update Discriminator')
 
-        #update image_in_discriminator
-        if rgb_images:
-            img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
-        else:
-            img = Image.fromarray(self.generated_image, mode='L')
-        img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
-        self.image_in_discriminator.configure(image=img_tk)
-        self.image_in_discriminator.image = img_tk
+            #update image_in_discriminator
+            if rgb_images:
+                img = Image.fromarray(self.generated_image.astype('uint8'), mode='RGB')
+            else:
+                img = Image.fromarray(self.generated_image, mode='L')
+            img_tk = ImageTk.PhotoImage(img.resize((self.image_size, self.image_size), Image.NEAREST))
+            self.image_in_discriminator.configure(image=img_tk)
+            self.image_in_discriminator.image = img_tk
 
-        #update prediction discriminator
-        input_image_discriminator=np.array([((self.generated_image- 127.5) / 127.5).astype(np.float64)])
-        predicted_output=self.discriminator.predict(input_image_discriminator)[0][0][0][0]
-        self.prediction_out_discriminator.config(text="Prediction : "+str(round(predicted_output,2)))
+            #update prediction discriminator
+            input_image_discriminator=np.array([((self.generated_image- 127.5) / 127.5).astype(np.float64)])
+            predicted_output=self.discriminator.predict(input_image_discriminator)[0][0][0][0]
+            self.prediction_out_discriminator.config(text="Prediction : "+str(round(predicted_output,2)))
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.grid_size):
@@ -185,13 +194,14 @@ class GUI(object):
 
                 self.slider_grid[i][j].set(val_clipped)
 
-        self.update_images_generator()
+        self.update_generator()
 
     def on_generator_epoch_slider_change(self, value):
         #new_epoch=int(float(self.epoch_slider_generator.get()))
         new_epoch=int(float(value))
         self.generator=self.models_list_generator[new_epoch]
-        self.update_images_generator()
+
+        self.update_generator()
 
         self.current_epoch_generator_text.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
 
@@ -199,7 +209,7 @@ class GUI(object):
         #new_epoch=int(float(self.epoch_slider_discriminator.get()))
         new_epoch=int(float(value))
         self.discriminator=self.models_list_discriminator[new_epoch]
-        self.update_images_discriminator()
+        self.update_discriminator()
 
         self.current_epoch_discriminator_text.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
 
@@ -208,7 +218,8 @@ class GUI(object):
         for i in range(self.grid_size):
             for j in range(self.grid_size):
                 self.slider_grid[i][j].set(new_k_value)
-        self.update_images_generator()
+
+        self.update_generator()
 
     def set_input_random(self):
         new_mu_value=self.mu_slider.get()
