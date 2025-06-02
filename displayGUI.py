@@ -194,8 +194,8 @@ class GUI(object):
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.input_image_grid_size):
             for j in range(self.input_image_grid_size):
-                val = np.random.normal(loc=mu, scale=sigma)
-                val_clipped = max(-self.max_slider_value, min(self.max_slider_value, val))  # clip entre 0 et 1
+                random_value = np.random.normal(loc=mu, scale=sigma)
+                val_clipped = max(-self.max_slider_value, min(self.max_slider_value, random_value))  # clip value
 
                 self.slider_grid[i][j].set(val_clipped)
 
