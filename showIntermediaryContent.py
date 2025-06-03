@@ -10,7 +10,7 @@ def display_intermediary_layers(model_path, input_data):
     for i in range(len(model.layers)):
         layer_output = tf.keras.Model(inputs=model.inputs, outputs=model.layers[i].output).predict(input_data)
 
-        print("===> layer ", i, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
+        print("===> layer ", i," name : ",model.layers[i].name, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
 
 
 discriminator_path = "model_test_1/discriminator_epoch_53.keras"
