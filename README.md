@@ -1,5 +1,7 @@
 # ganalyzer
 
+For now, the models are set up for 64x64x3 (RGB) images, but size will be a setting in the future
+
 ## GUI to experiment with GAN
 
 ## train.py
