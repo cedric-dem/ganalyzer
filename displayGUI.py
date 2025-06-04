@@ -62,7 +62,7 @@ class GUI(object):
 
     def initialize_input_panel(self):
         title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
-        title_input_hint.grid(row=0, column=0, columnspan=self.n_col, rowspan=1, pady=10, sticky="we")
+        title_input_hint.grid(row=0, column=0, columnspan=self.n_col, rowspan=1, sticky="we")
 
         self.input_image_grid_size = int(latent_dimension_generator**0.5)
 
@@ -99,10 +99,10 @@ class GUI(object):
                 self.slider_grid[i][j] = self.get_grid_slider(i, j, manual_input_tab)
 
         label_hint_constant = tk.Label(constant_input_tab, text="Set All Constant Value : ")
-        label_hint_constant.grid(row=0, column=1, columnspan=2, pady=10, sticky="nsew")
+        label_hint_constant.grid(row=0, column=1, columnspan=2, sticky="nsew")
 
         label_hint_random = tk.Label(random_input_tab, text="Set All Random Value ")
-        label_hint_random.grid(row=0, column=1, columnspan=2, pady=10, sticky="nsew")
+        label_hint_random.grid(row=0, column=1, columnspan=2, sticky="nsew")
 
         self.label_k = self.create_parameter_input_label(1, 1, constant_input_tab)
 
@@ -115,10 +115,10 @@ class GUI(object):
         self.slider_sigma = self.create_parameter_input_slider(self.default_value_sigma, 3, 2, False, self.refresh_label_sigma, random_input_tab)
 
         button_set_input_constant = ttk.Button(constant_input_tab, text="Set", command=self.set_input_constant)
-        button_set_input_constant.grid(row=3, column=1, columnspan=2, pady=10)
+        button_set_input_constant.grid(row=3, column=1, columnspan=2)
 
         button_set_input_random = ttk.Button(random_input_tab, text="Set", command=self.set_input_random)
-        button_set_input_random.grid(row=3, column=1, columnspan=2, pady=10)
+        button_set_input_random.grid(row=3, column=1, columnspan=2)
 
     def get_grid_slider(self, i, j, parent):
         slider = ttk.Scale(parent, from_=-self.max_slider_value, to=self.max_slider_value, orient="horizontal", length=100)
@@ -130,7 +130,7 @@ class GUI(object):
         self.input_panel_height = 2
 
         title_generator_hint = tk.Label(self.root, text="Generator", bg="#666666")
-        title_generator_hint.grid(row=self.input_panel_height, column=0, rowspan=1, columnspan=self.n_col, pady=10, sticky="we")
+        title_generator_hint.grid(row=self.input_panel_height, column=0, rowspan=1, columnspan=self.n_col, sticky="we")
 
         self.label_current_epoch_generator, self.slider_epoch_generator, self.image_in_generator, self.image_out_generator = self.create_model_panel(self.on_generator_epoch_slider_change_debounced)
 
@@ -138,27 +138,27 @@ class GUI(object):
         self.input_and_generator_panel_height = self.input_panel_height + 15
 
         title_discriminator_hint = tk.Label(self.root, text="Discriminator", bg="#666666")
-        title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, pady=10, sticky="we")
+        title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, sticky="we")
 
         self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced)
 
     def create_model_panel(self, cmd):
         layout_panel = tk.Frame(self.root, bg="#333333")
-        layout_panel.grid(padx=10, pady=10, rowspan=1, columnspan=self.n_col, sticky="nsew")
+        layout_panel.grid(rowspan=1, columnspan=self.n_col, sticky="nsew")
         layout_panel.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
-        layout_panel.rowconfigure((0, 1), weight=1)
+        layout_panel.rowconfigure((0), weight=1)
 
         label_epoch = tk.Label(layout_panel)
-        label_epoch.grid(row=0, column=0, columnspan=1, pady=10)
+        label_epoch.grid(row=0, column=0, columnspan=1)
 
         slider_epoch = ttk.Scale(layout_panel, from_=0, to=self.models_quantity - 1, orient="horizontal", command=cmd)
-        slider_epoch.grid(row=0, column=1, columnspan=1, padx=10, pady=20, sticky="ew")
+        slider_epoch.grid(row=0, column=1, columnspan=1, sticky="ew")
 
         model_in = tk.Label(layout_panel)
-        model_in.grid(row=0, column=2, rowspan=1, padx=20, pady=10)
+        model_in.grid(row=0, column=2, rowspan=1)
 
         model_out = tk.Label(layout_panel)
-        model_out.grid(row=0, column=3, rowspan=1, padx=20, pady=10, sticky="nsew")
+        model_out.grid(row=0, column=3, rowspan=1, sticky="nsew")
 
         return label_epoch, slider_epoch, model_in, model_out
 
@@ -281,7 +281,7 @@ class GUI(object):
 
     def create_parameter_input_label(self, x, y, parent):
         label = tk.Label(parent)
-        label.grid(row=y, column=x, columnspan=2, pady=10)
+        label.grid(row=y, column=x, columnspan=2)
         return label
 
     def create_parameter_input_slider(self, default_value, x, y, can_be_negative, method_refresh_text, parent):
@@ -291,7 +291,7 @@ class GUI(object):
             this_min_value = 0
         slider = ttk.Scale(parent, from_=this_min_value, to=self.max_slider_value, orient="horizontal", length=100, command=method_refresh_text)
 
-        slider.grid(row=y, column=x, padx=3, pady=3)
+        slider.grid(row=y, column=x)
         slider.set(default_value)
 
         return slider
