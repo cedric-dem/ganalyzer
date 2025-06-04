@@ -64,6 +64,11 @@ class GUI(object):
         title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
         title_input_hint.grid(row=0, column=0, columnspan=self.n_col, pady=10, sticky="we")
 
+        self.input_image_grid_size = int(latent_dimension_generator**0.5)
+
+        self.max_slider_value = 5
+        self.slider_width = 2 * self.max_slider_value
+
         notebook = ttk.Notebook(self.root)
         notebook.grid(row=1, column=0,columnspan=self.n_col, rowspan=self.n_row//3, sticky="nsew")
 
@@ -82,14 +87,10 @@ class GUI(object):
         # Third tab
         manual_input_tab = ttk.Frame(notebook)
         notebook.add(manual_input_tab, text="Set Input Manually")
-        manual_input_tab.columnconfigure((0, 1), weight=1)
-        manual_input_tab.rowconfigure((0, 1), weight=1)
+        manual_input_tab.columnconfigure(tuple(range(self.input_image_grid_size)), weight=1)
+        manual_input_tab.rowconfigure(tuple(range(self.input_image_grid_size)), weight=1)
 
         # Fill the tabs
-        self.input_image_grid_size = int(latent_dimension_generator**0.5)
-
-        self.max_slider_value = 5
-        self.slider_width = 2 * self.max_slider_value
 
         # Grid of sliders
         self.slider_grid = [[None for _ in range(self.input_image_grid_size)] for _ in range(self.input_image_grid_size)]
