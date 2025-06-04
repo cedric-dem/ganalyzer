@@ -203,21 +203,29 @@ class GUI(object):
         self.refresh_inside_visualization(model)
 
     def refresh_inside_visualization(self, model):
-        # TODO
-
         if model == "generator":
             print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
             try:
-                print("==> input :", self.input_of_generator.shape)
+                index_layer = self.get_layer_index(self.selected_generator_inside_layer)
+                self.refresh_layer_visualization(self.input_of_generator, self.inside_image_generator, self.generator, index_layer)
             except:
                 print("==> Input not found")
 
         elif model == "discriminator":
             print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
             try:
-                print("==> input :", self.input_of_discriminator.shape)
+                index_layer = self.get_layer_index(self.selected_discriminator_inside_layer)
+                self.refresh_layer_visualization(self.input_of_discriminator, self.inside_image_discriminator, self.discriminator, index_layer)
             except:
                 print("==> Input not found")
+
+    def get_layer_index(self, layer_name):
+        return int(layer_name.split(")")[0])
+
+    def refresh_layer_visualization(self, input_model, inside_image_location, model, index_layer):
+        print("==> refresh, having settings")
+        print("=======>", input_model.shape, inside_image_location, model, index_layer)
+        # TODO
 
     def get_inside_viewer(self, layout_panel, name):
 
@@ -314,7 +322,7 @@ class GUI(object):
         self.refresh_tk_image(self.generated_image, rgb_images, self.image_in_discriminator)
 
     def refresh_prediction_discriminator(self):
-        self.input_of_discriminator= np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
+        self.input_of_discriminator = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
         if model_name == "test_0" or model_name == "test_0B":
             predicted_output = self.discriminator.predict(self.input_of_discriminator)[0][0]
         elif model_name == "test_1":
@@ -412,4 +420,3 @@ print("==> Time taken to load : ", round(t1 - t0, 2))
 print("==> Number of loaded models : ", len(generator_list))
 
 main_gui = GUI(generator_list, discriminators_list)
-
