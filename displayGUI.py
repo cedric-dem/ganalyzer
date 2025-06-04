@@ -11,6 +11,8 @@ import numpy as np
 class GUI(object):
     def __init__(self, models_list_generator, models_list_discriminator):
 
+        self.n_col = 15
+        self.n_row = 12
         self.image_size = 150
 
         self.default_value_k = 0
@@ -60,22 +62,22 @@ class GUI(object):
 
     def initialize_input_panel(self):
         title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
-        title_input_hint.grid(row=0, column=0, columnspan=15, pady=10, sticky="we")
+        title_input_hint.grid(row=0, column=0, columnspan=self.n_col, pady=10, sticky="we")
 
         notebook = ttk.Notebook(self.root)
-        notebook.grid(row=1, column=0, columnspan=14, sticky="nsew")
+        notebook.grid(row=1, column=0,columnspan=self.n_col, rowspan=self.n_row//3, sticky="nsew")
 
         # First tab
         random_input_tab = ttk.Frame(notebook)
         notebook.add(random_input_tab, text="Set Random Inputs")
-        random_input_tab.columnconfigure((0, 1), weight=1)
-        random_input_tab.rowconfigure((0, 1), weight=1)
+        random_input_tab.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
+        random_input_tab.rowconfigure((0, 1, 2, 3), weight=1)
 
         # Second tab
         constant_input_tab = ttk.Frame(notebook)
         notebook.add(constant_input_tab, text="Set Constant Input")
-        constant_input_tab.columnconfigure((0, 1), weight=1)
-        constant_input_tab.rowconfigure((0, 1), weight=1)
+        constant_input_tab.columnconfigure((0, 1,2 , 3, 4, 5), weight=1)
+        constant_input_tab.rowconfigure((0, 1, 2, 3), weight=1)
 
         # Third tab
         manual_input_tab = ttk.Frame(notebook)
@@ -96,24 +98,26 @@ class GUI(object):
                 self.slider_grid[i][j] = self.get_grid_slider(i, j, manual_input_tab)
 
         label_hint_constant = tk.Label(constant_input_tab, text="Set All Constant Value : ")
-        label_hint_constant.grid(row=0, column=0, columnspan=2, pady=10)
+        label_hint_constant.grid(row=0, column=1, columnspan=2, pady=10, sticky="nsew")
 
         label_hint_random = tk.Label(random_input_tab, text="Set All Random Value ")
-        label_hint_random.grid(row=0, column=0, columnspan=2, pady=10)
+        label_hint_random.grid(row=0, column=1, columnspan=2, pady=10, sticky="nsew")
 
-        self.label_k = self.create_parameter_input_label(4, 0, constant_input_tab)
-        self.label_mu = self.create_parameter_input_label(2, 0, random_input_tab)
-        self.label_sigma = self.create_parameter_input_label(5, 0, random_input_tab)
+        self.label_k = self.create_parameter_input_label(1, 1, constant_input_tab)
 
-        self.slider_k = self.create_parameter_input_slider(self.default_value_k, 4, 0, True, self.refresh_label_k, constant_input_tab)
-        self.slider_mu = self.create_parameter_input_slider(self.default_value_mu, 2, 0, True, self.refresh_label_mu, random_input_tab)
-        self.slider_sigma = self.create_parameter_input_slider(self.default_value_sigma, 5, 0, False, self.refresh_label_sigma, random_input_tab)
+        self.label_mu = self.create_parameter_input_label(1, 1, random_input_tab)
+        self.label_sigma = self.create_parameter_input_label(1, 2, random_input_tab)
+
+        self.slider_k = self.create_parameter_input_slider(self.default_value_k, 3, 1, True, self.refresh_label_k, constant_input_tab)
+
+        self.slider_mu = self.create_parameter_input_slider(self.default_value_mu, 3, 1, True, self.refresh_label_mu, random_input_tab)
+        self.slider_sigma = self.create_parameter_input_slider(self.default_value_sigma, 3, 2, False, self.refresh_label_sigma, random_input_tab)
 
         button_set_input_constant = ttk.Button(constant_input_tab, text="Set", command=self.set_input_constant)
-        button_set_input_constant.grid(row=0, column=7, columnspan=2, pady=10)
+        button_set_input_constant.grid(row=3, column=1, columnspan=2, pady=10)
 
         button_set_input_random = ttk.Button(random_input_tab, text="Set", command=self.set_input_random)
-        button_set_input_random.grid(row=0, column=7, columnspan=2, pady=10)
+        button_set_input_random.grid(row=3, column=1, columnspan=2, pady=10)
 
     def get_grid_slider(self, i, j, parent):
         slider = ttk.Scale(parent, from_=-self.max_slider_value, to=self.max_slider_value, orient="horizontal", length=100)
@@ -276,7 +280,7 @@ class GUI(object):
 
     def create_parameter_input_label(self, x, y, parent):
         label = tk.Label(parent)
-        label.grid(row=y, column=x - 1, columnspan=2, pady=10)
+        label.grid(row=y, column=x, columnspan=2, pady=10)
         return label
 
     def create_parameter_input_slider(self, default_value, x, y, can_be_negative, method_refresh_text, parent):
@@ -286,7 +290,7 @@ class GUI(object):
             this_min_value = 0
         slider = ttk.Scale(parent, from_=this_min_value, to=self.max_slider_value, orient="horizontal", length=100, command=method_refresh_text)
 
-        slider.grid(row=y, column=x + 1, padx=3, pady=3)
+        slider.grid(row=y, column=x, padx=3, pady=3)
         slider.set(default_value)
 
         return slider
