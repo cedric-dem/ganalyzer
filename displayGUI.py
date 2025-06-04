@@ -43,8 +43,6 @@ class GUI(object):
 
         self.initializing = False
 
-        self.update_generator()
-
         self.root.mainloop()
 
     def init_selectors(self):
@@ -406,3 +404,4 @@ print("==> Time taken to load : ", round(t1 - t0, 2))
 print("==> Number of loaded models : ", len(generator_list))
 
 main_gui = GUI(generator_list, discriminators_list)
+
