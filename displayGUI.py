@@ -39,7 +39,7 @@ class GUI(object):
         self.initialize_generator_panel()
         self.initialize_discriminator_panel()
 
-        self.init_sliders()
+        self.init_selectors()
 
         self.initializing = False
 
@@ -47,7 +47,7 @@ class GUI(object):
 
         self.root.mainloop()
 
-    def init_sliders(self):
+    def init_selectors(self):
         self.slider_epoch_generator.set(self.models_quantity - 1)
         self.slider_epoch_discriminator.set(self.models_quantity - 1)
 
@@ -59,6 +59,12 @@ class GUI(object):
         self.refresh_label_sigma(self.default_value_sigma)
 
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
+
+        self.inside_selector_generator.config(values=self.get_layers_list(self.generator))
+        self.inside_selector_discriminator.config(values=self.get_layers_list(self.discriminator))
+
+    def get_layers_list(self, model):
+        return ["1) ReLu", "2) conv", "3) Dense"] #TODO
 
     def initialize_input_panel(self):
         title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
@@ -132,7 +138,7 @@ class GUI(object):
         title_generator_hint = tk.Label(self.root, text="Generator", bg="#666666")
         title_generator_hint.grid(row=self.input_panel_height, column=0, rowspan=1, columnspan=self.n_col, sticky="we")
 
-        self.label_current_epoch_generator, self.slider_epoch_generator, self.image_in_generator, self.image_out_generator = self.create_model_panel(self.on_generator_epoch_slider_change_debounced)
+        self.label_current_epoch_generator, self.slider_epoch_generator, self.image_in_generator, self.image_out_generator, self.inside_selector_generator, self.inside_image_generator = self.create_model_panel(self.on_generator_epoch_slider_change_debounced)
 
     def initialize_discriminator_panel(self):
         self.input_and_generator_panel_height = self.input_panel_height + 15
@@ -140,7 +146,7 @@ class GUI(object):
         title_discriminator_hint = tk.Label(self.root, text="Discriminator", bg="#666666")
         title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, sticky="we")
 
-        self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced)
+        self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator, self.inside_selector_discriminator, self.inside_image_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced)
 
     def create_model_panel(self, on_epoch_slider_change):
         layout_panel = tk.Frame(self.root, bg="#444444")
@@ -157,7 +163,7 @@ class GUI(object):
 
         model_out = self.get_image_labeled(layout_panel, 3, "Output")
 
-        return label_epoch, slider_epoch, model_input, model_out
+        return label_epoch, slider_epoch, model_input, model_out, inside_selector, inside_image
 
     def get_image_labeled(self, parent, position, name):
 
@@ -184,14 +190,14 @@ class GUI(object):
         inside_viewer_layout.rowconfigure(1, weight=6)
 
         viewer_location_var = tk.StringVar()
-        viewer_location_combo = ttk.Combobox(inside_viewer_layout, textvariable=viewer_location_var, values=["1) ReLu", "2) conv", "3) Dense"], state="readonly")
+        viewer_location_combo = ttk.Combobox(inside_viewer_layout, textvariable=viewer_location_var, state="readonly")
         viewer_location_combo.set("Select Location")
         viewer_location_combo.grid(row=0, column=0, columnspan=1, sticky="nsew")
 
         inside_viewer_image = tk.Label(inside_viewer_layout, bg="#0000ff")
         inside_viewer_image.grid(rowspan=1, columnspan=1, sticky="nsew")
 
-        return None, inside_viewer_image
+        return viewer_location_combo, inside_viewer_image
 
     def get_epoch_layout(self, layout_panel, on_epoch_slider_change):
         layout_epoch = tk.Frame(layout_panel, bg="#111111")
