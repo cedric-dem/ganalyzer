@@ -8,6 +8,7 @@ from PIL import Image, ImageTk
 import numpy as np
 import tensorflow as tf
 
+
 class GUI(object):
     def __init__(self, models_list_generator, models_list_discriminator):
 
@@ -42,6 +43,8 @@ class GUI(object):
         self.init_selectors()
 
         self.initializing = False
+
+        self.update_generator()
 
         self.root.mainloop()
 
@@ -228,9 +231,18 @@ class GUI(object):
         layer_output = tf.keras.Model(inputs=model.inputs, outputs=model.layers[index_layer].output).predict(input_model)
         print("===> layer ", index_layer, " name : ", model.layers[index_layer].name, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
 
-        #TODO, put layer_output representation on inside_image_location
+        if layer_output.ndim == 4:
+            print("==> Draw lots of squares")
+            # TODO remplace random with the layer_output
+            self.refresh_tk_image(np.random.randint(200, 254, size=(500, 100)).astype(np.uint8), False, inside_image_location)
 
+        elif layer_output.ndim == 2:
+            print("=> Draw one square")
+            # TODO remplace random with the layer_output
+            self.refresh_tk_image(np.random.randint(0, 100, size=(500, 100)).astype(np.uint8), False, inside_image_location)
 
+        else:
+            print("==> Unknown dimension", layer_output.shape)
 
     def get_inside_viewer(self, layout_panel, name):
 
