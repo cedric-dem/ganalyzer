@@ -70,7 +70,7 @@ class GUI(object):
         self.slider_width = 2 * self.max_slider_value
 
         notebook = ttk.Notebook(self.root)
-        notebook.grid(row=1, column=0,columnspan=self.n_col, rowspan=1, sticky="nsew")
+        notebook.grid(row=1, column=0, columnspan=self.n_col, rowspan=1, sticky="nsew")
 
         # First tab
         random_input_tab = ttk.Frame(notebook)
@@ -81,7 +81,7 @@ class GUI(object):
         # Second tab
         constant_input_tab = ttk.Frame(notebook)
         notebook.add(constant_input_tab, text="Set Constant Input")
-        constant_input_tab.columnconfigure((0, 1,2 , 3, 4, 5), weight=1)
+        constant_input_tab.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
         constant_input_tab.rowconfigure((0, 1, 2, 3), weight=1)
 
         # Third tab
@@ -132,22 +132,27 @@ class GUI(object):
         title_generator_hint = tk.Label(self.root, text="Generator", bg="#666666")
         title_generator_hint.grid(row=self.input_panel_height, column=0, rowspan=1, columnspan=self.n_col, pady=10, sticky="we")
 
-        layout_panel = tk.Frame(self.root, bg='#333333')
-        layout_panel.grid(padx=10, pady=10 , rowspan=1, columnspan=self.n_col, sticky="nsew")
+        self.label_current_epoch_generator, self.slider_epoch_generator, self.image_in_generator, self.image_out_generator = self.create_model_panel(self.on_generator_epoch_slider_change_debounced)
+
+    def create_model_panel(self, cmd):
+        layout_panel = tk.Frame(self.root, bg="#333333")
+        layout_panel.grid(padx=10, pady=10, rowspan=1, columnspan=self.n_col, sticky="nsew")
         layout_panel.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
         layout_panel.rowconfigure((0, 1), weight=1)
 
-        self.label_current_epoch_generator = tk.Label(layout_panel)
-        self.label_current_epoch_generator.grid(row=0, column=0, columnspan=1, pady=10)
+        label_epoch = tk.Label(layout_panel)
+        label_epoch.grid(row=0, column=0, columnspan=1, pady=10)
 
-        self.slider_epoch_generator = ttk.Scale(layout_panel, from_=0, to=self.models_quantity - 1, orient="horizontal", command=self.on_generator_epoch_slider_change_debounced)
-        self.slider_epoch_generator.grid(row=0, column=1, columnspan=1, padx=10, pady=20, sticky="ew")
+        slider_epoch = ttk.Scale(layout_panel, from_=0, to=self.models_quantity - 1, orient="horizontal", command=cmd)
+        slider_epoch.grid(row=0, column=1, columnspan=1, padx=10, pady=20, sticky="ew")
 
-        self.image_in_generator = tk.Label(layout_panel)
-        self.image_in_generator.grid(row=0, column=2, rowspan=1, padx=20, pady=10)
+        image_in = tk.Label(layout_panel)
+        image_in.grid(row=0, column=2, rowspan=1, padx=20, pady=10)
 
-        self.image_out_generator = tk.Label(layout_panel)
-        self.image_out_generator.grid(row=0, column=3, rowspan=1, padx=20, pady=10)
+        image_out = tk.Label(layout_panel)
+        image_out.grid(row=0, column=3, rowspan=1, padx=20, pady=10)
+
+        return label_epoch, slider_epoch, image_in, image_out
 
     def initialize_discriminator_panel(self):
         self.input_and_generator_panel_height = self.input_panel_height + 15
