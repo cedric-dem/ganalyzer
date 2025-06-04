@@ -145,7 +145,8 @@ class GUI(object):
     def create_model_panel(self, cmd):
         layout_panel = tk.Frame(self.root, bg="#333333")
         layout_panel.grid(rowspan=1, columnspan=self.n_col, sticky="nsew")
-        layout_panel.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
+        layout_panel.columnconfigure((0, 1, 2, 3), weight=1)
+        layout_panel.columnconfigure( 2, weight=2)
         layout_panel.rowconfigure((0), weight=1)
 
         layout_epoch = tk.Frame(layout_panel, bg="#111111")
@@ -153,17 +154,20 @@ class GUI(object):
         layout_epoch.columnconfigure((0), weight=1)
         layout_epoch.rowconfigure((0,1), weight=1)
         label_epoch = tk.Label(layout_epoch)
-        label_epoch.grid(row=0, column=0, columnspan=1)
+        label_epoch.grid(row=0, column=0, columnspan=1, sticky="nsew")
         slider_epoch = ttk.Scale(layout_epoch, from_=0, to=self.models_quantity - 1, orient="horizontal", command=cmd)
-        slider_epoch.grid(row=1, column=0, columnspan=1, sticky="ew")
+        slider_epoch.grid(row=1, column=0, columnspan=1)
 
-        model_in = tk.Label(layout_panel)
-        model_in.grid(row=0, column=2, rowspan=1, columnspan=1)
+        model_input = tk.Label(layout_panel)
+        model_input.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="nsew")
+
+        model_inside = tk.Label(layout_panel, bg = "#0000ff")
+        model_inside.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="nsew")
 
         model_out = tk.Label(layout_panel)
         model_out.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="nsew")
 
-        return label_epoch, slider_epoch, model_in, model_out
+        return label_epoch, slider_epoch, model_input, model_out
 
     def generate_image_from_input_values(self, input_raw):
         input_rebound = np.array([input_raw]) / self.slider_width
