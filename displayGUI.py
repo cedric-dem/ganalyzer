@@ -233,16 +233,27 @@ class GUI(object):
 
         if layer_output.ndim == 4:
             print("==> Draw lots of squares")
-            # TODO remplace random with the layer_output
-            self.refresh_tk_image(np.random.randint(200, 254, size=(500, 100)).astype(np.uint8), False, inside_image_location)
+            representation = self.get_array_representation(layer_output)
 
         elif layer_output.ndim == 2:
             print("=> Draw one square")
-            # TODO remplace random with the layer_output
-            self.refresh_tk_image(np.random.randint(0, 100, size=(500, 100)).astype(np.uint8), False, inside_image_location)
+            representation = self.get_rectangle_representation(layer_output)
 
         else:
+            representation = []
             print("==> Unknown dimension", layer_output.shape)
+
+        self.refresh_tk_image(representation, False, inside_image_location)
+
+    def get_array_representation(self, raw_data):
+        # TODO remplace random with the layer_output
+        result = np.random.randint(0, 254, size=(100, 100)).astype(np.uint8)
+        return result
+
+    def get_rectangle_representation(self, raw_data):
+        # TODO remplace random with the layer_output
+        result = np.random.randint(0, 254, size=(100, 100)).astype(np.uint8)
+        return result
 
     def get_inside_viewer(self, layout_panel, name):
 
