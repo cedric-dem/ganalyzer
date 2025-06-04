@@ -148,17 +148,20 @@ class GUI(object):
         layout_panel.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
         layout_panel.rowconfigure((0), weight=1)
 
-        label_epoch = tk.Label(layout_panel)
+        layout_epoch = tk.Frame(layout_panel, bg="#111111")
+        layout_epoch.grid(rowspan=1, columnspan=1, sticky="nsew")
+        layout_epoch.columnconfigure((0), weight=1)
+        layout_epoch.rowconfigure((0,1), weight=1)
+        label_epoch = tk.Label(layout_epoch)
         label_epoch.grid(row=0, column=0, columnspan=1)
-
-        slider_epoch = ttk.Scale(layout_panel, from_=0, to=self.models_quantity - 1, orient="horizontal", command=cmd)
-        slider_epoch.grid(row=0, column=1, columnspan=1, sticky="ew")
+        slider_epoch = ttk.Scale(layout_epoch, from_=0, to=self.models_quantity - 1, orient="horizontal", command=cmd)
+        slider_epoch.grid(row=1, column=0, columnspan=1, sticky="ew")
 
         model_in = tk.Label(layout_panel)
-        model_in.grid(row=0, column=2, rowspan=1)
+        model_in.grid(row=0, column=2, rowspan=1, columnspan=1)
 
         model_out = tk.Label(layout_panel)
-        model_out.grid(row=0, column=3, rowspan=1, sticky="nsew")
+        model_out.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="nsew")
 
         return label_epoch, slider_epoch, model_in, model_out
 
