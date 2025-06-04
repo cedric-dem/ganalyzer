@@ -25,6 +25,10 @@ class GUI(object):
         self.debounce_id_discriminator = None
 
         self.models_quantity = min(len(models_list_generator), len(models_list_discriminator))
+
+        self.input_of_generator = np.full(1,1)
+        self.input_of_discriminator = np.full(1,1)
+
         self.generator = None
         self.discriminator = None
         self.models_list_generator = models_list_generator
@@ -208,19 +212,19 @@ class GUI(object):
     def refresh_inside_visualization(self, model):
         if model == "generator":
             # print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
-            try:
+            if self.input_of_generator.ndim>1:
                 index_layer = self.get_layer_index(self.selected_generator_inside_layer)
                 self.refresh_layer_visualization(self.input_of_generator, self.inside_image_generator, self.generator, index_layer)
-            except:
-                print("==> Input not found")
+            else:
+                print("==> Generator Input not found")
 
         elif model == "discriminator":
             # print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
-            try:
+            if self.input_of_discriminator.ndim>1:
                 index_layer = self.get_layer_index(self.selected_discriminator_inside_layer)
                 self.refresh_layer_visualization(self.input_of_discriminator, self.inside_image_discriminator, self.discriminator, index_layer)
-            except:
-                print("==> Input not found")
+            else:
+                print("==> Discriminator Input not found")
 
     def get_layer_index(self, layer_name):
         return int(layer_name.split(")")[0])
@@ -257,7 +261,8 @@ class GUI(object):
         result = np.full((100, 100), 254, dtype=np.uint8)
 
         # TODO
-        print("==> Case A with shape ", raw_data.shape)
+        size=raw_data.shape**0.5
+        print("==> Case A with shape ", raw_data.shape, " so ",size)
 
         return result
 
