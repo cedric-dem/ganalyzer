@@ -62,7 +62,7 @@ class GUI(object):
 
     def initialize_input_panel(self):
         title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
-        title_input_hint.grid(row=0, column=0, columnspan=self.n_col, pady=10, sticky="we")
+        title_input_hint.grid(row=0, column=0, columnspan=self.n_col, rowspan=1, pady=10, sticky="we")
 
         self.input_image_grid_size = int(latent_dimension_generator**0.5)
 
@@ -70,7 +70,7 @@ class GUI(object):
         self.slider_width = 2 * self.max_slider_value
 
         notebook = ttk.Notebook(self.root)
-        notebook.grid(row=1, column=0,columnspan=self.n_col, rowspan=self.n_row//3, sticky="nsew")
+        notebook.grid(row=1, column=0,columnspan=self.n_col, rowspan=1, sticky="nsew")
 
         # First tab
         random_input_tab = ttk.Frame(notebook)
@@ -127,10 +127,11 @@ class GUI(object):
         return slider
 
     def initialize_generator_panel(self):
-        self.input_panel_height = self.input_image_grid_size + 3
+        self.input_panel_height = 2
 
         title_generator_hint = tk.Label(self.root, text="Generator", bg="#666666")
-        title_generator_hint.grid(row=self.input_panel_height, column=0, columnspan=15, pady=10, sticky="we")
+        title_generator_hint.grid(row=self.input_panel_height, column=0, rowspan=1, columnspan=self.n_col, pady=10, sticky="we")
+
 
         self.label_current_epoch_generator = tk.Label(self.root)
         self.label_current_epoch_generator.grid(row=self.input_panel_height + 4, column=0, columnspan=2, pady=10)
