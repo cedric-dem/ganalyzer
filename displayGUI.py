@@ -151,15 +151,30 @@ class GUI(object):
 
         label_epoch, slider_epoch = self.get_epoch_layout(layout_panel, on_epoch_slider_change)
 
-        model_input = tk.Label(layout_panel)
-        model_input.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="nsew")
+        model_input= self.get_image_labeled(layout_panel, 1,  "Input" )
 
         inside_selector, inside_image = self.get_inside_viewer(layout_panel)
 
-        model_out = tk.Label(layout_panel)
-        model_out.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="nsew")
+        model_out= self.get_image_labeled(layout_panel,3, "Output")
 
         return label_epoch, slider_epoch, model_input, model_out
+
+    def get_image_labeled(self, parent, position,  name):
+
+        temp_panel = tk.Frame(parent, bg="#333333")
+        temp_panel.grid(column = position, row=0, rowspan=1, columnspan=1, sticky="nsew")
+        temp_panel.columnconfigure((0, ), weight=1)
+        temp_panel.rowconfigure((0,1), weight=1)
+        temp_panel.rowconfigure(1, weight=3)
+
+
+        image_label = tk.Label(temp_panel, text= name)
+        image_label.grid(row=0, column=position, rowspan=1, columnspan=1, sticky="nsew")
+
+        image_model = tk.Label(temp_panel)
+        image_model.grid(row=1, column=position, rowspan=1, columnspan=1, sticky="nsew")
+
+        return image_model
 
     def get_inside_viewer(self, layout_panel):
 
@@ -167,6 +182,7 @@ class GUI(object):
         inside_viewer_layout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="nsew")
         inside_viewer_layout.columnconfigure((0), weight=1)
         inside_viewer_layout.rowconfigure((0, 1), weight=1)
+        inside_viewer_layout.rowconfigure(1, weight=3)
 
         viewer_location_var = tk.StringVar()
         viewer_location_combo = ttk.Combobox(inside_viewer_layout, textvariable=viewer_location_var, values=["1) ReLu", "2) conv", "3) Dense"], state="readonly")
