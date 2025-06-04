@@ -59,8 +59,11 @@ class GUI(object):
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
     def initialize_input_panel(self):
+        title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
+        title_input_hint.grid(row=0, column=0, columnspan=15, pady=10, sticky="we")
+
         notebook = ttk.Notebook(self.root)
-        notebook.grid(row=0, column=0, columnspan=14, sticky="nsew")
+        notebook.grid(row=1, column=0, columnspan=14, sticky="nsew")
 
         # First tab
         random_input_tab = ttk.Frame(notebook)
