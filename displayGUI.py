@@ -132,7 +132,7 @@ class GUI(object):
         title_generator_hint = tk.Label(self.root, text="Generator", bg="#666666")
         title_generator_hint.grid(row=self.input_panel_height, column=0, rowspan=1, columnspan=self.n_col, pady=10, sticky="we")
 
-        self.label_current_epoch_generator, self.slider_epoch_generator, self.image_in_generator, self.image_out_generator = self.create_model_panel(self.on_generator_epoch_slider_change_debounced, False)
+        self.label_current_epoch_generator, self.slider_epoch_generator, self.image_in_generator, self.image_out_generator = self.create_model_panel(self.on_generator_epoch_slider_change_debounced)
 
     def initialize_discriminator_panel(self):
         self.input_and_generator_panel_height = self.input_panel_height + 15
@@ -140,23 +140,9 @@ class GUI(object):
         title_discriminator_hint = tk.Label(self.root, text="Discriminator", bg="#666666")
         title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, pady=10, sticky="we")
 
-        self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced, True)
+        self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced)
 
-        """
-        self.label_current_epoch_discriminator = tk.Label(self.root)
-        self.label_current_epoch_discriminator.grid(row=self.input_and_generator_panel_height + 4, column=0, columnspan=2, pady=10)
-
-        self.slider_epoch_discriminator = ttk.Scale(self.root, from_=0, to=self.models_quantity - 1, orient="horizontal", length=600, command=self.on_discriminator_epoch_slider_change_debounced)
-        self.slider_epoch_discriminator.grid(row=self.input_and_generator_panel_height + 5, column=0, columnspan=self.input_image_grid_size - 6, padx=10, pady=20, sticky="ew")
-
-        self.image_in_discriminator = tk.Label(self.root)
-        self.image_in_discriminator.grid(row=self.input_and_generator_panel_height + 1, column=self.input_image_grid_size - 2, rowspan=self.input_image_grid_size + 1, padx=20, pady=10)
-
-        self.label_prediction_out_discriminator = tk.Label(self.root)
-        self.label_prediction_out_discriminator.grid(row=self.input_and_generator_panel_height + 1, column=self.input_image_grid_size, rowspan=self.input_image_grid_size + 1, padx=20, pady=10, sticky="nsew")
-        """
-
-    def create_model_panel(self, cmd, out_label):
+    def create_model_panel(self, cmd):
         layout_panel = tk.Frame(self.root, bg="#333333")
         layout_panel.grid(padx=10, pady=10, rowspan=1, columnspan=self.n_col, sticky="nsew")
         layout_panel.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
@@ -168,16 +154,13 @@ class GUI(object):
         slider_epoch = ttk.Scale(layout_panel, from_=0, to=self.models_quantity - 1, orient="horizontal", command=cmd)
         slider_epoch.grid(row=0, column=1, columnspan=1, padx=10, pady=20, sticky="ew")
 
-        image_in = tk.Label(layout_panel)
-        image_in.grid(row=0, column=2, rowspan=1, padx=20, pady=10)
+        model_in = tk.Label(layout_panel)
+        model_in.grid(row=0, column=2, rowspan=1, padx=20, pady=10)
 
-        if (out_label):
-            model_out = tk.Label(layout_panel)
-        else:
-            model_out = tk.Label(layout_panel)
+        model_out = tk.Label(layout_panel)
         model_out.grid(row=0, column=3, rowspan=1, padx=20, pady=10, sticky="nsew")
 
-        return label_epoch, slider_epoch, image_in, model_out
+        return label_epoch, slider_epoch, model_in, model_out
 
     def generate_image_from_input_values(self, input_raw):
         input_rebound = np.array([input_raw]) / self.slider_width
