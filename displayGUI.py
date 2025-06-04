@@ -207,7 +207,7 @@ class GUI(object):
 
     def refresh_inside_visualization(self, model):
         if model == "generator":
-            print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
+            # print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
             try:
                 index_layer = self.get_layer_index(self.selected_generator_inside_layer)
                 self.refresh_layer_visualization(self.input_of_generator, self.inside_image_generator, self.generator, index_layer)
@@ -215,7 +215,7 @@ class GUI(object):
                 print("==> Input not found")
 
         elif model == "discriminator":
-            print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
+            # print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
             try:
                 index_layer = self.get_layer_index(self.selected_discriminator_inside_layer)
                 self.refresh_layer_visualization(self.input_of_discriminator, self.inside_image_discriminator, self.discriminator, index_layer)
@@ -226,18 +226,18 @@ class GUI(object):
         return int(layer_name.split(")")[0])
 
     def refresh_layer_visualization(self, input_model, inside_image_location, model, index_layer):
-        print("==> refresh, having settings")
-        print("=======>", input_model.shape, inside_image_location, model, index_layer)
+        # print("==> refresh, having settings")
+        # print("=======>", input_model.shape, inside_image_location, model, index_layer)
         layer_output = tf.keras.Model(inputs=model.inputs, outputs=model.layers[index_layer].output).predict(input_model)
-        print("===> layer ", index_layer, " name : ", model.layers[index_layer].name, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
+        # print("===> layer ", index_layer, " name : ", model.layers[index_layer].name, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
 
         if layer_output.ndim == 4:
-            print("==> Draw lots of squares")
-            representation = self.get_array_representation(layer_output)
+            # print("==> Draw lots of squares")
+            representation = self.get_array_representation(layer_output[0])
 
         elif layer_output.ndim == 2:
-            print("=> Draw one square")
-            representation = self.get_rectangle_representation(layer_output)
+            # print("=> Draw one square")
+            representation = self.get_rectangle_representation(layer_output[0])
 
         else:
             representation = []
@@ -246,13 +246,19 @@ class GUI(object):
         self.refresh_tk_image(representation, False, inside_image_location)
 
     def get_array_representation(self, raw_data):
-        # TODO remplace random with the layer_output
-        result = np.random.randint(0, 254, size=(100, 100)).astype(np.uint8)
+        result = np.full((100, 100), 254, dtype=np.uint8)
+
+        # TODO
+        print("==> Case A with shape ", raw_data.shape)
+
         return result
 
     def get_rectangle_representation(self, raw_data):
-        # TODO remplace random with the layer_output
-        result = np.random.randint(0, 254, size=(100, 100)).astype(np.uint8)
+        result = np.full((100, 100), 254, dtype=np.uint8)
+
+        # TODO
+        print("==> Case A with shape ", raw_data.shape)
+
         return result
 
     def get_inside_viewer(self, layout_panel, name):
