@@ -60,8 +60,15 @@ class GUI(object):
 
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
-        self.inside_selector_generator.config(values=self.get_layers_list(self.generator))
-        self.inside_selector_discriminator.config(values=self.get_layers_list(self.discriminator))
+        layers_list_generator=self.get_layers_list(self.generator)
+        layers_list_discriminator=self.get_layers_list(self.discriminator)
+
+        self.inside_selector_generator.config(values=layers_list_generator)
+        self.inside_selector_discriminator.config(values=layers_list_discriminator)
+
+        self.selected_generator_inside_layer = layers_list_generator[0]
+        self.selected_discriminator_inside_layer = layers_list_discriminator[0]
+
 
     def get_layers_list(self, model):
         return [str(i)+") "+model.layers[i].name for i in range (len(model.layers))]
@@ -182,7 +189,29 @@ class GUI(object):
         return image_model
 
     def on_selector_layer_change(self,event):
-        print('===> new selected layer : ',str(event.widget), " = ", event.widget.get())
+
+        model = str(event.widget).split('.')[-1]
+        selected_layer = event.widget.get()
+
+        if model=="generator":
+            self.selected_generator_inside_layer= selected_layer
+
+        elif model=="discriminator":
+            self.selected_discriminator_inside_layer= selected_layer
+        else:
+            print('error 404')
+
+        self.refresh_inside_visualization(model)
+
+    def refresh_inside_visualization(self, model):
+        #TODO
+
+        if model=="generator":
+            print('==> now refreshing ',model," layer ",self.selected_generator_inside_layer)
+
+        elif model=="discriminator":
+            print('==> now refreshing ',model," layer ",self.selected_discriminator_inside_layer)
+
 
     def get_inside_viewer(self, layout_panel, name):
 
@@ -235,6 +264,9 @@ class GUI(object):
             # update image_in_generator
             self.refresh_image_in_generator(values)
 
+            # update image_inside_generator
+            self.refresh_inside_visualization("generator")
+
             # update image_out_generator
             self.refresh_image_out_generator(values)
 
@@ -265,6 +297,9 @@ class GUI(object):
         if not self.initializing:  # TODO maybe put that if before method call ?
             # update image_in_discriminator
             self.refresh_image_in_discriminator()
+
+            # update image_inside_generator
+            self.refresh_inside_visualization("discriminator")
 
             # update prediction discriminator
             self.refresh_prediction_discriminator()
