@@ -24,7 +24,7 @@ def get_all_models(model_type):
     if load_all_models:
         i = 0
     else:
-        i = models_quantity - 10
+        i = models_quantity - 5
 
     while i < models_quantity:
         this_filename = get_model_path_at_given_epoch(model_type, i)
