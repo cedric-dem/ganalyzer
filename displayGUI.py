@@ -142,32 +142,55 @@ class GUI(object):
 
         self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced)
 
-    def create_model_panel(self, cmd):
+    def create_model_panel(self, on_epoch_slider_change):
         layout_panel = tk.Frame(self.root, bg="#333333")
         layout_panel.grid(rowspan=1, columnspan=self.n_col, sticky="nsew")
         layout_panel.columnconfigure((0, 1, 2, 3), weight=1)
-        layout_panel.columnconfigure( 2, weight=2)
+        layout_panel.columnconfigure(2, weight=2)
         layout_panel.rowconfigure((0), weight=1)
 
-        layout_epoch = tk.Frame(layout_panel, bg="#111111")
-        layout_epoch.grid(rowspan=1, columnspan=1, sticky="nsew")
-        layout_epoch.columnconfigure((0), weight=1)
-        layout_epoch.rowconfigure((0,1), weight=1)
-        label_epoch = tk.Label(layout_epoch)
-        label_epoch.grid(row=0, column=0, columnspan=1, sticky="nsew")
-        slider_epoch = ttk.Scale(layout_epoch, from_=0, to=self.models_quantity - 1, orient="horizontal", command=cmd)
-        slider_epoch.grid(row=1, column=0, columnspan=1)
+        label_epoch, slider_epoch = self.get_epoch_layout(layout_panel, on_epoch_slider_change)
 
         model_input = tk.Label(layout_panel)
         model_input.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="nsew")
 
-        model_inside = tk.Label(layout_panel, bg = "#0000ff")
-        model_inside.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="nsew")
+        inside_selector, inside_image = self.get_inside_viewer(layout_panel)
 
         model_out = tk.Label(layout_panel)
         model_out.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="nsew")
 
         return label_epoch, slider_epoch, model_input, model_out
+
+    def get_inside_viewer(self, layout_panel):
+
+        inside_viewer_layout = tk.Frame(layout_panel, bg="#ff0000")
+        inside_viewer_layout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="nsew")
+        inside_viewer_layout.columnconfigure((0), weight=1)
+        inside_viewer_layout.rowconfigure((0, 1), weight=1)
+
+        viewer_location_var = tk.StringVar()
+        viewer_location_combo = ttk.Combobox(inside_viewer_layout, textvariable=viewer_location_var, values=["1) ReLu", "2) conv", "3) Dense"], state="readonly")
+        viewer_location_combo.set("Select Location")
+        viewer_location_combo.grid(row=0, column=0, columnspan=1, sticky="nsew")
+
+        inside_viewer_image = tk.Label(inside_viewer_layout, bg="#0000ff")
+        inside_viewer_image.grid(rowspan=1, columnspan=1, sticky="nsew")
+
+        return None, inside_viewer_image
+
+    def get_epoch_layout(self, layout_panel, on_epoch_slider_change):
+        layout_epoch = tk.Frame(layout_panel, bg="#111111")
+        layout_epoch.grid(rowspan=1, columnspan=1, sticky="nsew")
+        layout_epoch.columnconfigure((0), weight=1)
+        layout_epoch.rowconfigure((0, 1), weight=1)
+
+        label_epoch = tk.Label(layout_epoch)
+        label_epoch.grid(row=0, column=0, columnspan=1, sticky="nsew")
+
+        slider_epoch = ttk.Scale(layout_epoch, from_=0, to=self.models_quantity - 1, orient="horizontal", command=on_epoch_slider_change)
+        slider_epoch.grid(row=1, column=0, columnspan=1)
+
+        return label_epoch, slider_epoch
 
     def generate_image_from_input_values(self, input_raw):
         input_rebound = np.array([input_raw]) / self.slider_width
