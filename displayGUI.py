@@ -143,10 +143,10 @@ class GUI(object):
         self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced)
 
     def create_model_panel(self, on_epoch_slider_change):
-        layout_panel = tk.Frame(self.root, bg="#333333")
+        layout_panel = tk.Frame(self.root, bg="#444444")
         layout_panel.grid(rowspan=1, columnspan=self.n_col, sticky="nsew")
         layout_panel.columnconfigure((0, 1, 2, 3), weight=1)
-        layout_panel.columnconfigure(2, weight=2)
+        layout_panel.columnconfigure(2, weight=5)
         layout_panel.rowconfigure((0), weight=1)
 
         label_epoch, slider_epoch = self.get_epoch_layout(layout_panel, on_epoch_slider_change)
@@ -161,11 +161,11 @@ class GUI(object):
 
     def get_image_labeled(self, parent, position, name):
 
-        temp_panel = tk.Frame(parent, bg="#333333")
+        temp_panel = tk.Frame(parent, bg="#222222")
         temp_panel.grid(column=position, row=0, rowspan=1, columnspan=1, sticky="nsew")
         temp_panel.columnconfigure((0,), weight=1)
-        temp_panel.rowconfigure((0, 1), weight=1)
-        temp_panel.rowconfigure(1, weight=3)
+        temp_panel.rowconfigure(0, weight=1)
+        temp_panel.rowconfigure(1, weight=5)
 
         image_label = tk.Label(temp_panel, text=name)
         image_label.grid(row=0, column=position, rowspan=1, columnspan=1, sticky="nsew")
@@ -181,7 +181,7 @@ class GUI(object):
         inside_viewer_layout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="nsew")
         inside_viewer_layout.columnconfigure((0), weight=1)
         inside_viewer_layout.rowconfigure((0, 1), weight=1)
-        inside_viewer_layout.rowconfigure(1, weight=3)
+        inside_viewer_layout.rowconfigure(1, weight=6)
 
         viewer_location_var = tk.StringVar()
         viewer_location_combo = ttk.Combobox(inside_viewer_layout, textvariable=viewer_location_var, values=["1) ReLu", "2) conv", "3) Dense"], state="readonly")
