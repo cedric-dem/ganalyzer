@@ -207,9 +207,17 @@ class GUI(object):
 
         if model == "generator":
             print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
+            try:
+                print("==> input :", self.input_of_generator.shape)
+            except:
+                print("==> Input not found")
 
         elif model == "discriminator":
             print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
+            try:
+                print("==> input :", self.input_of_discriminator.shape)
+            except:
+                print("==> Input not found")
 
     def get_inside_viewer(self, layout_panel, name):
 
@@ -245,12 +253,12 @@ class GUI(object):
         return label_epoch, slider_epoch
 
     def generate_image_from_input_values(self, input_raw):
-        input_rebound = np.array([input_raw]) / self.slider_width
+        self.input_of_generator = np.array([input_raw]) / self.slider_width
 
         if rgb_images:
-            predicted_raw = self.generator.predict(input_rebound)[0, :, :, :]
+            predicted_raw = self.generator.predict(self.input_of_generator)[0, :, :, :]
         else:
-            predicted_raw = self.generator.predict(input_rebound)[0, :, :, 0]
+            predicted_raw = self.generator.predict(self.input_of_generator)[0, :, :, 0]
 
         return find_limits_and_project(predicted_raw)
 
@@ -306,11 +314,11 @@ class GUI(object):
         self.refresh_tk_image(self.generated_image, rgb_images, self.image_in_discriminator)
 
     def refresh_prediction_discriminator(self):
-        input_image_discriminator = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
+        self.input_of_discriminator= np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
         if model_name == "test_0" or model_name == "test_0B":
-            predicted_output = self.discriminator.predict(input_image_discriminator)[0][0]
+            predicted_output = self.discriminator.predict(self.input_of_discriminator)[0][0]
         elif model_name == "test_1":
-            predicted_output = self.discriminator.predict(input_image_discriminator)[0][0][0][0]
+            predicted_output = self.discriminator.predict(self.input_of_discriminator)[0][0][0][0]
         self.label_prediction_out_discriminator.config(text="Prediction : " + str(round(predicted_output, 2)))
 
     def randomize_all_sliders(self, mu, sigma):
