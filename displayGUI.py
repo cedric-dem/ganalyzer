@@ -64,7 +64,7 @@ class GUI(object):
         self.inside_selector_discriminator.config(values=self.get_layers_list(self.discriminator))
 
     def get_layers_list(self, model):
-        return ["1) ReLu", "2) conv", "3) Dense"] #TODO
+        return [str(i)+") "+model.layers[i].name for i in range (len(model.layers))]
 
     def initialize_input_panel(self):
         title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
