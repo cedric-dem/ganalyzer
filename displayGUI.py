@@ -138,7 +138,7 @@ class GUI(object):
         title_generator_hint = tk.Label(self.root, text="Generator", bg="#666666")
         title_generator_hint.grid(row=self.input_panel_height, column=0, rowspan=1, columnspan=self.n_col, sticky="we")
 
-        self.label_current_epoch_generator, self.slider_epoch_generator, self.image_in_generator, self.image_out_generator, self.inside_selector_generator, self.inside_image_generator = self.create_model_panel(self.on_generator_epoch_slider_change_debounced)
+        self.label_current_epoch_generator, self.slider_epoch_generator, self.image_in_generator, self.image_out_generator, self.inside_selector_generator, self.inside_image_generator = self.create_model_panel(self.on_generator_epoch_slider_change_debounced, "generator")
 
     def initialize_discriminator_panel(self):
         self.input_and_generator_panel_height = self.input_panel_height + 15
@@ -146,9 +146,9 @@ class GUI(object):
         title_discriminator_hint = tk.Label(self.root, text="Discriminator", bg="#666666")
         title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, sticky="we")
 
-        self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator, self.inside_selector_discriminator, self.inside_image_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced)
+        self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator, self.inside_selector_discriminator, self.inside_image_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced, "discriminator")
 
-    def create_model_panel(self, on_epoch_slider_change):
+    def create_model_panel(self, on_epoch_slider_change, name):
         layout_panel = tk.Frame(self.root, bg="#444444")
         layout_panel.grid(rowspan=1, columnspan=self.n_col, sticky="nsew")
         layout_panel.columnconfigure((0, 1, 2, 3), weight=1)
@@ -159,7 +159,7 @@ class GUI(object):
 
         model_input = self.get_image_labeled(layout_panel, 1, "Input")
 
-        inside_selector, inside_image = self.get_inside_viewer(layout_panel)
+        inside_selector, inside_image = self.get_inside_viewer(layout_panel, name)
 
         model_out = self.get_image_labeled(layout_panel, 3, "Output")
 
@@ -181,7 +181,10 @@ class GUI(object):
 
         return image_model
 
-    def get_inside_viewer(self, layout_panel):
+    def on_selector_layer_change(self,event):
+        print('===> new selected layer : ',str(event.widget), " = ", event.widget.get())
+
+    def get_inside_viewer(self, layout_panel, name):
 
         inside_viewer_layout = tk.Frame(layout_panel, bg="#ff0000")
         inside_viewer_layout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="nsew")
@@ -190,9 +193,10 @@ class GUI(object):
         inside_viewer_layout.rowconfigure(1, weight=6)
 
         viewer_location_var = tk.StringVar()
-        viewer_location_combo = ttk.Combobox(inside_viewer_layout, textvariable=viewer_location_var, state="readonly")
+        viewer_location_combo = ttk.Combobox(inside_viewer_layout, textvariable=viewer_location_var, state="readonly", name=name)
         viewer_location_combo.set("Select Location")
         viewer_location_combo.grid(row=0, column=0, columnspan=1, sticky="nsew")
+        viewer_location_combo.bind("<<ComboboxSelected>>", self.on_selector_layer_change)
 
         inside_viewer_image = tk.Label(inside_viewer_layout, bg="#0000ff")
         inside_viewer_image.grid(rowspan=1, columnspan=1, sticky="nsew")
