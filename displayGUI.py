@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import numpy as np
-
+import tensorflow as tf
 
 class GUI(object):
     def __init__(self, models_list_generator, models_list_discriminator):
@@ -225,7 +225,12 @@ class GUI(object):
     def refresh_layer_visualization(self, input_model, inside_image_location, model, index_layer):
         print("==> refresh, having settings")
         print("=======>", input_model.shape, inside_image_location, model, index_layer)
-        # TODO
+        layer_output = tf.keras.Model(inputs=model.inputs, outputs=model.layers[index_layer].output).predict(input_model)
+        print("===> layer ", index_layer, " name : ", model.layers[index_layer].name, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
+
+        #TODO, put layer_output representation on inside_image_location
+
+
 
     def get_inside_viewer(self, layout_panel, name):
 
