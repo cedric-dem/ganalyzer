@@ -1,4 +1,4 @@
 [tool.black]
-line-length = 250
+line-length = 299
 target-version = ['py39']
 include = '\.py'

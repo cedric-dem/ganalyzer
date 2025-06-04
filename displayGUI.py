@@ -60,8 +60,8 @@ class GUI(object):
 
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
-        layers_list_generator=self.get_layers_list(self.generator)
-        layers_list_discriminator=self.get_layers_list(self.discriminator)
+        layers_list_generator = self.get_layers_list(self.generator)
+        layers_list_discriminator = self.get_layers_list(self.discriminator)
 
         self.inside_selector_generator.config(values=layers_list_generator)
         self.inside_selector_discriminator.config(values=layers_list_discriminator)
@@ -69,9 +69,8 @@ class GUI(object):
         self.selected_generator_inside_layer = layers_list_generator[0]
         self.selected_discriminator_inside_layer = layers_list_discriminator[0]
 
-
     def get_layers_list(self, model):
-        return [str(i)+") "+model.layers[i].name for i in range (len(model.layers))]
+        return [str(i) + ") " + model.layers[i].name for i in range(len(model.layers))]
 
     def initialize_input_panel(self):
         title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
@@ -153,7 +152,9 @@ class GUI(object):
         title_discriminator_hint = tk.Label(self.root, text="Discriminator", bg="#666666")
         title_discriminator_hint.grid(row=self.input_and_generator_panel_height, column=0, columnspan=15, sticky="we")
 
-        self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator, self.inside_selector_discriminator, self.inside_image_discriminator = self.create_model_panel(self.on_discriminator_epoch_slider_change_debounced, "discriminator")
+        self.label_current_epoch_discriminator, self.slider_epoch_discriminator, self.image_in_discriminator, self.label_prediction_out_discriminator, self.inside_selector_discriminator, self.inside_image_discriminator = self.create_model_panel(
+            self.on_discriminator_epoch_slider_change_debounced, "discriminator"
+        )
 
     def create_model_panel(self, on_epoch_slider_change, name):
         layout_panel = tk.Frame(self.root, bg="#444444")
@@ -188,30 +189,29 @@ class GUI(object):
 
         return image_model
 
-    def on_selector_layer_change(self,event):
+    def on_selector_layer_change(self, event):
 
-        model = str(event.widget).split('.')[-1]
+        model = str(event.widget).split(".")[-1]
         selected_layer = event.widget.get()
 
-        if model=="generator":
-            self.selected_generator_inside_layer= selected_layer
+        if model == "generator":
+            self.selected_generator_inside_layer = selected_layer
 
-        elif model=="discriminator":
-            self.selected_discriminator_inside_layer= selected_layer
+        elif model == "discriminator":
+            self.selected_discriminator_inside_layer = selected_layer
         else:
-            print('error 404')
+            print("error 404")
 
         self.refresh_inside_visualization(model)
 
     def refresh_inside_visualization(self, model):
-        #TODO
+        # TODO
 
-        if model=="generator":
-            print('==> now refreshing ',model," layer ",self.selected_generator_inside_layer)
+        if model == "generator":
+            print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
 
-        elif model=="discriminator":
-            print('==> now refreshing ',model," layer ",self.selected_discriminator_inside_layer)
-
+        elif model == "discriminator":
+            print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
 
     def get_inside_viewer(self, layout_panel, name):
 
