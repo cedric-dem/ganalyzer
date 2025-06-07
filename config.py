@@ -8,7 +8,7 @@ rgb_images = True
 
 latent_dimension_generator = 169
 
-load_all_models = False
+show_models_gui=10
 
 use_full_dataset = True
 

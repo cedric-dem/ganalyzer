@@ -386,13 +386,16 @@ class GUI(object):
         self.debounce_id_generator = self.root.after(self.debounce_time, self.on_generator_epoch_slider_change, value)
 
     def on_generator_epoch_slider_change(self, value):
-        # new_epoch=int(float(self.epoch_slider_generator.get()))
-        new_epoch = int(float(value))
-        self.generator = self.models_list_generator[new_epoch]
+        
+        new_epoch_exact = int(float(value))
+        
+        new_epoch_found=self.get_closest_model_loaded_index(self.models_list_generator , new_epoch_exact)
 
+        self.generator = self.models_list_generator[new_epoch_found]
+        
         self.update_generator()
 
-        self.label_current_epoch_generator.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
+        self.label_current_epoch_generator.config(text="Current Epoch : " + str(new_epoch_found) + " / " + str(self.models_quantity - 1))
 
     def on_discriminator_epoch_slider_change_debounced(self, value):
         if self.debounce_id_discriminator:
@@ -402,12 +405,36 @@ class GUI(object):
         self.debounce_id_discriminator = self.root.after(self.debounce_time, self.on_discriminator_epoch_slider_change, value)
 
     def on_discriminator_epoch_slider_change(self, value):
-        # new_epoch=int(float(self.epoch_slider_discriminator.get()))
-        new_epoch = int(float(value))
-        self.discriminator = self.models_list_discriminator[new_epoch]
+
+        new_epoch_exact = int(float(value))
+        
+        new_epoch_found=self.get_closest_model_loaded_index(self.models_list_discriminator , new_epoch_exact)
+
+        self.discriminator = self.models_list_discriminator[new_epoch_found]
+        
         self.update_discriminator()
 
-        self.label_current_epoch_discriminator.config(text="Current Epoch : " + str(new_epoch) + " / " + str(self.models_quantity - 1))
+        self.label_current_epoch_discriminator.config(text="Current Epoch : " + str(new_epoch_found) + " / " + str(self.models_quantity - 1))
+
+
+    def get_closest_model_loaded_index(self, models_list, model_index):
+        current_delta=0
+        found=False
+        while not found and current_delta<1000:
+
+            new_index=model_index+current_delta
+            if (new_index<len(models_list) and models_list[new_index]):
+                found_index=new_index
+                found=True
+
+
+            new_index=model_index-current_delta
+            if (new_index>=0 and models_list[new_index]):
+                found_index=new_index
+                found=True
+
+            current_delta+=1
+        return found_index
 
     def set_input_constant(self):
         new_k_value = self.slider_k.get()

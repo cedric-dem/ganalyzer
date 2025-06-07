@@ -18,18 +18,19 @@ def get_model_path_at_given_epoch(model_type, i):
 
 
 def get_all_models(model_type):
-    result = []
-
     models_quantity = get_current_epoch()
-    if load_all_models:
-        i = 0
-    else:
-        i = models_quantity - 3
 
-    while i < models_quantity:
-        this_filename = get_model_path_at_given_epoch(model_type, i)
-        result.append(keras.models.load_model(this_filename))
-        print("=> Attempt to load " + model_type + " epoch ", i)
+    result = [None for i in range (models_quantity)]
+
+    load_every=models_quantity//show_models_gui
+
+    for i in range (models_quantity):
+
+        if (i==0 or i==models_quantity-1 or (i%load_every==0)):
+            print("=> Attempt to load " + model_type + " epoch ", i)
+            this_filename = get_model_path_at_given_epoch(model_type, i)
+            result[i]=keras.models.load_model(this_filename)
+
         i += 1
     return result
 
