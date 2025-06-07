@@ -15,7 +15,7 @@ import tensorflow as tf
 
 def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
 
-    epoch=current_epoch
+    epoch = current_epoch
     while True:
         print("==> current epoch : ", epoch)
 
@@ -38,7 +38,7 @@ def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generat
         total_stats["time"] = str(np.round(time.time() - start, 2))
 
         add_statistics_to_file(epoch, total_stats)
-        epoch+=1
+        epoch += 1
 
 
 def add_statistics_to_file(epoch, new_stats):
