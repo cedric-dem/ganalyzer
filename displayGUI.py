@@ -253,7 +253,7 @@ class GUI(object):
         result = np.full((100, 100), 254, dtype=np.uint8)
 
         # TODO
-        print("==> Case A with shape ", raw_data.shape)
+        #print("==> Case A with shape ", raw_data.shape)
 
         return result
 
@@ -261,8 +261,8 @@ class GUI(object):
         result = np.full((100, 100), 254, dtype=np.uint8)
 
         # TODO
-        size=raw_data.shape**0.5
-        print("==> Case A with shape ", raw_data.shape, " so ",size)
+        #size=raw_data.shape**0.5
+        #print("==> Case A with shape ", raw_data.shape, " so ",size)
 
         return result
 
@@ -300,7 +300,7 @@ class GUI(object):
         return label_epoch, slider_epoch
 
     def generate_image_from_input_values(self, input_raw):
-        self.input_of_generator = np.array([input_raw]) / self.slider_width
+        self.input_of_generator = np.array([input_raw])
 
         if rgb_images:
             predicted_raw = self.generator.predict(self.input_of_generator)[0, :, :, :]
