@@ -61,17 +61,14 @@ class GUI(object):
 
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
-        layers_list_generator = self.get_layers_list(self.generator_viewer.current_model)
-        layers_list_discriminator = self.get_layers_list(self.discriminator_viewer.current_model)
+        layers_list_generator = self.generator_viewer.get_layers_list()
+        layers_list_discriminator = self.discriminator_viewer.get_layers_list()
 
         self.inside_selector_generator.config(values=layers_list_generator)
         self.inside_selector_discriminator.config(values=layers_list_discriminator)
 
         self.selected_generator_inside_layer = layers_list_generator[0]
         self.selected_discriminator_inside_layer = layers_list_discriminator[0]
-
-    def get_layers_list(self, model):
-        return [str(i) + ") " + model.layers[i].name for i in range(len(model.layers))]
 
     def initialize_input_panel(self):
         title_input_hint = tk.Label(self.root, text="Input", bg="#666666")
@@ -209,7 +206,7 @@ class GUI(object):
         if model == "generator":
             # print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
             if self.input_of_generator.ndim > 1:
-                index_layer = self.get_layer_index(self.selected_generator_inside_layer)
+                index_layer = self.generator_viewer.get_layer_index(self.selected_generator_inside_layer)
                 self.refresh_layer_visualization(self.input_of_generator, self.inside_image_generator, self.generator_viewer.current_model, index_layer)
             else:
                 print("==> Generator Input not found")
@@ -217,13 +214,10 @@ class GUI(object):
         elif model == "discriminator":
             # print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
             if self.input_of_discriminator.ndim > 1:
-                index_layer = self.get_layer_index(self.selected_discriminator_inside_layer)
+                index_layer = self.discriminator_viewer.get_layer_index(self.selected_discriminator_inside_layer)
                 self.refresh_layer_visualization(self.input_of_discriminator, self.inside_image_discriminator, self.discriminator_viewer.current_model, index_layer)
             else:
                 print("==> Discriminator Input not found")
-
-    def get_layer_index(self, layer_name):
-        return int(layer_name.split(")")[0])
 
     def refresh_layer_visualization(self, input_model, inside_image_location, model, index_layer):
         # print("==> refresh, having settings")
