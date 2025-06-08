@@ -20,16 +20,16 @@ def get_model_path_at_given_epoch(model_type, i):
 def get_all_models(model_type):
     models_quantity = get_current_epoch()
 
-    result = [None for i in range (models_quantity)]
+    result = [None for i in range(models_quantity)]
 
-    load_every=models_quantity//show_models_gui
+    load_every = models_quantity // show_models_gui
 
-    for i in range (models_quantity):
+    for i in range(models_quantity):
 
-        if (i==0 or i==models_quantity-1 or (i%load_every==0)):
+        if i == 0 or i == models_quantity - 1 or (i % load_every == 0):
             print("=> Attempt to load " + model_type + " epoch ", i)
             this_filename = get_model_path_at_given_epoch(model_type, i)
-            result[i]=keras.models.load_model(this_filename)
+            result[i] = keras.models.load_model(this_filename)
 
         i += 1
     return result

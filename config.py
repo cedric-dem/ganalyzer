@@ -1,4 +1,4 @@
-model_name = "test_0B"
+model_name = "test_0"
 
 model_path = "model_" + model_name + "/"
 
@@ -8,7 +8,10 @@ rgb_images = True
 
 latent_dimension_generator = 169
 
-show_models_gui=10
+if model_name == "test_0B":
+    show_models_gui = 50
+else:
+    show_models_gui = 160
 
 use_full_dataset = True
 
