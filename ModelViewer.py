@@ -1,11 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
+import numpy as np
 
 
 class ModelViewer(object):
     def __init__(self, models_list):
 
+        self.current_input = np.full(1, 1)
         self.current_model = None
         self.models_list = models_list
 

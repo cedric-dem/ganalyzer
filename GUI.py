@@ -24,9 +24,6 @@ class GUI(object):
 
         self.models_quantity = min(len(models_list_generator), len(models_list_discriminator))
 
-        self.input_of_generator = np.full(1, 1)
-        self.input_of_discriminator = np.full(1, 1)
-
         self.generator_viewer = ModelViewer(models_list_generator)
         self.discriminator_viewer = ModelViewer(models_list_discriminator)
 
@@ -205,17 +202,17 @@ class GUI(object):
     def refresh_inside_visualization(self, model):
         if model == "generator":
             # print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
-            if self.input_of_generator.ndim > 1:
+            if self.generator_viewer.current_input.ndim > 1:
                 index_layer = self.generator_viewer.get_layer_index(self.selected_generator_inside_layer)
-                self.refresh_layer_visualization(self.input_of_generator, self.inside_image_generator, self.generator_viewer.current_model, index_layer)
+                self.refresh_layer_visualization(self.generator_viewer.current_input, self.inside_image_generator, self.generator_viewer.current_model, index_layer)
             else:
                 print("==> Generator Input not found")
 
         elif model == "discriminator":
             # print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
-            if self.input_of_discriminator.ndim > 1:
+            if self.discriminator_viewer.current_input.ndim > 1:
                 index_layer = self.discriminator_viewer.get_layer_index(self.selected_discriminator_inside_layer)
-                self.refresh_layer_visualization(self.input_of_discriminator, self.inside_image_discriminator, self.discriminator_viewer.current_model, index_layer)
+                self.refresh_layer_visualization(self.discriminator_viewer.current_input, self.inside_image_discriminator, self.discriminator_viewer.current_model, index_layer)
             else:
                 print("==> Discriminator Input not found")
 
@@ -290,12 +287,12 @@ class GUI(object):
         return label_epoch, slider_epoch
 
     def generate_image_from_input_values(self, input_raw):
-        self.input_of_generator = np.array([input_raw])
+        self.generator_viewer.current_input = np.array([input_raw])
 
         if rgb_images:
-            predicted_raw = self.generator_viewer.current_model.predict(self.input_of_generator)[0, :, :, :]
+            predicted_raw = self.generator_viewer.current_model.predict(self.generator_viewer.current_input)[0, :, :, :]
         else:
-            predicted_raw = self.generator_viewer.current_model.predict(self.input_of_generator)[0, :, :, 0]
+            predicted_raw = self.generator_viewer.current_model.predict(self.generator_viewer.current_input)[0, :, :, 0]
 
         return find_limits_and_project(predicted_raw)
 
@@ -351,11 +348,11 @@ class GUI(object):
         self.refresh_tk_image(self.generated_image, rgb_images, self.image_in_discriminator)
 
     def refresh_prediction_discriminator(self):
-        self.input_of_discriminator = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
+        self.discriminator_viewer.current_input = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
         if model_name == "test_0" or model_name == "test_0B":
-            predicted_output = self.discriminator_viewer.current_model.predict(self.input_of_discriminator)[0][0]
+            predicted_output = self.discriminator_viewer.current_model.predict(self.discriminator_viewer.current_input)[0][0]
         elif model_name == "test_1":
-            predicted_output = self.discriminator_viewer.current_model.predict(self.input_of_discriminator)[0][0][0][0]
+            predicted_output = self.discriminator_viewer.current_model.predict(self.discriminator_viewer.current_input)[0][0][0][0]
         self.label_prediction_out_discriminator.config(text="Prediction : " + str(round(predicted_output, 2)))
 
     def randomize_all_sliders(self, mu, sigma):
