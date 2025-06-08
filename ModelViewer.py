@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 
 
 class ModelViewer(object):
-    def __init__(self):
-        pass
-        # TODO
+    def __init__(self, models_list):
+
+        self.current_model = None
+        self.models_list = models_list

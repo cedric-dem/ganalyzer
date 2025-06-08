@@ -27,13 +27,8 @@ class GUI(object):
         self.input_of_generator = np.full(1, 1)
         self.input_of_discriminator = np.full(1, 1)
 
-        self.generator_viewer = ModelViewer()
-        self.discriminator_viewer = ModelViewer()
-
-        self.generator = None
-        self.discriminator = None
-        self.models_list_generator = models_list_generator
-        self.models_list_discriminator = models_list_discriminator
+        self.generator_viewer = ModelViewer(models_list_generator)
+        self.discriminator_viewer = ModelViewer(models_list_discriminator)
 
         self.root = tk.Tk()
         self.root.configure(bg="black")
@@ -66,8 +61,8 @@ class GUI(object):
 
         self.randomize_all_sliders(self.default_value_mu, self.default_value_sigma)
 
-        layers_list_generator = self.get_layers_list(self.generator)
-        layers_list_discriminator = self.get_layers_list(self.discriminator)
+        layers_list_generator = self.get_layers_list(self.generator_viewer.current_model)
+        layers_list_discriminator = self.get_layers_list(self.discriminator_viewer.current_model)
 
         self.inside_selector_generator.config(values=layers_list_generator)
         self.inside_selector_discriminator.config(values=layers_list_discriminator)
@@ -215,7 +210,7 @@ class GUI(object):
             # print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
             if self.input_of_generator.ndim > 1:
                 index_layer = self.get_layer_index(self.selected_generator_inside_layer)
-                self.refresh_layer_visualization(self.input_of_generator, self.inside_image_generator, self.generator, index_layer)
+                self.refresh_layer_visualization(self.input_of_generator, self.inside_image_generator, self.generator_viewer.current_model, index_layer)
             else:
                 print("==> Generator Input not found")
 
@@ -223,7 +218,7 @@ class GUI(object):
             # print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
             if self.input_of_discriminator.ndim > 1:
                 index_layer = self.get_layer_index(self.selected_discriminator_inside_layer)
-                self.refresh_layer_visualization(self.input_of_discriminator, self.inside_image_discriminator, self.discriminator, index_layer)
+                self.refresh_layer_visualization(self.input_of_discriminator, self.inside_image_discriminator, self.discriminator_viewer.current_model, index_layer)
             else:
                 print("==> Discriminator Input not found")
 
@@ -304,9 +299,9 @@ class GUI(object):
         self.input_of_generator = np.array([input_raw])
 
         if rgb_images:
-            predicted_raw = self.generator.predict(self.input_of_generator)[0, :, :, :]
+            predicted_raw = self.generator_viewer.current_model.predict(self.input_of_generator)[0, :, :, :]
         else:
-            predicted_raw = self.generator.predict(self.input_of_generator)[0, :, :, 0]
+            predicted_raw = self.generator_viewer.current_model.predict(self.input_of_generator)[0, :, :, 0]
 
         return find_limits_and_project(predicted_raw)
 
@@ -364,9 +359,9 @@ class GUI(object):
     def refresh_prediction_discriminator(self):
         self.input_of_discriminator = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
         if model_name == "test_0" or model_name == "test_0B":
-            predicted_output = self.discriminator.predict(self.input_of_discriminator)[0][0]
+            predicted_output = self.discriminator_viewer.current_model.predict(self.input_of_discriminator)[0][0]
         elif model_name == "test_1":
-            predicted_output = self.discriminator.predict(self.input_of_discriminator)[0][0][0][0]
+            predicted_output = self.discriminator_viewer.current_model.predict(self.input_of_discriminator)[0][0][0][0]
         self.label_prediction_out_discriminator.config(text="Prediction : " + str(round(predicted_output, 2)))
 
     def randomize_all_sliders(self, mu, sigma):
@@ -397,9 +392,9 @@ class GUI(object):
 
         new_epoch_exact = int(float(value))
 
-        new_epoch_found = self.get_closest_model_loaded_index(self.models_list_generator, new_epoch_exact)
+        new_epoch_found = self.get_closest_model_loaded_index(self.generator_viewer.models_list, new_epoch_exact)
 
-        self.generator = self.models_list_generator[new_epoch_found]
+        self.generator_viewer.current_model = self.generator_viewer.models_list[new_epoch_found]
 
         self.update_generator()
 
@@ -409,9 +404,9 @@ class GUI(object):
 
         new_epoch_exact = int(float(value))
 
-        new_epoch_found = self.get_closest_model_loaded_index(self.models_list_discriminator, new_epoch_exact)
+        new_epoch_found = self.get_closest_model_loaded_index(self.discriminator_viewer.models_list, new_epoch_exact)
 
-        self.discriminator = self.models_list_discriminator[new_epoch_found]
+        self.discriminator_viewer.current_model = self.discriminator_viewer.models_list[new_epoch_found]
 
         self.update_discriminator()
 
