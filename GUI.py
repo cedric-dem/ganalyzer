@@ -34,8 +34,6 @@ class GUI(object):
 
         self.generator_viewer = ModelViewer(models_list_generator, 2, self.root, "Generator", 15, True, self)
         self.discriminator_viewer = ModelViewer(models_list_discriminator, 17, self.root, "Discriminator", 15, False, self)
-        # self.initialize_generator_panel()
-        # self.initialize_discriminator_panel()
 
         self.init_selectors()
 
@@ -136,14 +134,12 @@ class GUI(object):
 
             # update image_in_generator
             self.refresh_image_in_generator(values)
-            # self.generator_viewer.refresh_data_in(values)
 
             # update image_inside_generator
-            # self.generator_viewer.refresh_inside_visualization("generator")
+            self.generator_viewer.refresh_inside_visualization("generator")
 
             # update image_out_generator
             self.refresh_image_out_generator(values)
-            # self.generator_viewer.refresh_data_out(values)
 
             # Update discriminator
             self.update_discriminator()
@@ -154,8 +150,7 @@ class GUI(object):
             self.refresh_image_in_discriminator()
 
             # update image_inside_generator
-            # self.refresh_inside_visualization("discriminator")
-            # self.discriminator_viewer.refresh_inside_visualization("discriminator")
+            self.discriminator_viewer.refresh_inside_visualization("discriminator")
 
             # update prediction discriminator
             self.refresh_prediction_discriminator()
@@ -175,12 +170,11 @@ class GUI(object):
 
     def refresh_prediction_discriminator(self):
         self.discriminator_viewer.current_input = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
-        predicted_output = "ok"
+        predicted_output = 0
         if model_name == "test_0" or model_name == "test_0B":
             predicted_output = self.discriminator_viewer.current_model.predict(self.discriminator_viewer.current_input)[0][0]
         elif model_name == "test_1":
             predicted_output = self.discriminator_viewer.current_model.predict(self.discriminator_viewer.current_input)[0][0][0][0]
-        # self.label_prediction_out_discriminator.config(text="Prediction : " + str(round(predicted_output, 2)))
         self.discriminator_viewer.data_out.config(text="Prediction : " + str(round(predicted_output, 2)))
 
     def randomize_all_sliders(self, mu, sigma):

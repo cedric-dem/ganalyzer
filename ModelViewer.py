@@ -35,12 +35,13 @@ class ModelViewer(object):
 
         self.calling_context = calling_context
 
+
         self.slider_epoch.set(self.models_quantity - 1)
         self.on_epoch_slider_change(self.models_quantity - 1)
 
         layers_list = self.get_layers_list()
+        self.selected_inside_layer = layers_list[0]
         self.inside_selector.config(values=layers_list)
-        self.selected_discriminator_inside_layer = layers_list[0]
 
     def get_layers_list(self):
         return [str(i) + ") " + self.current_model.layers[i].name for i in range(len(self.current_model.layers))]
@@ -128,7 +129,7 @@ class ModelViewer(object):
             # print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
             if self.current_input.ndim > 1:
                 index_layer = self.get_layer_index(self.selected_inside_layer)
-                self.refresh_layer_visualization(self.current_input, self.inside_image_generator, self.current_model, index_layer)
+                self.refresh_layer_visualization(self.current_input, self.inside_image, self.current_model, index_layer)
             else:
                 print("==> Generator Input not found")
 
