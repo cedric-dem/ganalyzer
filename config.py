@@ -1,4 +1,4 @@
-model_name = "test_0B2"
+model_name = "test_0B2B"
 
 model_path = "model_" + model_name + "/"
 

@@ -103,6 +103,64 @@ elif model_name == "test_0B":
             ]
         )
 
+elif model_name == "test_0B2B":
+
+    def get_discriminator():
+        FC_size1 = 128
+        FC_size2 = 64
+        return tf.keras.Sequential(
+            [
+                layers.Input(shape=(64, 64, 3)),
+                layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Conv2D(512, kernel_size=3, strides=1, padding="same"),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Flatten(),
+                layers.Dense(FC_size1),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Dense(FC_size2),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Dense(1, activation="sigmoid"),
+            ]
+        )
+
+    def get_generator():
+        FC_size1 = 512
+        FC_size2 = 1024
+        return tf.keras.Sequential(
+            [
+                layers.Input(shape=(latent_dimension_generator,)),
+                layers.Dense(FC_size1),
+                layers.LeakyReLU(),
+                layers.Dense(FC_size2),
+                layers.LeakyReLU(),
+                layers.Dense(8 * 8 * 256, use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                layers.Reshape((8, 8, 256)),
+                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"),
+            ]
+        )
+
 elif model_name == "test_1":
 
     def get_generator():
