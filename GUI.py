@@ -168,10 +168,10 @@ class GUI(object):
 
     def refresh_image_out_generator(self, values):
         self.generated_image = self.generate_image_from_input_values(values)
-        self.generator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.generator_viewer.inside_image)
+        self.generator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.generator_viewer.data_out)
 
     def refresh_image_in_discriminator(self):
-        self.discriminator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.discriminator_viewer.inside_image)
+        self.discriminator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.discriminator_viewer.data_in)
 
     def refresh_prediction_discriminator(self):
         self.discriminator_viewer.current_input = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
