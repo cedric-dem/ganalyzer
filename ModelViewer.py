@@ -95,7 +95,7 @@ class ModelViewer(object):
         inside_viewer_layout.rowconfigure((0, 1), weight=1)
         inside_viewer_layout.rowconfigure(1, weight=6)
 
-        self.inside_selector = ttk.Combobox(inside_viewer_layout, state="readonly", name="test")
+        self.inside_selector = ttk.Combobox(inside_viewer_layout, state="readonly")
         self.inside_selector.set("Select Location")
         self.inside_selector.grid(row=0, column=0, columnspan=1, sticky="nsew")
         self.inside_selector.bind("<<ComboboxSelected>>", self.on_selector_layer_change)
@@ -104,30 +104,21 @@ class ModelViewer(object):
         self.image_inside_data.grid(rowspan=1, columnspan=1, sticky="nsew")
 
     def on_selector_layer_change(self, event):
-
         model = str(event.widget).split(".")[-1]
         selected_layer = event.widget.get()
 
         self.selected_inside_layer = selected_layer
 
-        self.refresh_inside_visualization(model)
+        self.refresh_inside_visualization()
 
-    def refresh_inside_visualization(self, model):
-        if model == "generator":
-            # print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
-            if self.current_input.ndim > 1:
-                index_layer = self.get_layer_index(self.selected_inside_layer)
-                self.refresh_layer_visualization(self.current_input, self.image_inside_data, self.current_model, index_layer)
-            else:
-                print("==> Generator Input not found")
+    def refresh_inside_visualization(self):
 
-        elif model == "discriminator":
-            # print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
-            if self.current_input.ndim > 1:
-                index_layer = self.get_layer_index(self.selected_inside_layer)
-                self.refresh_layer_visualization(self.current_input, self.image_inside_data, self.current_model, index_layer)
-            else:
-                print("==> Discriminator Input not found")
+        print("==> now refreshing ", self.name, " layer ", self.selected_inside_layer)
+        if self.current_input.ndim > 1:
+            index_layer = self.get_layer_index(self.selected_inside_layer)
+            self.refresh_layer_visualization(self.current_input, self.image_inside_data, self.current_model, index_layer)
+        else:
+            print("==> Discriminator Input not found")
 
     def refresh_layer_visualization(self, input_model, inside_image_location, model, index_layer):
         # print("==> refresh, having settings")

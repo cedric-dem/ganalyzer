@@ -136,7 +136,7 @@ class GUI(object):
             self.generator_viewer.refresh_tk_image(input_after_reshape, False, self.generator_viewer.image_input_data)
 
             # update image_inside_generator
-            self.generator_viewer.refresh_inside_visualization("generator")
+            self.generator_viewer.refresh_inside_visualization()
 
             # update image_out_generator
             self.generated_image = self.generate_image_from_input_values(values)
@@ -151,7 +151,7 @@ class GUI(object):
             self.discriminator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.discriminator_viewer.image_input_data)
 
             # update image_inside_generator
-            self.discriminator_viewer.refresh_inside_visualization("discriminator")
+            self.discriminator_viewer.refresh_inside_visualization()
 
             # update prediction discriminator
             self.refresh_prediction_discriminator()
