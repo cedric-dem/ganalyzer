@@ -24,13 +24,15 @@ class ModelViewer(object):
 
         self.name = name
 
-        self.initialize_title()
-        self.initialize_layout()
-        self.label_current_epoch_generator, self.slider_epoch = self.get_epoch_layout()
-        self.image_input_data, self.image_output_data, self.inside_selector, self.image_inside_data = self.create_model_panel()
-
         self.is_output_image = is_output_image
 
+        # Initialize UI
+        self.initialize_title()
+        self.initialize_layout()
+        self.initialize_epoch_layout()
+        self.image_input_data = self.get_image_labeled(self.layout_panel, 1, "Input")
+        self.initialize_inside_viewer()
+        self.image_output_data = self.get_image_labeled(self.layout_panel, 3, "Output")
         self.calling_context = calling_context
 
         self.slider_epoch.set(self.models_quantity - 1)
@@ -44,7 +46,6 @@ class ModelViewer(object):
         title_generator_hint = tk.Label(self.parent, text=self.name, bg="#666666")
         title_generator_hint.grid(row=self.previous_panels_height, column=0, rowspan=1, columnspan=self.n_col, sticky="we")
 
-
     def initialize_layout(self):
         self.layout_panel = tk.Frame(self.parent, bg="#444444")
         self.layout_panel.grid(rowspan=1, columnspan=self.n_col, sticky="nsew")
@@ -52,29 +53,18 @@ class ModelViewer(object):
         self.layout_panel.columnconfigure(2, weight=5)
         self.layout_panel.rowconfigure((0), weight=1)
 
-    def get_epoch_layout(self):
+    def initialize_epoch_layout(self):
+
         layout_epoch = tk.Frame(self.layout_panel, bg="#111111")
         layout_epoch.grid(rowspan=1, columnspan=1, sticky="nsew")
         layout_epoch.columnconfigure((0), weight=1)
         layout_epoch.rowconfigure((0, 1), weight=1)
 
-        label_epoch = tk.Label(layout_epoch)
-        label_epoch.grid(row=0, column=0, columnspan=1, sticky="nsew")
+        self.label_current_epoch = tk.Label(layout_epoch)
+        self.label_current_epoch.grid(row=0, column=0, columnspan=1, sticky="nsew")
 
-        slider_epoch = ttk.Scale(layout_epoch, from_=0, to=self.models_quantity - 1, orient="horizontal", command=self.on_epoch_slider_change_debounced)
-        slider_epoch.grid(row=1, column=0, columnspan=1)
-
-        return label_epoch, slider_epoch
-
-    def create_model_panel(self):
-        model_input = self.get_image_labeled(self.layout_panel, 1, "Input")
-
-        inside_selector, inside_image = self.get_inside_viewer()
-
-        model_out = self.get_image_labeled(self.layout_panel, 3, "Output")
-
-        return model_input, model_out, inside_selector, inside_image
-
+        self.slider_epoch = ttk.Scale(layout_epoch, from_=0, to=self.models_quantity - 1, orient="horizontal", command=self.on_epoch_slider_change_debounced)
+        self.slider_epoch.grid(row=1, column=0, columnspan=1)
 
     def get_layers_list(self):
         return [str(i) + ") " + self.current_model.layers[i].name for i in range(len(self.current_model.layers))]
@@ -98,23 +88,20 @@ class ModelViewer(object):
 
         return image_model
 
-    def get_inside_viewer(self):
+    def initialize_inside_viewer(self):
         inside_viewer_layout = tk.Frame(self.layout_panel, bg="#ff0000")
         inside_viewer_layout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="nsew")
         inside_viewer_layout.columnconfigure((0), weight=1)
         inside_viewer_layout.rowconfigure((0, 1), weight=1)
         inside_viewer_layout.rowconfigure(1, weight=6)
 
-        viewer_location_var = tk.StringVar()
-        viewer_location_combo = ttk.Combobox(inside_viewer_layout, textvariable=viewer_location_var, state="readonly", name="test")
-        viewer_location_combo.set("Select Location")
-        viewer_location_combo.grid(row=0, column=0, columnspan=1, sticky="nsew")
-        viewer_location_combo.bind("<<ComboboxSelected>>", self.on_selector_layer_change)
+        self.inside_selector = ttk.Combobox(inside_viewer_layout, state="readonly", name="test")
+        self.inside_selector.set("Select Location")
+        self.inside_selector.grid(row=0, column=0, columnspan=1, sticky="nsew")
+        self.inside_selector.bind("<<ComboboxSelected>>", self.on_selector_layer_change)
 
-        inside_viewer_image = tk.Label(inside_viewer_layout, bg="#0000ff")
-        inside_viewer_image.grid(rowspan=1, columnspan=1, sticky="nsew")
-
-        return viewer_location_combo, inside_viewer_image
+        self.image_inside_data = tk.Label(inside_viewer_layout, bg="#0000ff")
+        self.image_inside_data.grid(rowspan=1, columnspan=1, sticky="nsew")
 
     def on_selector_layer_change(self, event):
 
@@ -220,7 +207,7 @@ class ModelViewer(object):
         else:
             print("==> Generator or Discriminator not found")
 
-        self.label_current_epoch_generator.config(text="Current Epoch : " + str(new_epoch_found) + " / " + str(self.models_quantity - 1))
+        self.label_current_epoch.config(text="Current Epoch : " + str(new_epoch_found) + " / " + str(self.models_quantity - 1))
 
     def get_closest_model_loaded_index(self, model_index):
         current_delta = 0
