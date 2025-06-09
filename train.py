@@ -89,30 +89,30 @@ def discriminator_loss(fake_output, real_output, cross_entropy):
 
 
 def get_dataset():
-    _img = []
+    dataset = []
 
     files = os.listdir(dataset_path)
     for i in tqdm(files):
         if rgb_images:
-            img = cv2.cvtColor(cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+            current_image = cv2.cvtColor(cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
         else:
-            img = cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_GRAYSCALE)
+            current_image = cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_GRAYSCALE)
 
         # resizing image
-        # img = cv2.resize(img, (SIZE, SIZE))
-        img = (img - 127.5) / 127.5
-        _img.append(img_to_array(img))
-    return _img
+        # current_image = cv2.resize(current_image, (SIZE, SIZE))
+        current_image = (current_image - 127.5) / 127.5
+        dataset.append(img_to_array(current_image))
+    return dataset
 
 
 def launch_training():
     current_epoch = get_current_epoch()
     print("==> will start from epoch  : ", current_epoch)
 
-    _img = get_dataset()
+    dataset = get_dataset()
 
     batch_size = 32
-    dataset = tf.data.Dataset.from_tensor_slices(np.array(_img)).shuffle(buffer_size=len(_img), reshuffle_each_iteration=True).batch(batch_size)
+    dataset_batches = tf.data.Dataset.from_tensor_slices(np.array(dataset)).shuffle(buffer_size=len(dataset), reshuffle_each_iteration=True).batch(batch_size)
 
     if current_epoch == 0:  # if start from scratch
         print("==> Creating models")
@@ -133,8 +133,8 @@ def launch_training():
 
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
-    print("==> Number of batches : ", len(dataset))
-    train(current_epoch, dataset, cross_entropy, batch_size, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
+    print("==> Number of batches : ", len(dataset_batches))
+    train(current_epoch, dataset_batches, cross_entropy, batch_size, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
 
 launch_training()
