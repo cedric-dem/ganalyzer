@@ -17,24 +17,33 @@ def get_model_path_at_given_epoch(model_type, i):
     return model_path + model_type + "_epoch_" + "0" * (6 - len(str(i))) + str(i) + ".keras"
 
 
-def get_model_path_at_given_epoch_closest_possible(model_type, i, models_list):
+def get_model_path_at_given_epoch_closest_possible(model_type, i, available_epochs):
 
     current_best_distance = None
     current_best_result = None
-    for model in models_list:
-        this_nb = int(model.split("_")[-1].split(".")[0])
-        if (model_type in model) and (current_best_distance is None or current_best_distance > abs(this_nb - i)):
-            current_best_distance = abs(this_nb - i)
-            current_best_result = model
 
-    return model_path + current_best_result
+    for available_epoch in available_epochs:
+        this_distance = abs(available_epoch - i)
+        if current_best_distance is None or current_best_distance > this_distance:
+            current_best_distance = this_distance
+            current_best_result = available_epoch
+
+    return get_model_path_at_given_epoch(model_type, current_best_result)
 
 
-def get_all_models(model_type):
+def get_available_epochs():
+    models_list = get_list_of_keras_models()
+    models_list_discriminators = [i for i in models_list if i.startswith("discriminator")]
+    epochs_list = []
+    for model in models_list_discriminators:
+        epochs_list.append(int(model.split("_")[-1].split(".")[0]))
+    return epochs_list
+
+
+def get_all_models(model_type, available_epochs):
     # This function, and get_model_path_at_given_epoch_closest_possible, other than being poorly named, are absurdly not optimal
     # I am ashamed to have written that, but in this case that will be fast enough
 
-    models_list = get_list_of_keras_models()
     models_quantity = get_current_epoch()
 
     result = [None for i in range(models_quantity)]
@@ -43,8 +52,8 @@ def get_all_models(model_type):
 
     for i in range(models_quantity):
         if i % take_every == 0 or i == 0 or i == models_quantity - 1:
-            this_filename = get_model_path_at_given_epoch_closest_possible(model_type, i, models_list)
-            print("=> Attempt to load " + model_type + " epoch ", i, "will open", this_filename)
+            this_filename = get_model_path_at_given_epoch_closest_possible(model_type, i, available_epochs)
+            print("=> will load  " + model_type + " epoch ", i, " closest found is : ", this_filename)
             result[i] = keras.models.load_model(this_filename)
 
     return result

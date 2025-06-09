@@ -4,8 +4,9 @@ from GUI import *
 
 # load all the models
 t0 = time.time()
-generator_list = get_all_models("generator")
-discriminators_list = get_all_models("discriminator")
+available_epochs = get_available_epochs()
+generator_list = get_all_models("generator", available_epochs)
+discriminators_list = get_all_models("discriminator", available_epochs)
 t1 = time.time()
 print("==> Time taken to load : ", round(t1 - t0, 2))
 
