@@ -131,13 +131,16 @@ class GUI(object):
             values = [self.slider_grid[i][j].get() for i in range(self.input_image_grid_size) for j in range(self.input_image_grid_size)]
 
             # update image_in_generator
-            self.refresh_image_in_generator(values)
+            input_before_reshape = np.array(values).reshape((self.input_image_grid_size, self.input_image_grid_size))
+            input_after_reshape = project_array(input_before_reshape, 254, -self.max_slider_value, self.max_slider_value).astype(np.uint8)
+            self.generator_viewer.refresh_tk_image(input_after_reshape, False, self.generator_viewer.image_input_data)
 
             # update image_inside_generator
             self.generator_viewer.refresh_inside_visualization("generator")
 
             # update image_out_generator
-            self.refresh_image_out_generator(values)
+            self.generated_image = self.generate_image_from_input_values(values)
+            self.generator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.generator_viewer.image_output_data)
 
             # Update discriminator
             self.update_discriminator()
@@ -145,26 +148,13 @@ class GUI(object):
     def update_discriminator(self):
         if not self.initializing:  # TODO maybe put that if before method call ?
             # update image_in_discriminator
-            self.refresh_image_in_discriminator()
+            self.discriminator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.discriminator_viewer.image_input_data)
 
             # update image_inside_generator
             self.discriminator_viewer.refresh_inside_visualization("discriminator")
 
             # update prediction discriminator
             self.refresh_prediction_discriminator()
-
-    def refresh_image_in_generator(self, values):
-        input_before_reshape = np.array(values).reshape((self.input_image_grid_size, self.input_image_grid_size))
-        input_after_reshape = project_array(input_before_reshape, 254, -self.max_slider_value, self.max_slider_value).astype(np.uint8)
-
-        self.generator_viewer.refresh_tk_image(input_after_reshape, False, self.generator_viewer.data_in)
-
-    def refresh_image_out_generator(self, values):
-        self.generated_image = self.generate_image_from_input_values(values)
-        self.generator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.generator_viewer.data_out)
-
-    def refresh_image_in_discriminator(self):
-        self.discriminator_viewer.refresh_tk_image(self.generated_image, rgb_images, self.discriminator_viewer.data_in)
 
     def refresh_prediction_discriminator(self):
         self.discriminator_viewer.current_input = np.array([((self.generated_image - 127.5) / 127.5).astype(np.float64)])
@@ -173,7 +163,7 @@ class GUI(object):
             predicted_output = self.discriminator_viewer.current_model.predict(self.discriminator_viewer.current_input)[0][0]
         elif model_name == "test_1":
             predicted_output = self.discriminator_viewer.current_model.predict(self.discriminator_viewer.current_input)[0][0][0][0]
-        self.discriminator_viewer.data_out.config(text="Prediction : " + str(round(predicted_output, 2)))
+        self.discriminator_viewer.image_output_data.config(text="Prediction : " + str(round(predicted_output, 2)))
 
     def randomize_all_sliders(self, mu, sigma):
         for i in range(self.input_image_grid_size):

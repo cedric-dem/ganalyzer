@@ -3,6 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import numpy as np
 import tensorflow as tf
+import random
 
 
 class ModelViewer(object):
@@ -10,28 +11,24 @@ class ModelViewer(object):
         self.parent = parent
 
         self.image_size = 150
-        self.current_input = np.full(1, 1)
-        self.current_model = None
-        self.debounce_id = None
         self.debounce_time = 50
-        self.n_col = n_col
+        self.debounce_id = None
+
+        self.current_input = np.full(1, 1)
         self.models_list = models_list
+        self.current_model = None
+        self.n_col = n_col
         self.models_quantity = len(self.models_list)
 
         self.previous_panels_height = previous_height
 
         self.name = name
 
-        title_generator_hint = tk.Label(self.parent, text=name, bg="#666666")
-        title_generator_hint.grid(row=self.previous_panels_height, column=0, rowspan=1, columnspan=self.n_col, sticky="we")
+        self.initialize_title()
 
-        self.label_current_epoch_generator, self.slider_epoch, self.data_in, self.data_out, self.inside_selector, self.inside_image = self.create_model_panel(self.on_epoch_slider_change_debounced)
+        self.label_current_epoch_generator, self.slider_epoch, self.image_input_data, self.image_output_data, self.inside_selector, self.image_inside_data = self.create_model_panel(self.on_epoch_slider_change_debounced)
 
         self.is_output_image = is_output_image
-        if self.is_output_image:
-            pass
-        else:
-            pass
 
         self.calling_context = calling_context
 
@@ -41,6 +38,10 @@ class ModelViewer(object):
         layers_list = self.get_layers_list()
         self.selected_inside_layer = layers_list[0]
         self.inside_selector.config(values=layers_list)
+
+    def initialize_title(self):
+        title_generator_hint = tk.Label(self.parent, text=self.name, bg="#666666")
+        title_generator_hint.grid(row=self.previous_panels_height, column=0, rowspan=1, columnspan=self.n_col, sticky="we")
 
     def get_layers_list(self):
         return [str(i) + ") " + self.current_model.layers[i].name for i in range(len(self.current_model.layers))]
@@ -128,7 +129,7 @@ class ModelViewer(object):
             # print("==> now refreshing ", model, " layer ", self.selected_generator_inside_layer)
             if self.current_input.ndim > 1:
                 index_layer = self.get_layer_index(self.selected_inside_layer)
-                self.refresh_layer_visualization(self.current_input, self.inside_image, self.current_model, index_layer)
+                self.refresh_layer_visualization(self.current_input, self.image_inside_data, self.current_model, index_layer)
             else:
                 print("==> Generator Input not found")
 
@@ -136,7 +137,7 @@ class ModelViewer(object):
             # print("==> now refreshing ", model, " layer ", self.selected_discriminator_inside_layer)
             if self.current_input.ndim > 1:
                 index_layer = self.get_layer_index(self.selected_inside_layer)
-                self.refresh_layer_visualization(self.current_input, self.inside_image, self.current_model, index_layer)
+                self.refresh_layer_visualization(self.current_input, self.image_inside_data, self.current_model, index_layer)
             else:
                 print("==> Discriminator Input not found")
 
