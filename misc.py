@@ -50,11 +50,12 @@ def get_all_models(model_type, available_epochs):
 
     take_every = models_quantity // load_quantity_gui
 
-    for i in range(models_quantity):
-        if i % take_every == 0 or i == 0 or i == models_quantity - 1:
-            this_filename = get_model_path_at_given_epoch_closest_possible(model_type, i, available_epochs)
-            print("=> will load  " + model_type + " epoch ", i, " closest found is : ", this_filename)
-            result[i] = keras.models.load_model(this_filename)
+    indexes = sorted(set(range(0, models_quantity, take_every)) | {0, models_quantity - 1})
+
+    for current_index in indexes:
+        this_filename = get_model_path_at_given_epoch_closest_possible(model_type, current_index, available_epochs)
+        print("=> will load  " + model_type + " epoch ", current_index, " closest found is : ", this_filename)
+        result[current_index] = keras.models.load_model(this_filename)
 
     return result
 
