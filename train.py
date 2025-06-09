@@ -19,8 +19,10 @@ def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generat
     while True:
         print("==> current epoch : ", epoch)
 
-        generator.save(get_generator_model_path_at_given_epoch(epoch))
-        discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
+        if epoch == 0 or epoch % save_train_epoch_every == 0:
+            print("===> saving models")
+            generator.save(get_generator_model_path_at_given_epoch(epoch))
+            discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
 
         start = time.time()
 
@@ -37,6 +39,7 @@ def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generat
 
         total_stats["time"] = str(np.round(time.time() - start, 2))
 
+        # TODO fix csv update possibly overlapping old train
         add_statistics_to_file(epoch, total_stats)
         epoch += 1
 

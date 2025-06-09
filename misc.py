@@ -14,24 +14,25 @@ def get_discriminator_model_path_at_given_epoch(i):
 
 
 def get_model_path_at_given_epoch(model_type, i):
-    return model_path + model_type + "_epoch_" + str(i) + ".keras"
+    return model_path + model_type + "_epoch_" + "0" * (6 - len(str(i))) + str(i) + ".keras"
 
 
 def get_all_models(model_type):
+
     models_quantity = get_current_epoch()
 
     result = [None for i in range(models_quantity)]
 
-    load_every = models_quantity // show_models_gui
-
     for i in range(models_quantity):
+        print("=> Attempt to load " + model_type + " epoch ", i)
 
-        if i == 0 or i == models_quantity - 1 or (i % load_every == 0):
-            print("=> Attempt to load " + model_type + " epoch ", i)
-            this_filename = get_model_path_at_given_epoch(model_type, i)
+        this_filename = get_model_path_at_given_epoch(model_type, i)
+        condition = os.path.exists(this_filename)
+
+        if condition:
             result[i] = keras.models.load_model(this_filename)
+            # result[i] = this_filename # To debug
 
-        i += 1
     return result
 
 
@@ -49,15 +50,20 @@ def project_array(arr, to, project_from, project_to):
     return result
 
 
-def get_number_of_existing_models(filename):
-    current_i = 0
-    while os.path.isfile(filename + str(current_i) + ".keras"):
-        current_i += 1
-    return current_i - 1
+def get_list_of_keras_models():
+    L = os.listdir(model_path)
+
+    L.sort()
+
+    L_keras = [f for f in L if not f.endswith(".csv")]
+    return L_keras
 
 
 def get_current_epoch():
-    counter_generator = get_number_of_existing_models(model_path + "generator_epoch_")
-    counter_discriminator = get_number_of_existing_models(model_path + "discriminator_epoch_")
+    L_keras = get_list_of_keras_models()
 
-    return max(min(counter_generator, counter_discriminator), 0)
+    if len(L_keras) == 0:
+        result = 0
+    else:
+        result = int(L_keras[-1].split("_")[-1].split(".")[0])
+    return result
