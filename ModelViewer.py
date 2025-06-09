@@ -115,23 +115,23 @@ class ModelViewer(object):
 
         print("==> now refreshing ", self.name, " layer ", self.selected_inside_layer)
         if self.current_input.ndim > 1:
-            index_layer = self.get_current_layer_index()
-            self.refresh_layer_visualization(index_layer)
+            self.refresh_layer_visualization()
         else:
             print("==> Discriminator Input not found")
 
-    def refresh_layer_visualization(self, index_layer):
-        # print("==> refresh, having settings")
-        # print("=======>", input_model.shape, inside_image_location, model, index_layer)
+    def refresh_layer_visualization(self):
+        print("==> refresh, having settings")
+
+        index_layer = self.get_current_layer_index()
+        print("=======>", self.current_input.shape, self.image_inside_data, self.current_model, index_layer)
+
         layer_output = tf.keras.Model(inputs=self.current_model.inputs, outputs=self.current_model.layers[index_layer].output).predict(self.current_input)
-        # print("===> layer ", index_layer, " name : ", model.layers[index_layer].name, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
+        print("===> layer ", index_layer, " name : ", self.current_model.layers[index_layer].name, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
 
         if layer_output.ndim == 4:
-            # print("==> Draw lots of squares")
             representation = self.get_array_representation(layer_output[0])
 
         elif layer_output.ndim == 2:
-            # print("=> Draw one square")
             representation = self.get_rectangle_representation(layer_output[0])
 
         else:
@@ -141,6 +141,7 @@ class ModelViewer(object):
         self.refresh_tk_image(representation, False, self.image_inside_data)
 
     def get_array_representation(self, raw_data):
+        print("==> Draw lots of squares")
         result = np.full((100, 100), 254, dtype=np.uint8)
 
         # TODO
@@ -149,6 +150,7 @@ class ModelViewer(object):
         return result
 
     def get_rectangle_representation(self, raw_data):
+        print("=> Draw one rectangle")
         result = np.full((100, 100), 254, dtype=np.uint8)
 
         # TODO
