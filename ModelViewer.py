@@ -69,8 +69,8 @@ class ModelViewer(object):
     def get_layers_list(self):
         return [str(i) + ") " + self.current_model.layers[i].name for i in range(len(self.current_model.layers))]
 
-    def get_layer_index(self, layer_name):
-        return int(layer_name.split(")")[0])
+    def get_current_layer_index(self):
+        return int(self.selected_inside_layer.split(")")[0])
 
     def get_image_labeled(self, parent, position, name):
 
@@ -115,15 +115,15 @@ class ModelViewer(object):
 
         print("==> now refreshing ", self.name, " layer ", self.selected_inside_layer)
         if self.current_input.ndim > 1:
-            index_layer = self.get_layer_index(self.selected_inside_layer)
-            self.refresh_layer_visualization(self.current_input, self.image_inside_data, self.current_model, index_layer)
+            index_layer = self.get_current_layer_index()
+            self.refresh_layer_visualization(index_layer)
         else:
             print("==> Discriminator Input not found")
 
-    def refresh_layer_visualization(self, input_model, inside_image_location, model, index_layer):
+    def refresh_layer_visualization(self, index_layer):
         # print("==> refresh, having settings")
         # print("=======>", input_model.shape, inside_image_location, model, index_layer)
-        layer_output = tf.keras.Model(inputs=model.inputs, outputs=model.layers[index_layer].output).predict(input_model)
+        layer_output = tf.keras.Model(inputs=self.current_model.inputs, outputs=self.current_model.layers[index_layer].output).predict(self.current_input)
         # print("===> layer ", index_layer, " name : ", model.layers[index_layer].name, " shape ", layer_output.shape, " min value", np.min(layer_output), " max ", np.max(layer_output))
 
         if layer_output.ndim == 4:
@@ -138,7 +138,7 @@ class ModelViewer(object):
             representation = []
             print("==> Unknown dimension", layer_output.shape)
 
-        self.refresh_tk_image(representation, False, inside_image_location)
+        self.refresh_tk_image(representation, False, self.image_inside_data)
 
     def get_array_representation(self, raw_data):
         result = np.full((100, 100), 254, dtype=np.uint8)
