@@ -30,9 +30,9 @@ class ModelViewer(object):
         self.initialize_title()
         self.initialize_layout()
         self.initialize_epoch_layout()
-        self.image_input_data = self.get_image_labeled(self.layout_panel, 1, "Input")
+        self.image_input_data = self.get_image_labeled(1, "Input")
         self.initialize_inside_viewer()
-        self.image_output_data = self.get_image_labeled(self.layout_panel, 3, "Output")
+        self.image_output_data = self.get_image_labeled( 3, "Output")
         self.calling_context = calling_context
 
         self.slider_epoch.set(self.models_quantity - 1)
@@ -72,9 +72,9 @@ class ModelViewer(object):
     def get_current_layer_index(self):
         return int(self.selected_inside_layer.split(")")[0])
 
-    def get_image_labeled(self, parent, position, name):
+    def get_image_labeled(self, position, name):
 
-        temp_panel = tk.Frame(parent, bg="#222222")
+        temp_panel = tk.Frame(self.layout_panel, bg="#222222")
         temp_panel.grid(column=position, row=0, rowspan=1, columnspan=1, sticky="nsew")
         temp_panel.columnconfigure((0,), weight=1)
         temp_panel.rowconfigure(0, weight=1)
@@ -204,17 +204,15 @@ class ModelViewer(object):
 
     def get_closest_model_loaded_index(self, model_index):
         if self.models_list[model_index]:
-            found_index=model_index
+            found_index = model_index
         else:
             current_delta = 0
-            found = False
             found_index = 0
-            while not found:
-                for direction in [-1,1]:
+            while found_index==0:
+                for direction in [-1, 1]:
                     new_index = model_index + direction * current_delta
                     if new_index < len(self.models_list) and self.models_list[new_index]:
                         found_index = new_index
-                        found = True
 
                 current_delta += 1
         return found_index
