@@ -154,7 +154,6 @@ elif model_name == "test_0B2":
             ]
         )
 
-
 elif model_name == "test_0B2B":
 
     def get_discriminator():

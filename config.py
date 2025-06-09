@@ -10,6 +10,6 @@ latent_dimension_generator = 169
 
 save_train_epoch_every = 5
 
-load_quantity_gui = 30
+load_quantity_gui = 20
 
 dataset_path = "dataset/"
