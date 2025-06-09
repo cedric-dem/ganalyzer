@@ -25,8 +25,9 @@ class ModelViewer(object):
         self.name = name
 
         self.initialize_title()
-
-        self.label_current_epoch_generator, self.slider_epoch, self.image_input_data, self.image_output_data, self.inside_selector, self.image_inside_data = self.create_model_panel(self.on_epoch_slider_change_debounced)
+        self.initialize_layout()
+        self.label_current_epoch_generator, self.slider_epoch = self.get_epoch_layout()
+        self.image_input_data, self.image_output_data, self.inside_selector, self.image_inside_data = self.create_model_panel()
 
         self.is_output_image = is_output_image
 
@@ -43,31 +44,16 @@ class ModelViewer(object):
         title_generator_hint = tk.Label(self.parent, text=self.name, bg="#666666")
         title_generator_hint.grid(row=self.previous_panels_height, column=0, rowspan=1, columnspan=self.n_col, sticky="we")
 
-    def get_layers_list(self):
-        return [str(i) + ") " + self.current_model.layers[i].name for i in range(len(self.current_model.layers))]
 
-    def get_layer_index(self, layer_name):
-        return int(layer_name.split(")")[0])
+    def initialize_layout(self):
+        self.layout_panel = tk.Frame(self.parent, bg="#444444")
+        self.layout_panel.grid(rowspan=1, columnspan=self.n_col, sticky="nsew")
+        self.layout_panel.columnconfigure((0, 1, 2, 3), weight=1)
+        self.layout_panel.columnconfigure(2, weight=5)
+        self.layout_panel.rowconfigure((0), weight=1)
 
-    def create_model_panel(self, on_epoch_slider_change):
-        layout_panel = tk.Frame(self.parent, bg="#444444")
-        layout_panel.grid(rowspan=1, columnspan=self.n_col, sticky="nsew")
-        layout_panel.columnconfigure((0, 1, 2, 3), weight=1)
-        layout_panel.columnconfigure(2, weight=5)
-        layout_panel.rowconfigure((0), weight=1)
-
-        label_epoch, slider_epoch = self.get_epoch_layout(layout_panel, on_epoch_slider_change)
-
-        model_input = self.get_image_labeled(layout_panel, 1, "Input")
-
-        inside_selector, inside_image = self.get_inside_viewer(layout_panel, self.name)
-
-        model_out = self.get_image_labeled(layout_panel, 3, "Output")
-
-        return label_epoch, slider_epoch, model_input, model_out, inside_selector, inside_image
-
-    def get_epoch_layout(self, layout_panel, on_epoch_slider_change):
-        layout_epoch = tk.Frame(layout_panel, bg="#111111")
+    def get_epoch_layout(self):
+        layout_epoch = tk.Frame(self.layout_panel, bg="#111111")
         layout_epoch.grid(rowspan=1, columnspan=1, sticky="nsew")
         layout_epoch.columnconfigure((0), weight=1)
         layout_epoch.rowconfigure((0, 1), weight=1)
@@ -75,10 +61,26 @@ class ModelViewer(object):
         label_epoch = tk.Label(layout_epoch)
         label_epoch.grid(row=0, column=0, columnspan=1, sticky="nsew")
 
-        slider_epoch = ttk.Scale(layout_epoch, from_=0, to=self.models_quantity - 1, orient="horizontal", command=on_epoch_slider_change)
+        slider_epoch = ttk.Scale(layout_epoch, from_=0, to=self.models_quantity - 1, orient="horizontal", command=self.on_epoch_slider_change_debounced)
         slider_epoch.grid(row=1, column=0, columnspan=1)
 
         return label_epoch, slider_epoch
+
+    def create_model_panel(self):
+        model_input = self.get_image_labeled(self.layout_panel, 1, "Input")
+
+        inside_selector, inside_image = self.get_inside_viewer()
+
+        model_out = self.get_image_labeled(self.layout_panel, 3, "Output")
+
+        return model_input, model_out, inside_selector, inside_image
+
+
+    def get_layers_list(self):
+        return [str(i) + ") " + self.current_model.layers[i].name for i in range(len(self.current_model.layers))]
+
+    def get_layer_index(self, layer_name):
+        return int(layer_name.split(")")[0])
 
     def get_image_labeled(self, parent, position, name):
 
@@ -96,9 +98,8 @@ class ModelViewer(object):
 
         return image_model
 
-    def get_inside_viewer(self, layout_panel, name):
-
-        inside_viewer_layout = tk.Frame(layout_panel, bg="#ff0000")
+    def get_inside_viewer(self):
+        inside_viewer_layout = tk.Frame(self.layout_panel, bg="#ff0000")
         inside_viewer_layout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="nsew")
         inside_viewer_layout.columnconfigure((0), weight=1)
         inside_viewer_layout.rowconfigure((0, 1), weight=1)
