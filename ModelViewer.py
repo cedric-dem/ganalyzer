@@ -32,7 +32,7 @@ class ModelViewer(object):
         self.initialize_epoch_layout()
         self.image_input_data = self.get_image_labeled(1, "Input")
         self.initialize_inside_viewer()
-        self.image_output_data = self.get_image_labeled( 3, "Output")
+        self.image_output_data = self.get_image_labeled(3, "Output")
         self.calling_context = calling_context
 
         self.slider_epoch.set(self.models_quantity - 1)
@@ -104,10 +104,7 @@ class ModelViewer(object):
         self.image_inside_data.grid(rowspan=1, columnspan=1, sticky="nsew")
 
     def on_selector_layer_change(self, event):
-        model = str(event.widget).split(".")[-1]
-        selected_layer = event.widget.get()
-
-        self.selected_inside_layer = selected_layer
+        self.selected_inside_layer = event.widget.get()
 
         self.refresh_inside_visualization()
 
@@ -208,7 +205,7 @@ class ModelViewer(object):
         else:
             current_delta = 0
             found_index = 0
-            while found_index==0:
+            while found_index == 0:
                 for direction in [-1, 1]:
                     new_index = model_index + direction * current_delta
                     if new_index < len(self.models_list) and self.models_list[new_index]:
