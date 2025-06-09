@@ -24,14 +24,12 @@ def get_all_models(model_type):
     result = [None for i in range(models_quantity)]
 
     for i in range(models_quantity):
-        print("=> Attempt to load " + model_type + " epoch ", i)
 
         this_filename = get_model_path_at_given_epoch(model_type, i)
-        condition = os.path.exists(this_filename)
 
-        if condition:
+        if os.path.exists(this_filename):
+            print("=> Attempt to load " + model_type + " epoch ", i)
             result[i] = keras.models.load_model(this_filename)
-            # result[i] = this_filename # To debug
 
     return result
 
@@ -51,19 +49,19 @@ def project_array(arr, to, project_from, project_to):
 
 
 def get_list_of_keras_models():
-    L = os.listdir(model_path)
+    complete_list = os.listdir(model_path)
 
-    L.sort()
+    complete_list.sort()
 
-    L_keras = [f for f in L if not f.endswith(".csv")]
-    return L_keras
+    keras_models = [f for f in complete_list if not f.endswith(".csv")]
+    return keras_models
 
 
 def get_current_epoch():
-    L_keras = get_list_of_keras_models()
+    keras_models = get_list_of_keras_models()
 
-    if len(L_keras) == 0:
+    if len(keras_models) == 0:
         result = 0
     else:
-        result = int(L_keras[-1].split("_")[-1].split(".")[0])
+        result = int(keras_models[-1].split("_")[-1].split(".")[0])
     return result
