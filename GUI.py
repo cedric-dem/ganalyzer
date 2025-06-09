@@ -2,9 +2,7 @@ from misc import *
 from ModelViewer import *
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image, ImageTk
 import numpy as np
-import tensorflow as tf
 
 
 class GUI(object):

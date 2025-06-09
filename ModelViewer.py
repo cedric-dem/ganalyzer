@@ -35,7 +35,6 @@ class ModelViewer(object):
 
         self.calling_context = calling_context
 
-
         self.slider_epoch.set(self.models_quantity - 1)
         self.on_epoch_slider_change(self.models_quantity - 1)
 
