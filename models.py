@@ -158,8 +158,8 @@ elif model_name == "test_0B2":
 elif model_name == "test_0B2B":
 
     def get_discriminator():
-        FC_size1 = 128
-        FC_size2 = 64
+        FC_size1 = 256
+        FC_size2 = 128
         return tf.keras.Sequential(
             [
                 layers.Input(shape=(64, 64, 3)),
@@ -187,8 +187,8 @@ elif model_name == "test_0B2B":
         )
 
     def get_generator():
-        FC_size1 = 512
-        FC_size2 = 1024
+        FC_size1 = 1024
+        FC_size2 = 2048
         return tf.keras.Sequential(
             [
                 layers.Input(shape=(latent_dimension_generator,)),
