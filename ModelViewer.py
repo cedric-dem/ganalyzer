@@ -203,20 +203,18 @@ class ModelViewer(object):
         self.label_current_epoch.config(text="Current Epoch : " + str(new_epoch_found) + " / " + str(self.models_quantity - 1))
 
     def get_closest_model_loaded_index(self, model_index):
-        current_delta = 0
-        found = False
-        found_index = 0
-        while not found and current_delta < 1000:
+        if self.models_list[model_index]:
+            found_index=model_index
+        else:
+            current_delta = 0
+            found = False
+            found_index = 0
+            while not found:
+                for direction in [-1,1]:
+                    new_index = model_index + direction * current_delta
+                    if new_index < len(self.models_list) and self.models_list[new_index]:
+                        found_index = new_index
+                        found = True
 
-            new_index = model_index + current_delta
-            if new_index < len(self.models_list) and self.models_list[new_index]:
-                found_index = new_index
-                found = True
-
-            new_index = model_index - current_delta
-            if new_index >= 0 and self.models_list[new_index]:
-                found_index = new_index
-                found = True
-
-            current_delta += 1
+                current_delta += 1
         return found_index
