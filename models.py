@@ -52,7 +52,7 @@ if model_name == "test_0":
             ]
         )
 
-elif model_name == "test_0B":
+elif model_name == "test_0B64":
 
     def get_discriminator():
         FC_size = 128
@@ -102,6 +102,142 @@ elif model_name == "test_0B":
                 layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"),
             ]
         )
+
+
+elif model_name == "test_0B128":
+    def get_generator():
+        FC_size = 512
+        return tf.keras.Sequential([
+            layers.Input(shape=(latent_dimension_generator,)),
+            layers.Dense(FC_size),
+            layers.LeakyReLU(),
+            layers.Dense(8 * 8 * 256, use_bias=False),
+            layers.BatchNormalization(),
+            layers.LeakyReLU(),
+            layers.Reshape((8, 8, 256)),
+            
+            layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),  # (16,16)
+            layers.BatchNormalization(),
+            layers.LeakyReLU(),
+
+            layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),   # (32,32)
+            layers.BatchNormalization(),
+            layers.LeakyReLU(),
+
+            layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),   # (64,64)
+            layers.BatchNormalization(),
+            layers.LeakyReLU(),
+
+            layers.Conv2DTranspose(16, kernel_size=4, strides=2, padding="same", use_bias=False),   # (128,128)
+            layers.BatchNormalization(),
+            layers.LeakyReLU(),
+
+            layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"), # (128,128,3)
+        ])
+
+
+    def get_discriminator():
+        FC_size = 128
+        return tf.keras.Sequential([
+            layers.Input(shape=(128, 128, 3)),
+            layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),
+            layers.LeakyReLU(alpha=0.2),
+            layers.Dropout(0.3),
+
+            layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),
+            layers.LeakyReLU(alpha=0.2),
+            layers.Dropout(0.3),
+
+            layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),
+            layers.LeakyReLU(alpha=0.2),
+            layers.Dropout(0.3),
+
+            layers.Conv2D(512, kernel_size=3, strides=2, padding="same"),
+            layers.LeakyReLU(alpha=0.2),
+            layers.Dropout(0.3),
+
+            layers.Conv2D(512, kernel_size=3, strides=1, padding="same"),
+            layers.LeakyReLU(alpha=0.2),
+            layers.Dropout(0.3),
+
+            layers.Flatten(),
+            layers.Dense(FC_size),
+            layers.LeakyReLU(alpha=0.2),
+            layers.Dropout(0.3),
+            layers.Dense(1, activation="sigmoid"),
+        ])
+
+elif model_name == "test_0B256":
+
+    def get_generator():
+        FC_size = 512
+        return tf.keras.Sequential(
+            [
+                layers.Input(shape=(latent_dimension_generator,)),
+                layers.Dense(FC_size),
+                layers.LeakyReLU(),
+                layers.Dense(8 * 8 * 256, use_bias=False),
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+                layers.Reshape((8, 8, 256)),
+                
+                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),  # 16x16
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+
+                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),  # 32x32
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+
+                layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),  # 64x64
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+
+                layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),  # 128x128
+                layers.BatchNormalization(),
+                layers.LeakyReLU(),
+
+                layers.Conv2DTranspose(3, kernel_size=4, strides=2, padding="same", activation="tanh"),  # 256x256
+            ]
+        )
+
+    def get_discriminator():
+        FC_size = 128
+        return tf.keras.Sequential(
+            [
+                layers.Input(shape=(256, 256, 3)),
+                layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),   # 128x128
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+
+                layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),  # 64x64
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+
+                layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),  # 32x32
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+
+                layers.Conv2D(512, kernel_size=5, strides=2, padding="same"),  # 16x16
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+
+                layers.Conv2D(512, kernel_size=5, strides=2, padding="same"),  # 8x8
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+
+                layers.Conv2D(512, kernel_size=5, strides=2, padding="same"),  # 4x4
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+
+                layers.Flatten(),
+                layers.Dense(FC_size),
+                layers.LeakyReLU(alpha=0.2),
+                layers.Dropout(0.3),
+                layers.Dense(1, activation="sigmoid"),
+            ]
+        )
+
 
 elif model_name == "test_0B2":
 
