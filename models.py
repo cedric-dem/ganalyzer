@@ -104,7 +104,7 @@ elif model_name == "test_0B64":
         )
 
 
-elif model_name == "test_0B128":
+elif model_name == "test_0B128_100":
     def get_generator():
         FC_size = 512
         return tf.keras.Sequential([

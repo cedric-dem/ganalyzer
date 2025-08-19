@@ -140,24 +140,28 @@ class ModelViewer(object):
 
     def get_array_representation(self, raw_data):
         print("==> Draw lots of squares")
+        print("==> Case A with shape ", raw_data.shape)
+
         result = np.full((100, 100), 254, dtype=np.uint8)
 
-        # TODO
-        print("==> Case A with shape ", raw_data.shape)
+        for current_image in range (len(raw_data)):
+
+            pass
 
 
         return result
 
     def get_rectangle_representation(self, raw_data):
         print("=> Draw one rectangle")
-        size=int(raw_data.shape[0]**0.5)
+        #size=int(raw_data.shape[0]**0.5)
+        size=103
         print("==> Case B with shape ", raw_data.shape, " so ",size)
 
-        raw_data_square=raw_data.reshape((size, size))
-        result_r = find_limits_and_project(raw_data_square)
+        #raw_data_square=raw_data.reshape((size, size))
+        #result_r = find_limits_and_project(raw_data_square)
 
         result = np.full((size+2, size+2), 254, dtype=np.uint8)
-        result[1:size + 1, 1:size + 1] = result_r
+        #result[1:size + 1, 1:size + 1] = result_r
         return result
 
     def refresh_tk_image(self, input_matrix, is_color, tk_image: tk.Label):
