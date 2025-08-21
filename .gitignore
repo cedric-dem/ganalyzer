@@ -177,6 +177,7 @@ cython_debug/
 *.png
 *.jpg
 *.jpeg
+*.JPG
 
 # Keras model
 *.keras
