@@ -37,7 +37,9 @@ def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generat
                 else:
                     total_stats[key] = 0
 
-        total_stats["time"] = str(np.round(time.time() - start, 2))
+        time_taken = str(np.round(time.time() - start, 2))
+        print("===> Time taken : ", time_taken)
+        total_stats["time"] = time_taken
 
         # TODO fix csv update possibly overlapping old train
         add_statistics_to_file(epoch, total_stats)
@@ -110,7 +112,6 @@ def launch_training():
 
     dataset = get_dataset()
 
-    batch_size = 32
     dataset_batches = tf.data.Dataset.from_tensor_slices(np.array(dataset)).shuffle(buffer_size=len(dataset), reshuffle_each_iteration=True).batch(batch_size)
 
     if current_epoch == 0:  # if start from scratch
