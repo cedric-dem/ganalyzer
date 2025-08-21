@@ -43,13 +43,6 @@ def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generat
         add_statistics_to_file(epoch, total_stats)
         epoch += 1
 
-
-def get_taken_elem(dataset):
-	qty = int(len(dataset) * alpha)
-	result = [True] * qty + [False] * (len(dataset) - qty)
-	random.shuffle(result)
-	return result
-
 def add_statistics_to_file(epoch, new_stats):
 
     exists = os.path.isfile(statistics_file_path)
@@ -108,6 +101,7 @@ def get_dataset():
         # current_image = cv2.resize(current_image, (SIZE, SIZE))
         current_image = (current_image - 127.5) / 127.5
         dataset.append(img_to_array(current_image))
+    print("ouiiiii ses fait asdffsdfsdfsd5fsd456fsd546sd654f46sd54fs6d5f4sd65f4sd65f4sd65f4sd65f4s6d54fsd65f4sd65f4s65df4sd65f4sd65f4sd65f4sd65f4sd65f4sd65f4sd654f")
     return dataset
 
 

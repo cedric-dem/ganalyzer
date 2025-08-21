@@ -5,8 +5,6 @@ dataset_dimension="64"
 
 ##############################
 
-alpha = 0.15
-
 model_name = "model_a"
 
 model_path = "models/" + dataset_name+"/"+dataset_dimension + "/" +model_name + "/"
