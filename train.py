@@ -14,38 +14,35 @@ import tensorflow as tf
 import random
 
 def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
-	epoch = current_epoch
-	while True:
-		print("==> current epoch : ", epoch)
 
-		if epoch == 0 or epoch % save_train_epoch_every == 0:
-			print("===> saving models")
-			generator.save(get_generator_model_path_at_given_epoch(epoch))
-			discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
+    epoch = current_epoch
+    while True:
+        print("==> current epoch : ", epoch)
 
-		start = time.time()
+        if epoch == 0 or epoch % save_train_epoch_every == 0:
+            print("===> saving models")
+            generator.save(get_generator_model_path_at_given_epoch(epoch))
+            discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
 
-		total_stats = {}
+        start = time.time()
 
-		taken_elems = get_taken_elem(dataset)
+        total_stats = {}
 
-		for index, batch in enumerate(dataset): #.take(take_up_to)
-			if taken_elems[index]:
-				this_stats = train_steps(batch, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer)
+        for batch in dataset:
+            this_stats = train_steps(batch, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
-				for key in this_stats:
-					if key in total_stats:
-						total_stats[key] += this_stats[key]
-					else:
-						total_stats[key] = 0
+            for key in this_stats:
+                if key in total_stats:
+                    total_stats[key] += this_stats[key]
+                else:
+                    total_stats[key] = 0
 
-		time_taken = str(np.round(time.time() - start, 2))
-		print("===> Time taken : ", time_taken)
-		total_stats["time"] = time_taken
+        total_stats["time"] = str(np.round(time.time() - start, 2))
 
-		# TODO fix csv update possibly overlapping old train
-		add_statistics_to_file(epoch, total_stats)
-		epoch += 1
+        # TODO fix csv update possibly overlapping old train
+        add_statistics_to_file(epoch, total_stats)
+        epoch += 1
+
 
 def get_taken_elem(dataset):
 	qty = int(len(dataset) * alpha)
