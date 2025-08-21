@@ -176,6 +176,7 @@ cython_debug/
 # Dataset
 *.png
 *.jpg
+*.jpeg
 
 # Keras model
 *.keras

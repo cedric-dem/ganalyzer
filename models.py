@@ -2,418 +2,88 @@ from config import *
 
 from keras import layers
 import tensorflow as tf
+import math
 
-if model_name == "test_0":
+if model_name == "model_a":
+	def _num_upsamples_to_reach(img_size, base = 4):
+		if img_size < base:
+			raise ValueError("img_size should be >= 4")
+		cur = base
+		ups = 0
+		while cur < img_size:
+			cur *= 2
+			ups += 1
+		return ups, cur
 
-    def get_discriminator():
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(64, 64, 3)),
-                layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),  # lowering size
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(512, kernel_size=3, strides=1, padding="same"),  # additional layer
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Flatten(),
-                layers.Dense(1, activation="sigmoid"),
-            ]
-        )
+	def _filters_for_gen(step_idx, total_steps):
+		base = [512, 256, 128, 64, 32, 16]
+		return base[step_idx] if step_idx < len(base) else max(16, base[-1] // 2)
 
-    def get_generator():
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(latent_dimension_generator,)),
-                # Project and reshape initial (par ex. 8x8x256)
-                layers.Dense(8 * 8 * 256, use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Reshape((8, 8, 256)),  # => (8, 8, 256)
-                # Upsampling 1 => (16, 16, 128)
-                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                # Upsampling 2 => (32, 32, 64)
-                layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                # Upsampling 3 => (64, 64, 32)
-                layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                # Output Layer  => (64, 64, 3)
-                layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"),
-            ]
-        )
+	def _filters_for_disc(step_idx):
+		seq = [64, 128, 256, 512, 512, 512]
+		return seq[step_idx] if step_idx < len(seq) else 512
 
-elif model_name == "test_0B64":
+	def get_discriminator():
+		image_size = int(dataset_dimension)
+		fc_size = 128
 
-    def get_discriminator():
-        FC_size = 128
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(64, 64, 3)),
-                layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(512, kernel_size=3, strides=1, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Flatten(),
-                layers.Dense(FC_size),  # Added fully connected hidden layer
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Dense(1, activation="sigmoid"),
-            ]
-        )
+		assert image_size == int(image_size)
+		inputs = layers.Input(shape = (image_size, image_size, 3))
+		x = inputs
 
-    def get_generator():
-        FC_size = 512
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(latent_dimension_generator,)),
-                layers.Dense(FC_size),
-                layers.LeakyReLU(),
-                layers.Dense(8 * 8 * 256, use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Reshape((8, 8, 256)),
-                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"),
-            ]
-        )
+		cur = image_size
+		step = 0
+		while cur > 4:
+			x = layers.Conv2D(_filters_for_disc(step), kernel_size = 5, strides = 2, padding = "same")(x)
+			x = layers.LeakyReLU(alpha = 0.2)(x)
+			x = layers.Dropout(0.3)(x)
+			cur = math.ceil(cur / 2)
+			step += 1
 
+		x = layers.GlobalAveragePooling2D()(x)
+		x = layers.Dense(fc_size)(x)
+		x = layers.LeakyReLU(alpha = 0.2)(x)
+		x = layers.Dropout(0.3)(x)
+		outputs = layers.Dense(1, activation = "sigmoid")(x)
 
-elif model_name == "test_0B128_100":
-    def get_generator():
-        FC_size = 512
-        return tf.keras.Sequential([
-            layers.Input(shape=(latent_dimension_generator,)),
-            layers.Dense(FC_size),
-            layers.LeakyReLU(),
-            layers.Dense(8 * 8 * 256, use_bias=False),
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
-            layers.Reshape((8, 8, 256)),
-            
-            layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),  # (16,16)
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
+		return tf.keras.Model(inputs, outputs, name = f"Discriminator_{image_size}")
 
-            layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),   # (32,32)
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
+	def get_generator():
+		image_size = int(dataset_dimension)
+		latent_dim = latent_dimension_generator
+		base_spatial = 4
 
-            layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),   # (64,64)
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
+		assert image_size == int(image_size)
+		ups, reached = _num_upsamples_to_reach(image_size, base = base_spatial)
 
-            layers.Conv2DTranspose(16, kernel_size=4, strides=2, padding="same", use_bias=False),   # (128,128)
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
+		inputs = layers.Input(shape = (latent_dim,))
+		x = inputs
 
-            layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"), # (128,128,3)
-        ])
+		ch0 = 512
+		x = layers.Dense(base_spatial * base_spatial * ch0, use_bias = False)(x)
+		x = layers.BatchNormalization()(x)
+		x = layers.LeakyReLU()(x)
+		x = layers.Reshape((base_spatial, base_spatial, ch0))(x)
 
+		for i in range(ups):
+			x = layers.Conv2DTranspose(
+				_filters_for_gen(i, ups),
+				kernel_size = 4, strides = 2, padding = "same", use_bias = False
+			)(x)
+			x = layers.BatchNormalization()(x)
+			x = layers.LeakyReLU()(x)
 
-    def get_discriminator():
-        FC_size = 128
-        return tf.keras.Sequential([
-            layers.Input(shape=(128, 128, 3)),
-            layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
+		if reached != image_size:
+			x = layers.Conv2D(_filters_for_gen(ups, ups + 1), kernel_size = 3, padding = "same", use_bias = False)(x)
+			x = layers.LeakyReLU()(x)
+			x = layers.Resizing(image_size, image_size, interpolation = "bilinear")(x)
 
-            layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
+		x = layers.Conv2D(32, kernel_size = 3, padding = "same", use_bias = False)(x)
+		x = layers.BatchNormalization()(x)
+		x = layers.LeakyReLU()(x)
 
-            layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
-
-            layers.Conv2D(512, kernel_size=3, strides=2, padding="same"),
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
-
-            layers.Conv2D(512, kernel_size=3, strides=1, padding="same"),
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
-
-            layers.Flatten(),
-            layers.Dense(FC_size),
-            layers.LeakyReLU(alpha=0.2),
-            layers.Dropout(0.3),
-            layers.Dense(1, activation="sigmoid"),
-        ])
-
-elif model_name == "test_0B256":
-
-    def get_generator():
-        FC_size = 512
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(latent_dimension_generator,)),
-                layers.Dense(FC_size),
-                layers.LeakyReLU(),
-                layers.Dense(8 * 8 * 256, use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Reshape((8, 8, 256)),
-                
-                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),  # 16x16
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-
-                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),  # 32x32
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-
-                layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),  # 64x64
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-
-                layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),  # 128x128
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-
-                layers.Conv2DTranspose(3, kernel_size=4, strides=2, padding="same", activation="tanh"),  # 256x256
-            ]
-        )
-
-    def get_discriminator():
-        FC_size = 128
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(256, 256, 3)),
-                layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),   # 128x128
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-
-                layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),  # 64x64
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-
-                layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),  # 32x32
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-
-                layers.Conv2D(512, kernel_size=5, strides=2, padding="same"),  # 16x16
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-
-                layers.Conv2D(512, kernel_size=5, strides=2, padding="same"),  # 8x8
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-
-                layers.Conv2D(512, kernel_size=5, strides=2, padding="same"),  # 4x4
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-
-                layers.Flatten(),
-                layers.Dense(FC_size),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Dense(1, activation="sigmoid"),
-            ]
-        )
-
-
-elif model_name == "test_0B2":
-
-    def get_discriminator():
-        FC_size = 256
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(64, 64, 3)),
-                layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(512, kernel_size=3, strides=1, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Flatten(),
-                layers.Dense(FC_size),  # Added fully connected hidden layer
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Dense(1, activation="sigmoid"),
-            ]
-        )
-
-    def get_generator():
-        FC_size = 1024
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(latent_dimension_generator,)),
-                layers.Dense(FC_size),
-                layers.LeakyReLU(),
-                layers.Dense(8 * 8 * 256, use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Reshape((8, 8, 256)),
-                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"),
-            ]
-        )
-
-elif model_name == "test_0B2B":
-
-    def get_discriminator():
-        FC_size1 = 256
-        FC_size2 = 128
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(64, 64, 3)),
-                layers.Conv2D(64, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(128, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(256, kernel_size=5, strides=2, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Conv2D(512, kernel_size=3, strides=1, padding="same"),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Flatten(),
-                layers.Dense(FC_size1),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Dense(FC_size2),
-                layers.LeakyReLU(alpha=0.2),
-                layers.Dropout(0.3),
-                layers.Dense(1, activation="sigmoid"),
-            ]
-        )
-
-    def get_generator():
-        FC_size1 = 1024
-        FC_size2 = 2048
-        return tf.keras.Sequential(
-            [
-                layers.Input(shape=(latent_dimension_generator,)),
-                layers.Dense(FC_size1),
-                layers.LeakyReLU(),
-                layers.Dense(FC_size2),
-                layers.LeakyReLU(),
-                layers.Dense(8 * 8 * 256, use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Reshape((8, 8, 256)),
-                layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(32, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(),
-                layers.Conv2DTranspose(3, kernel_size=3, strides=1, padding="same", activation="tanh"),
-            ]
-        )
-
-elif model_name == "test_1":
-
-    def get_generator():
-
-        # Size of feature maps in generator
-        ngf = 64
-
-        # Number of channels in the training images. For color images this is 3
-        nc = 3
-
-        return tf.keras.Sequential(
-            [
-                # layer 1: (latent_dimension_generator,) -> (ngf*8, 4, 4)
-                # layers.Input(shape=(1, 1, nz)),
-                layers.Input(shape=(latent_dimension_generator,)),
-                layers.Reshape((1, 1, latent_dimension_generator)),
-                layers.Conv2DTranspose(ngf * 8, kernel_size=4, strides=1, padding="valid", use_bias=False),
-                layers.BatchNormalization(),
-                layers.ReLU(),
-                # (ngf*8, 4, 4) -> (ngf*4, 8, 8)
-                layers.Conv2DTranspose(ngf * 4, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.ReLU(),
-                # (ngf*4, 8, 8) -> (ngf*2, 16, 16)
-                layers.Conv2DTranspose(ngf * 2, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.ReLU(),
-                # (ngf*2, 16, 16) -> (ngf, 32, 32)
-                layers.Conv2DTranspose(ngf, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.ReLU(),
-                # (ngf, 32, 32) -> (nc, 64, 64)
-                layers.Conv2DTranspose(nc, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.Activation("tanh"),
-            ]
-        )
-
-    def get_discriminator():
-        nc = 3
-
-        # Size of feature maps in discriminator
-        ndf = 64
-
-        return tf.keras.Sequential(
-            [
-                # input is (64, 64, nc)
-                layers.Conv2D(ndf, kernel_size=4, strides=2, padding="same", use_bias=False, input_shape=(64, 64, nc)),
-                layers.LeakyReLU(alpha=0.2),
-                # (32, 32, ndf)
-                layers.Conv2D(ndf * 2, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(alpha=0.2),
-                # (16, 16, ndf*2)
-                layers.Conv2D(ndf * 4, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(alpha=0.2),
-                # (8, 8, ndf*4)
-                layers.Conv2D(ndf * 8, kernel_size=4, strides=2, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(alpha=0.2),
-                # (4, 4, ndf*8)
-                layers.Conv2D(1, kernel_size=4, strides=1, padding="valid", use_bias=False),
-                layers.Activation("sigmoid"),
-                # Output is (1, 1, 1)
-            ]
-        )
+		outputs = layers.Conv2D(3, kernel_size = 3, strides = 1, padding = "same", activation = "tanh")(x)
+		return tf.keras.Model(inputs, outputs, name = f"Generator_{image_size}")
 
 else:
-    raise Exception("model not found")
+	raise Exception("model not found")

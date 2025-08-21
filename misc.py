@@ -46,19 +46,22 @@ def get_all_models(model_type, available_epochs):
 
     models_quantity = get_current_epoch()
 
-    result = [None for i in range(models_quantity)]
+    # if all indexes loaded
+    if load_quantity_gui >= models_quantity:
+        indexes = list(range(models_quantity))
+    else:
+        take_every = models_quantity // load_quantity_gui
+        indexes = sorted(set(range(0, models_quantity, take_every)) | {0, models_quantity - 1})
 
-    take_every = models_quantity // load_quantity_gui
-
-    indexes = sorted(set(range(0, models_quantity, take_every)) | {0, models_quantity - 1})
+    result = [None for _ in range(models_quantity)]
 
     for current_index in indexes:
         this_filename = get_model_path_at_given_epoch_closest_possible(model_type, current_index, available_epochs)
-        print("=> will load  " + model_type + " epoch ", current_index, " closest found is : ", this_filename)
+        print(f"=> will load {model_type} epoch {current_index}, closest found is : {this_filename}")
         result[current_index] = keras.models.load_model(this_filename)
 
     return result
-
+    
 
 def find_limits_and_project(arr):
     projected = project_array(arr, 254, np.min(arr), np.max(arr))
