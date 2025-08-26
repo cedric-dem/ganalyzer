@@ -21,7 +21,7 @@ batch_size = 32
 save_train_epoch_every = 1
 
 #GUI
-load_quantity_gui = 15
+load_quantity_gui = 9
 
 #statistics
 show_every_models_statistic = True
