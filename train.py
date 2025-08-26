@@ -11,7 +11,6 @@ import keras
 from keras.preprocessing.image import img_to_array
 import numpy as np
 import tensorflow as tf
-import random
 
 def train(current_epoch, dataset, cross_entropy, batch_size, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
 
