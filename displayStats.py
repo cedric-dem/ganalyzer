@@ -12,13 +12,13 @@ def display_plot(dataframe, names, title, columns_to_display, unit):
     if len(dataframe) == 1:
         for col in columns_to_display:
             plt.plot(dataframe[0][col], label=col)
-        plt.title(f"stats for : {title} on model {names[0]}")
+        plt.title(f"{title} on model {names[0]}")
     else:
         for col in columns_to_display:
             for i in range (len(dataframe)):
                 plt.plot(dataframe[i][col], label=col+" for "+names[i])
 
-        plt.title(f"stats for : {title} on all models")
+        plt.title(f" {title} on all models")
     plt.xlabel("Index")
     plt.ylabel(unit)
     plt.legend()
@@ -29,10 +29,15 @@ def display_plot(dataframe, names, title, columns_to_display, unit):
 if show_every_models_statistic:
     all_dataframes = [pd.read_csv(this_folder_path+"/statistics.csv") for this_folder_path in every_models_statistics_path]
 
-    display_plot(all_dataframes, all_models,"median", ["median_real", "median_fake"], "output")
-    display_plot(all_dataframes, all_models,"mean", ["mean_real", "mean_fake"], "output")
-    display_plot(all_dataframes, all_models, "losses", ["gen_loss", "disc_loss"], "loss")
-    display_plot(all_dataframes, all_models, "time", ["time"], "seconds")
+    display_plot(all_dataframes, all_models,"median real", ["median_real"], "output")
+    display_plot(all_dataframes, all_models,"mean real", ["mean_real"], "output")
+    display_plot(all_dataframes, all_models, "generator loss", ["gen_loss"], "loss")
+
+    display_plot(all_dataframes, all_models,"median fake", ["median_fake"], "output")
+    display_plot(all_dataframes, all_models,"mean fake", ["mean_fake"], "output")
+    display_plot(all_dataframes, all_models, "discriminator loss", ["disc_loss"], "loss")
+
+    display_plot(all_dataframes, all_models, "time taken", ["time"], "seconds")
 
 else:
     current_model_dataframe = [pd.read_csv(statistics_file_path)]
