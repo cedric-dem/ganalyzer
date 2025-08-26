@@ -5,7 +5,7 @@ dataset_name = "humans_fifa" #"cars_2"
 dataset_dimension="64"
 dataset_path = "datasets/"+dataset_name+"/"+dataset_dimension
 
-model_name = "model_c"
+model_name = "model_large"
 global_path = "models/" + dataset_name+"/"+dataset_dimension + "/"
 model_path = global_path + model_name + "/"
 

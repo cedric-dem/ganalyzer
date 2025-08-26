@@ -4,7 +4,7 @@ from keras import layers
 import tensorflow as tf
 import math
 
-if model_name == "model_a": #original
+if model_name == "model_medium":
 	def _num_upsamples_to_reach(img_size, base = 4):
 		if img_size < base:
 			raise ValueError("img_size should be >= 4")
@@ -85,7 +85,7 @@ if model_name == "model_a": #original
 		outputs = layers.Conv2D(3, kernel_size = 3, strides = 1, padding = "same", activation = "tanh")(x)
 		return tf.keras.Model(inputs, outputs, name = f"Generator_{image_size}")
 
-elif model_name == "model_b": #more complex
+elif model_name == "model_large":
 	def _num_upsamples_to_reach(img_size, base = 4):
 		if img_size < base:
 			raise ValueError("img_size should be >= 4")
@@ -170,7 +170,7 @@ elif model_name == "model_b": #more complex
 		outputs = layers.Conv2D(3, kernel_size = 3, strides = 1, padding = "same", activation = "tanh")(x)
 		return tf.keras.Model(inputs, outputs, name = f"Generator_{image_size}")
 
-elif model_name == "model_c": #simpler
+elif model_name == "model_small":
 	def _num_upsamples_to_reach(img_size, base = 4):
 		if img_size < base:
 			raise ValueError("img_size should be >= 4")
