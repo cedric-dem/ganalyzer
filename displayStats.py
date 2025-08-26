@@ -3,7 +3,20 @@ from config import *
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import math
 
+def get_shade(proportion):
+    qty = math.ceil( max(0.0, min(1.0, proportion)) * 16)
+    if qty == 16:
+        qty = 15
+
+    inv_qty = 16 - qty
+    if inv_qty == 16:
+        inv_qty = 15
+
+    qh  = format(qty, "x")
+    ih  = format(inv_qty, "x")
+    return f"#{ih}{ih}{qh}{qh}00"
 
 def display_plot(dataframe, names, title, columns_to_display, unit):
 
@@ -16,7 +29,7 @@ def display_plot(dataframe, names, title, columns_to_display, unit):
     else:
         for col in columns_to_display:
             for i in range (len(dataframe)):
-                plt.plot(dataframe[i][col], label=col+" for "+names[i])
+                plt.plot(dataframe[i][col], label=col+" for "+names[i], color = get_shade(i/len(dataframe)))
 
         plt.title(f" {title} on all models")
     plt.xlabel("Index")

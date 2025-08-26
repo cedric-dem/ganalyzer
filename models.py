@@ -5,7 +5,7 @@ import tensorflow as tf
 import math
 
 MODEL_CONFIGS = {
-    "model_small": {
+    "model_0_small": {
         "gen_base": [256, 128, 64, 32, 16, 8],
         "gen_min": 8,
         "disc_seq": [32, 64, 128, 256, 256, 256],
@@ -14,7 +14,7 @@ MODEL_CONFIGS = {
         "gen_pre_dense": [],
         "extra_conv": False,
     },
-    "model_medium": {
+    "model_1_medium": {
         "gen_base": [512, 256, 128, 64, 32, 16],
         "gen_min": 16,
         "disc_seq": [64, 128, 256, 512, 512, 512],
@@ -23,13 +23,22 @@ MODEL_CONFIGS = {
         "gen_pre_dense": [],
         "extra_conv": True,
     },
-    "model_large": {
+    "model_2_large": {
         "gen_base": [512, 256, 128, 64, 32, 16],
         "gen_min": 16,
         "disc_seq": [64, 128, 256, 512, 512, 512],
         "disc_fc": lambda image_size: [image_size * 4, image_size * 2],
         "gen_ch0": 512,
         "gen_pre_dense": [1024],
+        "extra_conv": True,
+    },
+    "model_3_extra_large": {
+        "gen_base": [1024, 512, 256, 128, 64, 32],
+        "gen_min": 32,
+        "disc_seq": [128, 256, 512, 1024, 1024, 1024],
+        "disc_fc": lambda image_size: [image_size * 8, image_size * 4, image_size * 2],
+        "gen_ch0": 1024,
+        "gen_pre_dense": [2048, 1024],
         "extra_conv": True,
     },
 }

@@ -5,7 +5,7 @@ dataset_name = "humans_fifa" #"cars_2"
 dataset_dimension="64"
 dataset_path = "datasets/"+dataset_name+"/"+dataset_dimension
 
-model_name = "model_large"
+model_name = "model_3_extra_large"
 global_path = "models/" + dataset_name+"/"+dataset_dimension + "/"
 model_path = global_path + model_name + "/"
 
@@ -26,4 +26,5 @@ load_quantity_gui = 15
 #statistics
 show_every_models_statistic = True
 all_models = os.listdir(global_path)
+all_models.sort()
 every_models_statistics_path = [global_path + i for i in all_models]
