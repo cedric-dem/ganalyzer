@@ -4,244 +4,141 @@ from keras import layers
 import tensorflow as tf
 import math
 
-if model_name == "model_medium":
-	def _num_upsamples_to_reach(img_size, base = 4):
-		if img_size < base:
-			raise ValueError("img_size should be >= 4")
-		cur = base
-		ups = 0
-		while cur < img_size:
-			cur *= 2
-			ups += 1
-		return ups, cur
+MODEL_CONFIGS = {
+    "model_small": {
+        "gen_base": [256, 128, 64, 32, 16, 8],
+        "gen_min": 8,
+        "disc_seq": [32, 64, 128, 256, 256, 256],
+        "disc_fc": lambda image_size: [],
+        "gen_ch0": 256,
+        "gen_pre_dense": [],
+        "extra_conv": False,
+    },
+    "model_medium": {
+        "gen_base": [512, 256, 128, 64, 32, 16],
+        "gen_min": 16,
+        "disc_seq": [64, 128, 256, 512, 512, 512],
+        "disc_fc": lambda image_size: [128],
+        "gen_ch0": 512,
+        "gen_pre_dense": [],
+        "extra_conv": True,
+    },
+    "model_large": {
+        "gen_base": [512, 256, 128, 64, 32, 16],
+        "gen_min": 16,
+        "disc_seq": [64, 128, 256, 512, 512, 512],
+        "disc_fc": lambda image_size: [image_size * 4, image_size * 2],
+        "gen_ch0": 512,
+        "gen_pre_dense": [1024],
+        "extra_conv": True,
+    },
+}
 
-	def _filters_for_gen(step_idx, total_steps):
-		base = [512, 256, 128, 64, 32, 16]
-		return base[step_idx] if step_idx < len(base) else max(16, base[-1] // 2)
+if model_name not in MODEL_CONFIGS:
+    raise Exception("model not found")
 
-	def _filters_for_disc(step_idx):
-		seq = [64, 128, 256, 512, 512, 512]
-		return seq[step_idx] if step_idx < len(seq) else 512
 
-	def get_discriminator():
-		image_size = int(dataset_dimension)
-		fc_size = 128
+def _num_upsamples_to_reach(img_size, base=4):
+    if img_size < base:
+        raise ValueError("img_size should be >= 4")
+    cur = base
+    ups = 0
+    while cur < img_size:
+        cur *= 2
+        ups += 1
+    return ups, cur
 
-		assert image_size == int(image_size)
-		inputs = layers.Input(shape = (image_size, image_size, 3))
-		x = inputs
 
-		cur = image_size
-		step = 0
-		while cur > 4:
-			x = layers.Conv2D(_filters_for_disc(step), kernel_size = 5, strides = 2, padding = "same")(x)
-			x = layers.LeakyReLU(alpha = 0.2)(x)
-			x = layers.Dropout(0.3)(x)
-			cur = math.ceil(cur / 2)
-			step += 1
+def _filters_for_gen(step_idx, base, min_filter):
+    return base[step_idx] if step_idx < len(base) else max(min_filter, base[-1] // 2)
 
-		x = layers.GlobalAveragePooling2D()(x)
-		x = layers.Dense(fc_size)(x)
-		x = layers.LeakyReLU(alpha = 0.2)(x)
-		x = layers.Dropout(0.3)(x)
-		outputs = layers.Dense(1, activation = "sigmoid")(x)
 
-		return tf.keras.Model(inputs, outputs, name = f"Discriminator_{image_size}")
+def _filters_for_disc(step_idx, seq):
+    return seq[step_idx] if step_idx < len(seq) else seq[-1]
 
-	def get_generator():
-		image_size = int(dataset_dimension)
-		latent_dim = latent_dimension_generator
-		base_spatial = 4
 
-		assert image_size == int(image_size)
-		ups, reached = _num_upsamples_to_reach(image_size, base = base_spatial)
+def get_discriminator():
+    cfg = MODEL_CONFIGS[model_name]
+    image_size = int(dataset_dimension)
 
-		inputs = layers.Input(shape = (latent_dim,))
-		x = inputs
+    assert image_size == int(image_size)
+    inputs = layers.Input(shape=(image_size, image_size, 3))
+    x = inputs
 
-		ch0 = 512
-		x = layers.Dense(base_spatial * base_spatial * ch0, use_bias = False)(x)
-		x = layers.BatchNormalization()(x)
-		x = layers.LeakyReLU()(x)
-		x = layers.Reshape((base_spatial, base_spatial, ch0))(x)
+    cur = image_size
+    step = 0
+    while cur > 4:
+        x = layers.Conv2D(
+            _filters_for_disc(step, cfg["disc_seq"]),
+            kernel_size=5,
+            strides=2,
+            padding="same",
+        )(x)
+        x = layers.LeakyReLU(alpha=0.2)(x)
+        x = layers.Dropout(0.3)(x)
+        cur = math.ceil(cur / 2)
+        step += 1
 
-		for i in range(ups):
-			x = layers.Conv2DTranspose(
-				_filters_for_gen(i, ups),
-				kernel_size = 4, strides = 2, padding = "same", use_bias = False
-			)(x)
-			x = layers.BatchNormalization()(x)
-			x = layers.LeakyReLU()(x)
+    x = layers.GlobalAveragePooling2D()(x)
+    for size in cfg["disc_fc"](image_size):
+        x = layers.Dense(size)(x)
+        x = layers.LeakyReLU(alpha=0.2)(x)
+        x = layers.Dropout(0.3)(x)
+    outputs = layers.Dense(1, activation="sigmoid")(x)
 
-		if reached != image_size:
-			x = layers.Conv2D(_filters_for_gen(ups, ups + 1), kernel_size = 3, padding = "same", use_bias = False)(x)
-			x = layers.LeakyReLU()(x)
-			x = layers.Resizing(image_size, image_size, interpolation = "bilinear")(x)
+    return tf.keras.Model(inputs, outputs, name=f"Discriminator_{image_size}")
 
-		x = layers.Conv2D(32, kernel_size = 3, padding = "same", use_bias = False)(x)
-		x = layers.BatchNormalization()(x)
-		x = layers.LeakyReLU()(x)
 
-		outputs = layers.Conv2D(3, kernel_size = 3, strides = 1, padding = "same", activation = "tanh")(x)
-		return tf.keras.Model(inputs, outputs, name = f"Generator_{image_size}")
+def get_generator():
+    cfg = MODEL_CONFIGS[model_name]
+    image_size = int(dataset_dimension)
+    latent_dim = latent_dimension_generator
+    base_spatial = 4
 
-elif model_name == "model_large":
-	def _num_upsamples_to_reach(img_size, base = 4):
-		if img_size < base:
-			raise ValueError("img_size should be >= 4")
-		cur = base
-		ups = 0
-		while cur < img_size:
-			cur *= 2
-			ups += 1
-		return ups, cur
+    assert image_size == int(image_size)
+    ups, reached = _num_upsamples_to_reach(image_size, base=base_spatial)
 
-	def _filters_for_gen(step_idx, total_steps):
-		base = [512, 256, 128, 64, 32, 16]
-		return base[step_idx] if step_idx < len(base) else max(16, base[-1] // 2)
+    inputs = layers.Input(shape=(latent_dim,))
+    x = inputs
 
-	def _filters_for_disc(step_idx):
-		seq = [64, 128, 256, 512, 512, 512]
-		return seq[step_idx] if step_idx < len(seq) else 512
+    for size in cfg.get("gen_pre_dense", []):
+        x = layers.Dense(size, use_bias=False)(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.LeakyReLU()(x)
 
-	def get_discriminator():
-		image_size = int(dataset_dimension)
-		fc_sizes = [image_size * 4, image_size * 2]
+    ch0 = cfg["gen_ch0"]
+    x = layers.Dense(base_spatial * base_spatial * ch0, use_bias=False)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.LeakyReLU()(x)
+    x = layers.Reshape((base_spatial, base_spatial, ch0))(x)
 
-		assert image_size == int(image_size)
-		inputs = layers.Input(shape = (image_size, image_size, 3))
-		x = inputs
+    for i in range(ups):
+        x = layers.Conv2DTranspose(
+            _filters_for_gen(i, cfg["gen_base"], cfg["gen_min"]),
+            kernel_size=4,
+            strides=2,
+            padding="same",
+            use_bias=False,
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.LeakyReLU()(x)
 
-		cur = image_size
-		step = 0
-		while cur > 4:
-			x = layers.Conv2D(_filters_for_disc(step), kernel_size = 5, strides = 2, padding = "same")(x)
-			x = layers.LeakyReLU(alpha = 0.2)(x)
-			x = layers.Dropout(0.3)(x)
-			cur = math.ceil(cur / 2)
-			step += 1
+    if reached != image_size:
+        x = layers.Conv2D(
+            _filters_for_gen(ups, cfg["gen_base"], cfg["gen_min"]),
+            kernel_size=3,
+            padding="same",
+            use_bias=False,
+        )(x)
+        x = layers.LeakyReLU()(x)
+        x = layers.Resizing(image_size, image_size, interpolation="bilinear")(x)
 
-		x = layers.GlobalAveragePooling2D()(x)
-		for size in fc_sizes:
-			x = layers.Dense(size)(x)
-			x = layers.LeakyReLU(alpha = 0.2)(x)
-			x = layers.Dropout(0.3)(x)
-		outputs = layers.Dense(1, activation = "sigmoid")(x)
+    if cfg.get("extra_conv", False):
+        x = layers.Conv2D(32, kernel_size=3, padding="same", use_bias=False)(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.LeakyReLU()(x)
 
-		return tf.keras.Model(inputs, outputs, name = f"Discriminator_{image_size}")
-
-	def get_generator():
-		image_size = int(dataset_dimension)
-		latent_dim = latent_dimension_generator
-		base_spatial = 4
-
-		assert image_size == int(image_size)
-		ups, reached = _num_upsamples_to_reach(image_size, base = base_spatial)
-
-		inputs = layers.Input(shape = (latent_dim,))
-		x = inputs
-
-		ch0 = 512
-		x = layers.Dense(1024, use_bias = False)(x)
-		x = layers.BatchNormalization()(x)
-		x = layers.LeakyReLU()(x)
-		x = layers.Dense(base_spatial * base_spatial * ch0, use_bias = False)(x)
-		x = layers.BatchNormalization()(x)
-		x = layers.LeakyReLU()(x)
-		x = layers.Reshape((base_spatial, base_spatial, ch0))(x)
-
-		for i in range(ups):
-			x = layers.Conv2DTranspose(
-				_filters_for_gen(i, ups),
-				kernel_size = 4, strides = 2, padding = "same", use_bias = False
-			)(x)
-			x = layers.BatchNormalization()(x)
-			x = layers.LeakyReLU()(x)
-
-		if reached != image_size:
-			x = layers.Conv2D(_filters_for_gen(ups, ups + 1), kernel_size = 3, padding = "same", use_bias = False)(x)
-			x = layers.LeakyReLU()(x)
-			x = layers.Resizing(image_size, image_size, interpolation = "bilinear")(x)
-
-		x = layers.Conv2D(32, kernel_size = 3, padding = "same", use_bias = False)(x)
-		x = layers.BatchNormalization()(x)
-		x = layers.LeakyReLU()(x)
-
-		outputs = layers.Conv2D(3, kernel_size = 3, strides = 1, padding = "same", activation = "tanh")(x)
-		return tf.keras.Model(inputs, outputs, name = f"Generator_{image_size}")
-
-elif model_name == "model_small":
-	def _num_upsamples_to_reach(img_size, base = 4):
-		if img_size < base:
-			raise ValueError("img_size should be >= 4")
-		cur = base
-		ups = 0
-		while cur < img_size:
-			cur *= 2
-			ups += 1
-		return ups, cur
-
-	def _filters_for_gen(step_idx, total_steps):
-		base = [256, 128, 64, 32, 16, 8]
-		return base[step_idx] if step_idx < len(base) else max(8, base[-1] // 2)
-
-	def _filters_for_disc(step_idx):
-		seq = [32, 64, 128, 256, 256, 256]
-		return seq[step_idx] if step_idx < len(seq) else 256
-
-	def get_discriminator():
-		image_size = int(dataset_dimension)
-
-		assert image_size == int(image_size)
-		inputs = layers.Input(shape = (image_size, image_size, 3))
-		x = inputs
-
-		cur = image_size
-		step = 0
-		while cur > 4:
-			x = layers.Conv2D(_filters_for_disc(step), kernel_size = 5, strides = 2, padding = "same")(x)
-			x = layers.LeakyReLU(alpha = 0.2)(x)
-			x = layers.Dropout(0.3)(x)
-			cur = math.ceil(cur / 2)
-			step += 1
-
-		x = layers.GlobalAveragePooling2D()(x)
-		outputs = layers.Dense(1, activation = "sigmoid")(x)
-
-		return tf.keras.Model(inputs, outputs, name = f"Discriminator_{image_size}")
-
-	def get_generator():
-		image_size = int(dataset_dimension)
-		latent_dim = latent_dimension_generator
-		base_spatial = 4
-
-		assert image_size == int(image_size)
-		ups, reached = _num_upsamples_to_reach(image_size, base = base_spatial)
-
-		inputs = layers.Input(shape = (latent_dim,))
-		x = inputs
-
-		ch0 = 256
-		x = layers.Dense(base_spatial * base_spatial * ch0, use_bias = False)(x)
-		x = layers.BatchNormalization()(x)
-		x = layers.LeakyReLU()(x)
-		x = layers.Reshape((base_spatial, base_spatial, ch0))(x)
-
-		for i in range(ups):
-			x = layers.Conv2DTranspose(
-				_filters_for_gen(i, ups),
-				kernel_size = 4, strides = 2, padding = "same", use_bias = False
-			)(x)
-			x = layers.BatchNormalization()(x)
-			x = layers.LeakyReLU()(x)
-
-		if reached != image_size:
-			x = layers.Conv2D(_filters_for_gen(ups, ups + 1), kernel_size = 3, padding = "same", use_bias = False)(x)
-			x = layers.LeakyReLU()(x)
-			x = layers.Resizing(image_size, image_size, interpolation = "bilinear")(x)
-
-		outputs = layers.Conv2D(3, kernel_size = 3, strides = 1, padding = "same", activation = "tanh")(x)
-		return tf.keras.Model(inputs, outputs, name = f"Generator_{image_size}")
-
-else:
-	raise Exception("model not found")
+    outputs = layers.Conv2D(
+        3, kernel_size=3, strides=1, padding="same", activation="tanh"
+    )(x)
+    return tf.keras.Model(inputs, outputs, name=f"Generator_{image_size}")
