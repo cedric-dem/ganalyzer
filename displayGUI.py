@@ -1,6 +1,6 @@
 import time
 
-from GUI import *
+from ganalyzer.GUI import *
 
 # load all the models
 t0 = time.time()

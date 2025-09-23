@@ -1,5 +1,5 @@
-from misc import *
-from ModelViewer import *
+from ganalyzer.misc import *
+from ganalyzer.ModelViewer import *
 import tkinter as tk
 from tkinter import ttk
 import numpy as np

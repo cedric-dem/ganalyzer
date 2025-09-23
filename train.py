@@ -1,5 +1,4 @@
-from misc import *
-from models import *
+from ganalyzer.misc import *
 
 import os
 import csv
