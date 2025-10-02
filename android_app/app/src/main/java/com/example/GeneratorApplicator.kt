@@ -48,7 +48,7 @@ class GeneratorApplicator(context: Context) : Closeable {
     }
 
     companion object {
-        private const val MODEL_ASSET_NAME = "model_decoder.tflite"
+        private const val MODEL_ASSET_NAME = "model_generator.tflite"
 
         private fun numElements(shape: IntArray): Int {
             var product = 1

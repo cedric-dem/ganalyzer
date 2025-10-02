@@ -57,7 +57,7 @@ class DiscriminatorApplicator(context: Context) : Closeable {
     }
 
     companion object {
-        private const val MODEL_ASSET_NAME = "model_encoder.tflite"
+        private const val MODEL_ASSET_NAME = "model_discriminator.tflite"
 
         @Throws(IOException::class)
         private fun loadModelFile(assetManager: AssetManager, assetName: String): ByteBuffer {
