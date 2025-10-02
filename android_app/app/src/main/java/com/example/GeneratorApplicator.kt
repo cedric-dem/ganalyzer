@@ -30,8 +30,19 @@ class GeneratorApplicator(context: Context) : Closeable {
     init {
         val modelBuffer = loadModelFile(context.assets, ModelConfig.GENERATOR_PATH)
 
-        if (modelBuffer != null) {
-            interpreter = Interpreter(modelBuffer)
+
+        val initializedInterpreter = if (modelBuffer != null) {
+            runCatching { Interpreter(modelBuffer) }
+                .onFailure { throwable ->
+                    Log.e(TAG, "Unable to create generator interpreter", throwable)
+                }
+                .getOrNull()
+        } else {
+            null
+        }
+
+        if (initializedInterpreter != null) {
+            interpreter = initializedInterpreter
 
             inputShape = interpreter.getInputTensor(0).shape()
             val inputBatch = if (inputShape.size > 1) inputShape[0] else 1
