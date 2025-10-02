@@ -18,7 +18,7 @@ statistics_file_path = model_path + "statistics.csv"
 
 #train
 batch_size = 32
-save_train_epoch_every = 1
+save_train_epoch_every = 10
 
 #GUI
 load_quantity_gui = 9
