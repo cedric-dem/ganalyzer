@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Hallucinator" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.Ganalyzer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/surface_dark</item>
         <item name="colorPrimaryVariant">@color/app_background</item>
         <item name="colorSecondary">@color/teal_200</item>

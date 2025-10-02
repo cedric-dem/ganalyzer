@@ -26,12 +26,6 @@ fun AppCompatActivity.setupBottomNavigation(@IdRes selectedItemId: Int) {
                     })
                     true
                 }
-                R.id.navigation_encoder_decoder -> {
-                    startActivity(Intent(this, EncoderAndDecoderActivity::class.java).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                    })
-                    true
-                }
                 else -> false
             }
         }

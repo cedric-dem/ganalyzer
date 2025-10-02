@@ -8,7 +8,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.hallucinator"
+        applicationId = "com.example.ganalyzer"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
