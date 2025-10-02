@@ -10,7 +10,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class DecoderApplicator(context: Context) : Closeable {
+class GeneratorApplicator(context: Context) : Closeable {
     private val interpreter: Interpreter
     private var configuredInputSize: Int? = null
 

@@ -10,7 +10,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class EncoderApplicator(context: Context) : Closeable {
+class DiscriminatorApplicator(context: Context) : Closeable {
     private val interpreter: Interpreter
 
     init {

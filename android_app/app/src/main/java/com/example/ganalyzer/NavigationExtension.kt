@@ -15,13 +15,13 @@ fun AppCompatActivity.setupBottomNavigation(@IdRes selectedItemId: Int) {
         } else {
             when (item.itemId) {
                 R.id.navigation_main -> {
-                    startActivity(Intent(this, OnlyEncoderActivity::class.java).apply {
+                    startActivity(Intent(this, DiscriminatorActivity::class.java).apply {
                         addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                     })
                     true
                 }
                 R.id.navigation_only_decoder -> {
-                    startActivity(Intent(this, OnlyDecoderActivity::class.java).apply {
+                    startActivity(Intent(this, GeneratorActivity::class.java).apply {
                         addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                     })
                     true

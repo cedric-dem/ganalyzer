@@ -13,11 +13,11 @@
         android:theme="@style/Theme.Ganalyzer"
         tools:targetApi="31">
         <activity
-            android:name=".OnlyDecoderActivity"
+            android:name=".GeneratorActivity"
             android:exported="false"
             android:label="@string/navigation_discriminator" />
         <activity
-            android:name=".OnlyEncoderActivity"
+            android:name=".DiscriminatorActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Ganalyzer">

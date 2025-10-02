@@ -10,15 +10,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.DecoderApplicator
+import com.example.GeneratorApplicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.random.Random
 
-class OnlyDecoderActivity : AppCompatActivity() {
-    private var decoderApplicator: DecoderApplicator? = null
+class GeneratorActivity : AppCompatActivity() {
+    private var decoderApplicator: GeneratorApplicator? = null
     private var currentInput: FloatArray? = null
 
 
@@ -48,7 +48,7 @@ class OnlyDecoderActivity : AppCompatActivity() {
         val decoderOutputImage = findViewById<ImageView>(R.id.image_decoder_output)
 
         decoderApplicator = try {
-            DecoderApplicator(this)
+            GeneratorApplicator(this)
         } catch (error: Exception) {
             val message = error.localizedMessage ?: getString(R.string.unknown_error)+ error.toString()
             Toast.makeText(this, getString(R.string.model_status_error, message), Toast.LENGTH_LONG).show()
@@ -93,7 +93,7 @@ class OnlyDecoderActivity : AppCompatActivity() {
                     decoderOutputImage.setImageDrawable(null)
                     val message = error.localizedMessage ?: getString(R.string.decoder_error)
                     Toast.makeText(
-                        this@OnlyDecoderActivity,
+                        this@GeneratorActivity,
                         getString(R.string.apply_error) +  message,
                         Toast.LENGTH_LONG
                     ).show()

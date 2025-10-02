@@ -12,12 +12,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.example.EncoderApplicator
+import com.example.DiscriminatorApplicator
 import java.io.IOException
 import kotlin.math.min
 
-class OnlyEncoderActivity : AppCompatActivity() {
-    private var encoderApplicator: EncoderApplicator? = null
+class DiscriminatorActivity : AppCompatActivity() {
+    private var encoderApplicator: DiscriminatorApplicator? = null
     private lateinit var imagePreview: ImageView
     private lateinit var selectImageButton: Button
     private lateinit var applyModelButton: Button
@@ -87,7 +87,7 @@ class OnlyEncoderActivity : AppCompatActivity() {
         }
 
         try {
-            val applicator = encoderApplicator ?: EncoderApplicator(this).also { encoderApplicator = it }
+            val applicator = encoderApplicator ?: DiscriminatorApplicator(this).also { encoderApplicator = it }
             val inputShape = applicator.inputShape
             val inputTensor = createModelInputFromBitmap(bitmap, inputShape)
             val output = applicator.apply(inputTensor)
