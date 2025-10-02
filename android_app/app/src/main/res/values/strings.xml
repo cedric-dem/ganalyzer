@@ -52,4 +52,9 @@
     <string name="output_will_appear_here_text">output will appear here</string>
     <string name="status_waiting_for_image_selection">Status : waiting for image selection</string>
     <string name="select_image_button">select image</string>
+    <string name="generator_model_load_error">Unable to load generator model: %1$s</string>
+    <string name="generator_model_not_ready">Generator model is not ready.</string>
+    <string name="generator_generate_first">Generate values before applying the model.</string>
+    <string name="generator_apply_failed">Unable to generate an image: %1$s</string>
+    <string name="generator_output_unexpected">Unable to interpret the generator output as an image.</string>
 </resources>
