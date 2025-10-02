@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_main"
+        android:icon="@drawable/ic_navigation_encoder"
+        android:title="@string/navigation_main" />
+    <item
+        android:id="@+id/navigation_only_decoder"
+        android:icon="@drawable/ic_navigation_decoder"
+        android:title="@string/navigation_only_decoder" />
+    <item
+        android:id="@+id/navigation_encoder_decoder"
+        android:icon="@drawable/ic_navigation_encoder_decoder"
+        android:title="@string/navigation_encoder_decoder" />
+</menu>
