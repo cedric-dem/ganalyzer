@@ -2,10 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/navigation_main"
-        android:icon="@drawable/ic_navigation_encoder"
+        android:icon="@drawable/ic_navigation_discriminator"
         android:title="@string/navigation_generator" />
     <item
         android:id="@+id/navigation_only_decoder"
-        android:icon="@drawable/ic_navigation_decoder"
+        android:icon="@drawable/ic_navigation_generator"
         android:title="@string/navigation_discriminator" />
 </menu>
