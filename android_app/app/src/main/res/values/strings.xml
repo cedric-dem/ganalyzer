@@ -57,4 +57,11 @@
     <string name="generator_generate_first">Generate values before applying the model.</string>
     <string name="generator_apply_failed">Unable to generate an image: %1$s</string>
     <string name="generator_output_unexpected">Unable to interpret the generator output as an image.</string>
+
+
+    <string name="discriminator_prediction_format">Prediction : %1$s</string>
+    <string name="error_loading_model">Unable to load discriminator model</string>
+    <string name="status_loading_discriminator_model">Status : loading discriminator</string>
+    <string name="error_applying_discriminator">Error applying discriminator</string>
+    <string name="status_running_discriminator">status : running disc\n</string>
 </resources>
