@@ -5,6 +5,7 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Log
+import com.example.ganalyzer.ModelConfig
 import org.tensorflow.lite.Interpreter
 import java.io.Closeable
 import java.io.FileNotFoundException
@@ -27,7 +28,7 @@ class GeneratorApplicator(context: Context) : Closeable {
     private val supportsSingleBatchOutput: Boolean
 
     init {
-        val modelBuffer = loadModelFile(context.assets, MODEL_FILE_NAME)
+        val modelBuffer = loadModelFile(context.assets, ModelConfig.GENERATOR_PATH)
 
         if (modelBuffer != null) {
             interpreter = Interpreter(modelBuffer)
@@ -329,7 +330,6 @@ class GeneratorApplicator(context: Context) : Closeable {
 
         companion object {
             private const val TAG = "GeneratorApplicator"
-            private const val MODEL_FILE_NAME = "model_dgenerator.tflite"
             private const val BYTES_PER_FLOAT = 4
             private const val FALLBACK_LATENT_VECTOR_LENGTH = 64
             private const val FALLBACK_IMAGE_WIDTH = 64
