@@ -1,4 +1,4 @@
-package com.example.hallucinator
+package com.example.ganalyzer
 
 import org.junit.Test
 

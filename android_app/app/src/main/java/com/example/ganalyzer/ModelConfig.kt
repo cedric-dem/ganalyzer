@@ -1,4 +1,4 @@
-package com.example.hallucinator
+package com.example.ganalyzer
 
 object ModelConfig {
     const val DECODER_INPUT_SIZE = 6272

@@ -1,4 +1,4 @@
-package com.example.hallucinator
+package com.example.ganalyzer
 
 import android.graphics.Bitmap
 import android.graphics.Color

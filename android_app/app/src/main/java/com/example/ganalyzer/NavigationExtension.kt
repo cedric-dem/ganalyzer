@@ -1,4 +1,4 @@
-package com.example.hallucinator
+package com.example.ganalyzer
 
 import android.content.Intent
 import androidx.annotation.IdRes

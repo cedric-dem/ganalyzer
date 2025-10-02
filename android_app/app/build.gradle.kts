@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.hallucinator"
+    namespace = "com.example.ganalyzer"
     compileSdk = 36
 
     defaultConfig {
