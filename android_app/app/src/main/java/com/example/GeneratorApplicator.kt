@@ -7,15 +7,17 @@ import android.graphics.Color
 import android.util.Log
 import org.tensorflow.lite.Interpreter
 import java.io.Closeable
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 class GeneratorApplicator(context: Context) : Closeable {
 
-    private val interpreter: Interpreter
+    private val interpreter: Interpreter?
     private val latentVectorLength: Int
     private val outputElementCount: Int
     private val outputDimensions: OutputDimensions?
@@ -26,30 +28,53 @@ class GeneratorApplicator(context: Context) : Closeable {
 
     init {
         val modelBuffer = loadModelFile(context.assets, MODEL_FILE_NAME)
-        interpreter = Interpreter(modelBuffer)
 
-        inputShape = interpreter.getInputTensor(0).shape()
-        val inputBatch = if (inputShape.size > 1) inputShape[0] else 1
-        latentVectorLength = if (inputShape.isEmpty()) {
-            0
-        } else if (inputShape.size == 1) {
-            inputShape[0]
-        } else {
-            inputShape.drop(1).fold(1) { acc, dim -> acc * dim }
-        }
-        supportsSingleBatchInput = inputBatch == 1 && latentVectorLength > 0
+        if (modelBuffer != null) {
+            interpreter = Interpreter(modelBuffer)
 
-        outputShape = interpreter.getOutputTensor(0).shape()
-        val outputBatch = if (outputShape.size > 1) outputShape[0] else 1
-        outputElementCount = if (outputShape.isEmpty()) {
-            0
-        } else if (outputShape.size == 1) {
-            outputShape[0]
+            inputShape = interpreter.getInputTensor(0).shape()
+            val inputBatch = if (inputShape.size > 1) inputShape[0] else 1
+            latentVectorLength = if (inputShape.isEmpty()) {
+                0
+            } else if (inputShape.size == 1) {
+                inputShape[0]
+            } else {
+                inputShape.drop(1).fold(1) { acc, dim -> acc * dim }
+            }
+            supportsSingleBatchInput = inputBatch == 1 && latentVectorLength > 0
+
+            outputShape = interpreter.getOutputTensor(0).shape()
+            val outputBatch = if (outputShape.size > 1) outputShape[0] else 1
+            outputElementCount = if (outputShape.isEmpty()) {
+                0
+            } else if (outputShape.size == 1) {
+                outputShape[0]
+            } else {
+                outputShape.drop(1).fold(1) { acc, dim -> acc * dim }
+            }
+            supportsSingleBatchOutput = outputBatch == 1 && outputElementCount > 0
+            outputDimensions = inferOutputDimensions(outputShape)
         } else {
-            outputShape.drop(1).fold(1) { acc, dim -> acc * dim }
+            interpreter = null
+
+            latentVectorLength = FALLBACK_LATENT_VECTOR_LENGTH
+            outputDimensions = OutputDimensions(
+                width = FALLBACK_IMAGE_WIDTH,
+                height = FALLBACK_IMAGE_HEIGHT,
+                channels = FALLBACK_IMAGE_CHANNELS,
+                channelsLast = true,
+            )
+            outputElementCount = outputDimensions.width * outputDimensions.height * outputDimensions.channels
+
+            inputShape = intArrayOf(latentVectorLength)
+            outputShape = intArrayOf(
+                outputDimensions.height,
+                outputDimensions.width,
+                outputDimensions.channels,
+            )
+            supportsSingleBatchInput = true
+            supportsSingleBatchOutput = true
         }
-        supportsSingleBatchOutput = outputBatch == 1 && outputElementCount > 0
-        outputDimensions = inferOutputDimensions(outputShape)
     }
 
     fun expectedInputSize(): Int = latentVectorLength
@@ -65,6 +90,11 @@ class GeneratorApplicator(context: Context) : Closeable {
             return null
         }
 
+        val activeInterpreter = interpreter
+        if (activeInterpreter == null) {
+            return generateFallbackOutput(input)
+        }
+
         val inputBuffer = ByteBuffer.allocateDirect(latentVectorLength * BYTES_PER_FLOAT).order(ByteOrder.nativeOrder())
         input.forEach { value ->
             inputBuffer.putFloat(value)
@@ -74,8 +104,8 @@ class GeneratorApplicator(context: Context) : Closeable {
         val outputBuffer = ByteBuffer.allocateDirect(outputElementCount * BYTES_PER_FLOAT).order(ByteOrder.nativeOrder())
 
         return try {
-            synchronized(interpreter) {
-                interpreter.run(inputBuffer, outputBuffer)
+            synchronized(activeInterpreter) {
+                activeInterpreter.run(inputBuffer, outputBuffer)
             }
             outputBuffer.rewind()
             val floatBuffer: FloatBuffer = outputBuffer.asFloatBuffer()
@@ -114,7 +144,7 @@ class GeneratorApplicator(context: Context) : Closeable {
     }
 
     override fun close() {
-        interpreter.close()
+        interpreter?.close()
     }
 
     private fun fillBitmapChannelsLast(
@@ -206,67 +236,105 @@ class GeneratorApplicator(context: Context) : Closeable {
             shape
         }
 
-        return when (shapeWithoutBatch.size) {
-            2 -> OutputDimensions(
-                width = shapeWithoutBatch[1],
-                height = shapeWithoutBatch[0],
-                channels = 1,
-                channelsLast = true,
-            )
+            return when (shapeWithoutBatch.size) {
+                2 -> OutputDimensions(
+                    width = shapeWithoutBatch[1],
+                    height = shapeWithoutBatch[0],
+                    channels = 1,
+                    channelsLast = true,
+                )
 
-            3 -> {
-                val a = shapeWithoutBatch[0]
-                val b = shapeWithoutBatch[1]
-                val c = shapeWithoutBatch[2]
+                3 -> {
+                    val a = shapeWithoutBatch[0]
+                    val b = shapeWithoutBatch[1]
+                    val c = shapeWithoutBatch[2]
 
-                when {
-                    c in 1..4 -> OutputDimensions(width = b, height = a, channels = c, channelsLast = true)
-                    a in 1..4 -> OutputDimensions(width = c, height = b, channels = a, channelsLast = false)
-                    else -> null
+                    when {
+                        c in 1..4 -> OutputDimensions(width = b, height = a, channels = c, channelsLast = true)
+                        a in 1..4 -> OutputDimensions(width = c, height = b, channels = a, channelsLast = false)
+                        else -> null
+                    }
+                }
+
+                else -> null
+            }
+        }
+
+        private fun loadModelFile(assetManager: AssetManager, filename: String): ByteBuffer? {
+            return try {
+                assetManager.open(filename, AssetManager.ACCESS_BUFFER).use { inputStream ->
+                    val bytes = inputStream.readBytes()
+                    ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).apply {
+                        put(bytes)
+                        rewind()
+                    }
+                }
+            } catch (fileNotFoundException: FileNotFoundException) {
+                Log.w(TAG, "Generator model asset '$filename' not found. Falling back to procedural generator.")
+                null
+            } catch (ioException: IOException) {
+                Log.e(TAG, "Unable to load generator model from assets", ioException)
+                throw ioException
+            }
+        }
+
+        private fun generateFallbackOutput(input: FloatArray): FloatArray {
+            val dimensions = outputDimensions ?: return FloatArray(0)
+            val totalPixels = dimensions.width * dimensions.height
+            val channelCount = dimensions.channels
+            val result = FloatArray(totalPixels * channelCount)
+
+            val seed = input.fold(0L) { acc, value ->
+                val scaled = (value * SEED_SCALING_FACTOR).toLong()
+                acc xor scaled
+            }
+            val random = Random(seed)
+
+            for (index in 0 until totalPixels) {
+                val baseIndex = index * channelCount
+                val brightness = random.nextFloat()
+                val accent = random.nextFloat()
+                result[baseIndex] = brightness
+                if (channelCount > 1) {
+                    result[baseIndex + 1] = (brightness + accent) / 2f
+                }
+                if (channelCount > 2) {
+                    result[baseIndex + 2] = accent
                 }
             }
 
-            else -> null
+            return result
+        }
+
+        fun isUsingFallbackModel(): Boolean = interpreter == null
+
+        private data class OutputDimensions(
+            val width: Int,
+            val height: Int,
+            val channels: Int,
+            val channelsLast: Boolean,
+        )
+
+        private data class NormalizationConfig(
+            val strategy: NormalizationStrategy,
+            val min: Float,
+            val max: Float,
+        )
+
+        private enum class NormalizationStrategy {
+            ZERO_TO_ONE,
+            MINUS_ONE_TO_ONE,
+            MIN_MAX,
+        }
+
+        companion object {
+            private const val TAG = "GeneratorApplicator"
+            private const val MODEL_FILE_NAME = "model_dgenerator.tflite"
+            private const val BYTES_PER_FLOAT = 4
+            private const val FALLBACK_LATENT_VECTOR_LENGTH = 64
+            private const val FALLBACK_IMAGE_WIDTH = 64
+            private const val FALLBACK_IMAGE_HEIGHT = 64
+            private const val FALLBACK_IMAGE_CHANNELS = 3
+            private const val SEED_SCALING_FACTOR = 100_000
         }
     }
-
-    private fun loadModelFile(assetManager: AssetManager, filename: String): ByteBuffer {
-        try {
-            assetManager.open(filename, AssetManager.ACCESS_BUFFER).use { inputStream ->
-                val bytes = inputStream.readBytes()
-                return ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).apply {
-                    put(bytes)
-                    rewind()
-                }
-            }
-        } catch (ioException: IOException) {
-            Log.e(TAG, "Unable to load generator model from assets", ioException)
-            throw ioException
-        }
-    }
-
-    private data class OutputDimensions(
-        val width: Int,
-        val height: Int,
-        val channels: Int,
-        val channelsLast: Boolean,
-    )
-
-    private data class NormalizationConfig(
-        val strategy: NormalizationStrategy,
-        val min: Float,
-        val max: Float,
-    )
-
-    private enum class NormalizationStrategy {
-        ZERO_TO_ONE,
-        MINUS_ONE_TO_ONE,
-        MIN_MAX,
-    }
-
-    companion object {
-        private const val TAG = "GeneratorApplicator"
-        private const val MODEL_FILE_NAME = "model_dgenerator.tflite"
-        private const val BYTES_PER_FLOAT = 4
-    }
-}

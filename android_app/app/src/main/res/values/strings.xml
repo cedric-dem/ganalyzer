@@ -63,5 +63,6 @@
     <string name="error_loading_model">Unable to load discriminator model</string>
     <string name="status_loading_discriminator_model">Status : loading discriminator</string>
     <string name="error_applying_discriminator">Error applying discriminator</string>
+    <string name="generator_model_fallback_notice">Generator model asset is missing. Showing procedurally generated previews instead.</string>
     <string name="status_running_discriminator">status : running disc\n</string>
 </resources>

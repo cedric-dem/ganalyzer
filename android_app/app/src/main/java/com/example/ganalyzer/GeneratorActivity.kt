@@ -129,7 +129,7 @@ class GeneratorActivity : AppCompatActivity() {
             return
         }
 
-        generatorApplicator = try {
+        val applicator = try {
             GeneratorApplicator(this)
         } catch (ioException: IOException) {
             Toast.makeText(
@@ -146,5 +146,11 @@ class GeneratorActivity : AppCompatActivity() {
             ).show()
             null
         }
+
+        if (applicator != null && applicator.isUsingFallbackModel()) {
+            Toast.makeText(this, R.string.generator_model_fallback_notice, Toast.LENGTH_LONG).show()
+        }
+
+        generatorApplicator = applicator
     }
 }
