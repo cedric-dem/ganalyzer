@@ -25,7 +25,7 @@
         android:text="@string/input_text_hint" />
 
     <Button
-        android:id="@+id/button_apply_decoder"
+        android:id="@+id/button_apply_generator"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -39,7 +39,7 @@
         android:layout_height="0dp"
         android:layout_weight="2">
         <ImageView
-            android:id="@+id/image_decoder_output"
+            android:id="@+id/image_generator_output"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:scaleType="centerCrop"
