@@ -13,7 +13,6 @@ import com.example.GeneratorApplicator
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.IOException
 import java.util.Locale
-import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,7 +46,9 @@ class GeneratorActivity : AppCompatActivity() {
 
         generateButton.setOnClickListener {
             val expectedSize = generatorApplicator?.expectedInputSize()?: ModelConfig.LATENT_SPACE_SIZE
-            val values = FloatArray(expectedSize) { Random.nextFloat() }
+
+            val random = java.util.Random()
+            val values = FloatArray(expectedSize) { random.nextGaussian().toFloat()  }
 
             Log.d(TAG, "Generated new values: ${values.joinToString(limit = 5, truncated = "...")}")
 
