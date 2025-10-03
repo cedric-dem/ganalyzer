@@ -1,11 +1,12 @@
 import os
 
+from ganalyzer.model_config import *
+
 #common
-dataset_name = "flicker_images" #"cars_2"
-dataset_dimension="128"
+dataset_name = "humans_fifa" #"cars_2"
+dataset_dimension=str(model_output_size)
 dataset_path = "datasets/"+dataset_name+"/"+dataset_dimension
 
-model_name = ["model_0_small","model_1_medium","model_2_large","model_3_extra_large"][1]
 global_path = "models/" + dataset_name+"/"+dataset_dimension + "/"
 model_path = global_path + model_name + "/"
 
@@ -17,7 +18,7 @@ latent_dimension_generator = 121
 statistics_file_path = model_path + "statistics.csv"
 
 #train
-batch_size = 16
+batch_size = 32
 save_train_epoch_every = 10
 
 #GUI

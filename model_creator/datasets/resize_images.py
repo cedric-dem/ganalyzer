@@ -3,10 +3,10 @@ from PIL import Image
 
 # Hardcoded path to the folder containing images
 INPUT_FOLDER = "humans_fifa/240"
-OUTPUT_FOLDER = "humans_fifa/128"
+OUTPUT_FOLDER = "humans_fifa/120"
 
 # Hardcoded new size (square)
-NEW_SIZE = 128
+NEW_SIZE = 120
 
 def resize_images(input_folder, output_folder, size):
     # Create output folder if it does not exist
