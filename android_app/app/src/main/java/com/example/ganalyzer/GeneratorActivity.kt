@@ -46,7 +46,8 @@ class GeneratorActivity : AppCompatActivity() {
         val imagePreview = findViewById<ImageView>(R.id.image_generator_output)
 
         generateButton.setOnClickListener {
-            val values = FloatArray(DEFAULT_GENERATED_VALUES) { Random.nextFloat() }
+            val expectedSize = generatorApplicator?.expectedInputSize()?: ModelConfig.LATENT_SPACE_SIZE
+            val values = FloatArray(expectedSize) { Random.nextFloat() }
 
             Log.d(TAG, "Generated new values: ${values.joinToString(limit = 5, truncated = "...")}")
 
@@ -96,7 +97,7 @@ class GeneratorActivity : AppCompatActivity() {
                         Log.d("dE","ERROR 13 2")
                         imagePreview.setImageBitmap(bitmap)
                     } else {
-                        Log.d("de","ERROR 13 1")
+                        Log.d("de","ERROR 13 1") // unable to interpret the generator output as an image
                         Toast.makeText(this@GeneratorActivity, R.string.generator_output_unexpected, Toast.LENGTH_SHORT).show()
                     }
                 }.onFailure { throwable ->
