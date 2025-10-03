@@ -343,3 +343,5 @@ app/release/output.json
 ### Models keras
 *.keras
 *.tflite
+
+*.csv
