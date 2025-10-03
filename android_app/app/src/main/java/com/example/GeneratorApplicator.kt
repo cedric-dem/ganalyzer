@@ -19,7 +19,7 @@ import kotlin.random.Random
 class GeneratorApplicator(context: Context) : Closeable {
 
     private val interpreter: Interpreter?
-    private val latentVectorLength: Int
+    private var latentVectorLength: Int = ModelConfig.LATENT_SPACE_SIZE
     private val outputElementCount: Int
     private val outputDimensions: OutputDimensions?
     private val inputShape: IntArray
@@ -69,11 +69,10 @@ class GeneratorApplicator(context: Context) : Closeable {
         } else {
             interpreter = null
 
-            latentVectorLength = FALLBACK_LATENT_VECTOR_LENGTH
             outputDimensions = OutputDimensions(
-                width = FALLBACK_IMAGE_WIDTH,
-                height = FALLBACK_IMAGE_HEIGHT,
-                channels = FALLBACK_IMAGE_CHANNELS,
+                width = ModelConfig.IMAGES_SIZE,
+                height = ModelConfig.IMAGES_SIZE,
+                channels = ModelConfig.DECODER_IMAGE_CHANNELS,
                 channelsLast = true,
             )
             outputElementCount = outputDimensions.width * outputDimensions.height * outputDimensions.channels
@@ -342,9 +341,6 @@ class GeneratorApplicator(context: Context) : Closeable {
         companion object {
             private const val TAG = "GeneratorApplicator"
             private const val BYTES_PER_FLOAT = 4
-            private const val FALLBACK_LATENT_VECTOR_LENGTH = 64
-            private const val FALLBACK_IMAGE_WIDTH = 64
-            private const val FALLBACK_IMAGE_HEIGHT = 64
             private const val FALLBACK_IMAGE_CHANNELS = 3
             private const val SEED_SCALING_FACTOR = 100_000
         }

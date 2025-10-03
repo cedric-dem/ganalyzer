@@ -93,8 +93,10 @@ class GeneratorActivity : AppCompatActivity() {
                 bitmapResult.onSuccess { bitmap ->
                     Log.d(TAG, "Generator application succeeded: bitmap null? ${'$'}{bitmap == null}")
                     if (bitmap != null) {
+                        Log.d("dE","ERROR 13 2")
                         imagePreview.setImageBitmap(bitmap)
                     } else {
+                        Log.d("de","ERROR 13 1")
                         Toast.makeText(this@GeneratorActivity, R.string.generator_output_unexpected, Toast.LENGTH_SHORT).show()
                     }
                 }.onFailure { throwable ->
