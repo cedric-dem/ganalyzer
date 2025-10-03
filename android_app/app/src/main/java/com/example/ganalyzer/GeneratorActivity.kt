@@ -2,6 +2,7 @@ package com.example.ganalyzer
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -26,6 +27,7 @@ class GeneratorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_generator)
 
+        Log.d(TAG, "onCreate: initializing GeneratorActivity")
         initializeGeneratorApplicator()
         setupBottomNavigation()
         setupButtons()
@@ -46,6 +48,8 @@ class GeneratorActivity : AppCompatActivity() {
         generateButton.setOnClickListener {
             val values = FloatArray(DEFAULT_GENERATED_VALUES) { Random.nextFloat() }
 
+            Log.d(TAG, "Generated new values: ${values.joinToString(limit = 5, truncated = "...")}")
+
             val builder = StringBuilder()
             builder.append('[')
             values.forEachIndexed { index, value ->
@@ -64,12 +68,14 @@ class GeneratorActivity : AppCompatActivity() {
         applyButton.setOnClickListener {
             val values = generatedValues
             if (values == null) {
+                Log.w(TAG, "Apply button clicked before values were generated")
                 Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val applicator = generatorApplicator
             if (applicator == null) {
+                Log.w(TAG, "GeneratorApplicator not ready when apply was requested")
                 Toast.makeText(this, R.string.generator_model_not_ready, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -77,6 +83,7 @@ class GeneratorActivity : AppCompatActivity() {
             applyButton.isEnabled = false
 
             lifecycleScope.launch {
+                Log.d(TAG, "Applying generator with ${'$'}{values.size} values")
                 val bitmapResult = withContext(Dispatchers.Default) {
                     runCatching { applicator.applyToBitmap(values) }
                 }
@@ -84,6 +91,7 @@ class GeneratorActivity : AppCompatActivity() {
                 applyButton.isEnabled = true
 
                 bitmapResult.onSuccess { bitmap ->
+                    Log.d(TAG, "Generator application succeeded: bitmap null? ${'$'}{bitmap == null}")
                     if (bitmap != null) {
                         imagePreview.setImageBitmap(bitmap)
                     } else {
@@ -122,16 +130,20 @@ class GeneratorActivity : AppCompatActivity() {
 
     companion object {
         private const val DEFAULT_GENERATED_VALUES = 64
+        private const val TAG = "GeneratorActivity"
     }
 
     private fun initializeGeneratorApplicator() {
         if (generatorApplicator != null) {
+            Log.d(TAG, "initializeGeneratorApplicator: already initialized")
             return
         }
 
+        Log.d(TAG, "initializeGeneratorApplicator: creating GeneratorApplicator")
         val applicator = try {
             GeneratorApplicator(this)
         } catch (ioException: IOException) {
+            Log.e(TAG, "Failed to load generator model", ioException)
             Toast.makeText(
                 this,
                 getString(R.string.generator_model_load_error, ioException.localizedMessage ?: ioException.toString()),
@@ -139,6 +151,7 @@ class GeneratorActivity : AppCompatActivity() {
             ).show()
             null
         } catch (throwable: Throwable) {
+            Log.e(TAG, "Unexpected error while loading generator model", throwable)
             Toast.makeText(
                 this,
                 getString(R.string.generator_model_load_error, throwable.localizedMessage ?: throwable.toString()),
@@ -148,8 +161,11 @@ class GeneratorActivity : AppCompatActivity() {
         }
 
         if (applicator != null && applicator.isUsingFallbackModel()) {
+            Log.w(TAG, "GeneratorApplicator is using fallback model")
             Toast.makeText(this, R.string.generator_model_fallback_notice, Toast.LENGTH_LONG).show()
         }
+
+        Log.d(TAG, "initializeGeneratorApplicator: applicator ${if (applicator == null) "not created" else "ready"}")
 
         generatorApplicator = applicator
     }
