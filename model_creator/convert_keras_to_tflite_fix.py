@@ -63,8 +63,8 @@ def export_tflite(model_path_keras: pathlib.Path, model_path_tflite: pathlib.Pat
 def _default_models() -> Iterable[tuple[pathlib.Path, pathlib.Path]]:
     root = pathlib.Path(__file__).resolve().parent
     return (
-        (root / "model_generator.keras", root / "model_generator_legacy.tflite"),
-        (root / "model_discriminator.keras", root / "model_discriminator_legacy.tflite"),
+        (root / "model_generator.keras", root / "model_generator.tflite"),
+        (root / "model_discriminator.keras", root / "model_discriminator.tflite"),
     )
 
 
