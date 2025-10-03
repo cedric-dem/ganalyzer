@@ -4,7 +4,8 @@ from keras import layers
 import tensorflow as tf
 import math
 
-MODEL_CONFIGS = {
+
+MODEL_CONFIGS_64 = {
     "model_0_small": {
         "gen_base": [256, 128, 64, 32, 16, 8],
         "gen_min": 8,
@@ -43,8 +44,51 @@ MODEL_CONFIGS = {
     },
 }
 
-if model_name not in MODEL_CONFIGS:
-    raise Exception("model not found")
+MODEL_CONFIGS_128 = {
+    "model_0_small": {
+        "gen_base": [512, 256, 128, 64, 32, 16, 8],
+        "gen_min": 8,
+        "disc_seq": [64, 128, 256, 512, 512, 512, 512],
+        "disc_fc": lambda image_size: [],
+        "gen_ch0": 512,
+        "gen_pre_dense": [],
+        "extra_conv": False,
+    },
+    "model_1_medium": {
+        "gen_base": [1024, 512, 256, 128, 64, 32, 16],
+        "gen_min": 16,
+        "disc_seq": [128, 256, 512, 1024, 1024, 1024, 1024],
+        "disc_fc": lambda image_size: [256],
+        "gen_ch0": 1024,
+        "gen_pre_dense": [],
+        "extra_conv": True,
+    },
+    "model_2_large": {
+        "gen_base": [1024, 512, 256, 128, 64, 32, 16],
+        "gen_min": 16,
+        "disc_seq": [128, 256, 512, 1024, 1024, 1024, 1024],
+        "disc_fc": lambda image_size: [image_size * 4, image_size * 2],
+        "gen_ch0": 1024,
+        "gen_pre_dense": [2048],
+        "extra_conv": True,
+    },
+    "model_3_extra_large": {
+        "gen_base": [2048, 1024, 512, 256, 128, 64, 32],
+        "gen_min": 32,
+        "disc_seq": [256, 512, 1024, 2048, 2048, 2048, 2048],
+        "disc_fc": lambda image_size: [image_size * 8, image_size * 4, image_size * 2],
+        "gen_ch0": 2048,
+        "gen_pre_dense": [4096, 2048],
+        "extra_conv": True,
+    },
+}
+
+dataset_dimension = 128
+
+if (dataset_dimension == 64):
+    MODEL_CONFIGS = MODEL_CONFIGS_64
+elif (dataset_dimension == 128):
+    MODEL_CONFIGS = MODEL_CONFIGS_128
 
 
 def _num_upsamples_to_reach(img_size, base=4):

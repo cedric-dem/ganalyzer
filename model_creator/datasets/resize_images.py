@@ -2,11 +2,11 @@ import os
 from PIL import Image
 
 # Hardcoded path to the folder containing images
-INPUT_FOLDER = "flicker_images/224"
-OUTPUT_FOLDER = "flicker_images/64"
+INPUT_FOLDER = "humans_fifa/240"
+OUTPUT_FOLDER = "humans_fifa/128"
 
 # Hardcoded new size (square)
-NEW_SIZE = 64
+NEW_SIZE = 128
 
 def resize_images(input_folder, output_folder, size):
     # Create output folder if it does not exist
