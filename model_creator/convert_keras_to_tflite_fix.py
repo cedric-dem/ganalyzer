@@ -1,24 +1,3 @@
-
-"""TensorFlow Lite conversion utilities for mobile deployment.
-
-This script converts the trained Keras generator and discriminator models
-into TensorFlow Lite (TFLite) models that are compatible with older TFLite
-runtime binaries (such as those bundled with many Android releases).
-
-The generated models avoid newer builtin operation versions (e.g.
-`FULLY_CONNECTED` v12) that can trigger runtime errors like::
-
-    java.lang.IllegalArgumentException: Internal error: Cannot create
-    interpreter: Didn't find op for builtin opcode 'FULLY_CONNECTED'
-    version '12'.
-
-Usage:
-    python convert_to_tflite.py
-
-The resulting `.tflite` files are written next to the source `.keras`
-models.
-"""
-
 from __future__ import annotations
 
 import pathlib
@@ -33,10 +12,29 @@ def _load_model(model_path: pathlib.Path) -> tf.keras.Model:
     return tf.keras.models.load_model(str(model_path), compile=False)
 
 
-def _configure_converter(model: tf.keras.Model) -> tf.lite.TFLiteConverter:
+def _build_concrete_function(model: tf.keras.Model) -> tf.types.experimental.ConcreteFunction:
+    """Create a concrete function compatible with TFLite conversion."""
+
+    input_specs: list[tf.TensorSpec] = []
+    for tensor in model.inputs:
+        # Replace unknown batch dimensions with a concrete value so the
+        # converter can materialize a ConcreteFunction.
+        shape = [dim if dim is not None else 1 for dim in tensor.shape]
+        input_specs.append(tf.TensorSpec(shape=shape, dtype=tensor.dtype))
+
+    @tf.function
+    def model_fn(*args):
+        return model(*args)
+
+    return model_fn.get_concrete_function(*input_specs)
+
+
+def _configure_converter(
+    concrete_fn: tf.types.experimental.ConcreteFunction, model: tf.keras.Model
+) -> tf.lite.TFLiteConverter:
     """Create a converter tuned for legacy-mobile compatibility."""
 
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    converter = tf.lite.TFLiteConverter.from_concrete_functions([concrete_fn], model)
 
     # Disable aggressive optimizations that introduce newer operator
     # versions. This keeps the generated model compatible with older
@@ -56,7 +54,8 @@ def export_tflite(model_path_keras: pathlib.Path, model_path_tflite: pathlib.Pat
     """Convert a Keras model to the TensorFlow Lite format."""
 
     model = _load_model(model_path_keras)
-    converter = _configure_converter(model)
+    concrete_function = _build_concrete_function(model)
+    converter = _configure_converter(concrete_function, model)
     tflite_model = converter.convert()
     model_path_tflite.write_bytes(tflite_model)
 

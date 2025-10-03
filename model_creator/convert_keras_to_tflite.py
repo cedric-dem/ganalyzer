@@ -1,4 +1,5 @@
 import tensorflow as tf
+print("t:", tf.__version__)
 
 def _build_concrete_function(model: tf.keras.Model) -> tf.types.experimental.ConcreteFunction:
     input_specs = []
