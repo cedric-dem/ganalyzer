@@ -60,7 +60,29 @@ class GeneratorActivity : AppCompatActivity() {
         }
 
         change1ValueButton.setOnClickListener {
-            //TODO
+            val values = generatedValues
+            if (values == null) {
+                Log.w(TAG, "change1Value clicked before values were generated")
+                Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (values.isEmpty()) {
+                Log.w(TAG, "change1Value clicked but values array is empty")
+                Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val random = java.util.Random()
+            val indexToChange = random.nextInt(values.size)
+            val newValue = random.nextGaussian().toFloat()
+
+            values[indexToChange] = newValue
+
+
+            renderGeneratedPreview(generatedPreview, values)
+            generatedValues = values
+            applyButton.isEnabled = generatorApplicator != null
         }
 
         applyButton.setOnClickListener {
