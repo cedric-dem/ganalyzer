@@ -177,7 +177,15 @@ class GeneratorActivity : AppCompatActivity() {
             val pixels = IntArray(pixelCount) { Color.BLACK }
             val limit = min(pixelCount, values.size)
             for (index in 0 until limit) {
-                pixels[index] = if (values[index] < 0f) Color.BLACK else Color.WHITE
+                if (values[index] > 0.68f) {
+                    pixels[index] = Color.WHITE
+                } else if (values[index] > 0.0f) {
+                    pixels[index] = Color.GRAY
+                } else if (values[index] > -0.68f) {
+                    pixels[index] = Color.DKGRAY
+                } else {
+                    pixels[index] =  Color.BLACK
+                }
             }
             bitmap.setPixels(pixels, 0, PREVIEW_GRID_SIZE, 0, 0, PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE)
             previewView.setImageBitmap(bitmap)
