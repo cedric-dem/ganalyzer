@@ -46,42 +46,43 @@ MODEL_CONFIGS_64 = {
 
 MODEL_CONFIGS_128 = {
     "model_0_small": {
-        "gen_base": [512, 256, 128, 64, 32, 16, 8],
+        "gen_base": [256, 128, 64, 32, 16, 8, 8],
         "gen_min": 8,
-        "disc_seq": [64, 128, 256, 512, 512, 512, 512],
+        "disc_seq": [32, 64, 128, 256, 256, 256, 256],
         "disc_fc": lambda image_size: [],
-        "gen_ch0": 512,
+        "gen_ch0": 256,
         "gen_pre_dense": [],
         "extra_conv": False,
     },
     "model_1_medium": {
-        "gen_base": [1024, 512, 256, 128, 64, 32, 16],
-        "gen_min": 16,
-        "disc_seq": [128, 256, 512, 1024, 1024, 1024, 1024],
-        "disc_fc": lambda image_size: [256],
-        "gen_ch0": 1024,
+        "gen_base": [512, 256, 128, 64, 32, 16, 8],
+        "gen_min": 8,
+        "disc_seq": [64, 128, 256, 512, 512, 512, 512],
+        "disc_fc": lambda image_size: [128],
+        "gen_ch0": 512,
         "gen_pre_dense": [],
         "extra_conv": True,
     },
     "model_2_large": {
+        "gen_base": [768, 384, 192, 96, 48, 24, 12],
+        "gen_min": 12,
+        "disc_seq": [96, 192, 384, 768, 768, 768, 768],
+        "disc_fc": lambda image_size: [image_size * 2, image_size],
+        "gen_ch0": 768,
+        "gen_pre_dense": [1024],
+        "extra_conv": True,
+    },
+    "model_3_extra_large": {
         "gen_base": [1024, 512, 256, 128, 64, 32, 16],
         "gen_min": 16,
         "disc_seq": [128, 256, 512, 1024, 1024, 1024, 1024],
         "disc_fc": lambda image_size: [image_size * 4, image_size * 2],
         "gen_ch0": 1024,
-        "gen_pre_dense": [2048],
-        "extra_conv": True,
-    },
-    "model_3_extra_large": {
-        "gen_base": [2048, 1024, 512, 256, 128, 64, 32],
-        "gen_min": 32,
-        "disc_seq": [256, 512, 1024, 2048, 2048, 2048, 2048],
-        "disc_fc": lambda image_size: [image_size * 8, image_size * 4, image_size * 2],
-        "gen_ch0": 2048,
-        "gen_pre_dense": [4096, 2048],
+        "gen_pre_dense": [2048, 1024],
         "extra_conv": True,
     },
 }
+
 
 dataset_dimension = 128
 
