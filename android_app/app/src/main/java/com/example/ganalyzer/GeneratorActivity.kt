@@ -43,81 +43,34 @@ class GeneratorActivity : AppCompatActivity() {
         val generateButton = findViewById<Button>(R.id.button_generate_array)
         val change1ValueButton = findViewById<Button>(R.id.change_1_value)
         val change10ValueButton = findViewById<Button>(R.id.change_10_value)
-        val applyButton = findViewById<Button>(R.id.button_apply_generator)
         val generatedPreview = findViewById<ImageView>(R.id.image_generated_preview)
         val imagePreview = findViewById<ImageView>(R.id.image_generator_output)
 
         generateButton.setOnClickListener {
-            val expectedSize = generatorApplicator?.expectedInputSize()?: ModelConfig.LATENT_SPACE_SIZE
+            val expectedSize = generatorApplicator?.expectedInputSize() ?: ModelConfig.LATENT_SPACE_SIZE
 
             val random = java.util.Random()
-            val values = FloatArray(expectedSize) { random.nextGaussian().toFloat()  }
+            val values = FloatArray(expectedSize) { random.nextGaussian().toFloat() }
 
             Log.d(TAG, "Generated new values: ${values.joinToString(limit = 5, truncated = "...")}")
 
             generatedValues = values
             renderGeneratedPreview(generatedPreview, values)
-            applyButton.isEnabled = generatorApplicator != null
+            applyGeneratedValues(imagePreview)
         }
 
-
         change1ValueButton.setOnClickListener {
-            changeGeneratedValues(generatedPreview, applyButton, 1)
+            changeGeneratedValues(generatedPreview, imagePreview, 1)
         }
 
         change10ValueButton.setOnClickListener {
-            changeGeneratedValues(generatedPreview, applyButton, 10)
+            changeGeneratedValues(generatedPreview, imagePreview, 10)
         }
+    }
 
-        applyButton.setOnClickListener {
-            val values = generatedValues
-            if (values == null) {
-                Log.w(TAG, "Apply button clicked before values were generated")
-                Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val applicator = generatorApplicator
-            if (applicator == null) {
-                Log.w(TAG, "GeneratorApplicator not ready when apply was requested")
-                Toast.makeText(this, R.string.generator_model_not_ready, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            applyButton.isEnabled = false
-
-            lifecycleScope.launch {
-                Log.d(TAG, "Applying generator with ${'$'}{values.size} values")
-                val bitmapResult = withContext(Dispatchers.Default) {
-                    runCatching { applicator.applyToBitmap(values) }
-                }
-
-                applyButton.isEnabled = true
-
-                bitmapResult.onSuccess { bitmap ->
-                    Log.d(TAG, "Generator application succeeded: bitmap null? ${'$'}{bitmap == null}")
-                    if (bitmap != null) {
-                        Log.d("dE","ERROR 13 2")
-                        imagePreview.setImageBitmap(bitmap)
-                    } else {
-                        Log.d("de","ERROR 13 1") // unable to interpret the generator output as an image
-                        Toast.makeText(this@GeneratorActivity, R.string.generator_output_unexpected, Toast.LENGTH_SHORT).show()
-                    }
-                }.onFailure { throwable ->
-                    Toast.makeText(
-                        this@GeneratorActivity,
-                        getString(R.string.generator_apply_failed, throwable.localizedMessage ?: throwable.toString()),
-                        Toast.LENGTH_LONG,
-                    ).show()
-                }
-            }
-            }
-
-            applyButton.isEnabled = false
-        }
     private fun changeGeneratedValues(
         previewView: ImageView,
-        applyButton: Button,
+        imagePreview: ImageView,
         requestedChanges: Int,
     ) {
         val values = generatedValues
@@ -142,54 +95,93 @@ class GeneratorActivity : AppCompatActivity() {
         }
 
         Log.d(TAG, "Updated ${changesToApply} value(s) in the generated array")
-
         renderGeneratedPreview(previewView, values)
         generatedValues = values
-        applyButton.isEnabled = generatorApplicator != null
+        applyGeneratedValues(imagePreview)
     }
 
-        private fun setupBottomNavigation() {
-            val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-            bottomNavigation.selectedItemId = R.id.navigation_main
-            bottomNavigation.setOnItemSelectedListener { item ->
-                when (item.itemId) {
-                    R.id.navigation_only_decoder -> {
-                        startActivity(Intent(this, DiscriminatorActivity::class.java))
-                        overridePendingTransition(0, 0)
-                        finish()
-                        true
-                    }
+    private fun applyGeneratedValues(imagePreview: ImageView) {
+        val values = generatedValues
+        if (values == null) {
+            Log.w(TAG, "applyGeneratedValues called before values were generated")
+            Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
+            return
+        }
 
-                    R.id.navigation_main -> true
-                    else -> false
-                }
+        val applicator = generatorApplicator
+        if (applicator == null) {
+            Log.w(TAG, "GeneratorApplicator not ready when apply was requested")
+            Toast.makeText(this, R.string.generator_model_not_ready, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            Log.d(TAG, "Applying generator with ${'$'}{values.size} values")
+            val bitmapResult = withContext(Dispatchers.Default) {
+                runCatching { applicator.applyToBitmap(values) }
             }
-        }
 
-        companion object {
-            private const val TAG = "GeneratorActivity"
-            private const val PREVIEW_GRID_SIZE = 11
-        }
-
-        private fun renderGeneratedPreview(previewView: ImageView, values: FloatArray) {
-            val pixelCount = PREVIEW_GRID_SIZE * PREVIEW_GRID_SIZE
-            val bitmap = Bitmap.createBitmap(PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE, Bitmap.Config.ARGB_8888)
-            val pixels = IntArray(pixelCount) { Color.BLACK }
-            val limit = min(pixelCount, values.size)
-            for (index in 0 until limit) {
-                if (values[index] > 0.68f) {
-                    pixels[index] = Color.WHITE
-                } else if (values[index] > 0.0f) {
-                    pixels[index] = Color.GRAY
-                } else if (values[index] > -0.68f) {
-                    pixels[index] = Color.DKGRAY
+            bitmapResult.onSuccess { bitmap ->
+                Log.d(TAG, "Generator application succeeded: bitmap null? ${'$'}{bitmap == null}")
+                if (bitmap != null) {
+                    Log.d("dE", "ERROR 13 2")
+                    imagePreview.setImageBitmap(bitmap)
                 } else {
-                    pixels[index] =  Color.BLACK
+                    Log.d("de", "ERROR 13 1") // unable to interpret the generator output as an image
+                    Toast.makeText(this@GeneratorActivity, R.string.generator_output_unexpected, Toast.LENGTH_SHORT).show()
                 }
+            }.onFailure { throwable ->
+                Toast.makeText(
+                    this@GeneratorActivity,
+                    getString(R.string.generator_apply_failed, throwable.localizedMessage ?: throwable.toString()),
+                    Toast.LENGTH_LONG,
+                ).show()
             }
-            bitmap.setPixels(pixels, 0, PREVIEW_GRID_SIZE, 0, 0, PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE)
-            previewView.setImageBitmap(bitmap)
         }
+    }
+
+    private fun setupBottomNavigation() {
+        val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigation.selectedItemId = R.id.navigation_main
+        bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_only_decoder -> {
+                    startActivity(Intent(this, DiscriminatorActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+
+                R.id.navigation_main -> true
+                else -> false
+            }
+        }
+    }
+
+    companion object {
+        private const val TAG = "GeneratorActivity"
+        private const val PREVIEW_GRID_SIZE = 11
+    }
+
+    private fun renderGeneratedPreview(previewView: ImageView, values: FloatArray) {
+        val pixelCount = PREVIEW_GRID_SIZE * PREVIEW_GRID_SIZE
+        val bitmap = Bitmap.createBitmap(PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE, Bitmap.Config.ARGB_8888)
+        val pixels = IntArray(pixelCount) { Color.BLACK }
+        val limit = min(pixelCount, values.size)
+        for (index in 0 until limit) {
+            if (values[index] > 0.68f) {
+                pixels[index] = Color.WHITE
+            } else if (values[index] > 0.0f) {
+                pixels[index] = Color.GRAY
+            } else if (values[index] > -0.68f) {
+                pixels[index] = Color.DKGRAY
+            } else {
+                pixels[index] =  Color.BLACK
+            }
+        }
+        bitmap.setPixels(pixels, 0, PREVIEW_GRID_SIZE, 0, 0, PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE)
+        previewView.setImageBitmap(bitmap)
+    }
 
     private fun initializeGeneratorApplicator() {
         if (generatorApplicator != null) {

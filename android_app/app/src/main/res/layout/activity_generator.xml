@@ -62,14 +62,11 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <Button
-        android:id="@+id/button_apply_generator"
+    <Space
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:backgroundTint="@color/surface_dark"
-        android:textColor="@color/white"
-        android:text="@string/apply_button" />
+        android:layout_height="10dp">
+
+    </Space>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:background="@color/darker_darker_gray"
