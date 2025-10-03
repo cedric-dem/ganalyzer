@@ -60,34 +60,13 @@ class GeneratorActivity : AppCompatActivity() {
             applyButton.isEnabled = generatorApplicator != null
         }
 
+
         change1ValueButton.setOnClickListener {
-            val values = generatedValues
-            if (values == null) {
-                Log.w(TAG, "change1Value clicked before values were generated")
-                Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (values.isEmpty()) {
-                Log.w(TAG, "change1Value clicked but values array is empty")
-                Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val random = java.util.Random()
-            val indexToChange = random.nextInt(values.size)
-            val newValue = random.nextGaussian().toFloat()
-
-            values[indexToChange] = newValue
-
-
-            renderGeneratedPreview(generatedPreview, values)
-            generatedValues = values
-            applyButton.isEnabled = generatorApplicator != null
+            changeGeneratedValues(generatedPreview, applyButton, 1)
         }
 
         change10ValueButton.setOnClickListener {
-            //TODO
+            changeGeneratedValues(generatedPreview, applyButton, 10)
         }
 
         applyButton.setOnClickListener {
@@ -136,6 +115,38 @@ class GeneratorActivity : AppCompatActivity() {
 
             applyButton.isEnabled = false
         }
+    private fun changeGeneratedValues(
+        previewView: ImageView,
+        applyButton: Button,
+        requestedChanges: Int,
+    ) {
+        val values = generatedValues
+        if (values == null) {
+            Log.w(TAG, "changeGeneratedValues called before values were generated")
+            Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (values.isEmpty()) {
+            Log.w(TAG, "changeGeneratedValues called but values array is empty")
+            Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val random = java.util.Random()
+        val changesToApply = min(requestedChanges, values.size)
+        repeat(changesToApply) {
+            val indexToChange = random.nextInt(values.size)
+            val newValue = random.nextGaussian().toFloat()
+            values[indexToChange] = newValue
+        }
+
+        Log.d(TAG, "Updated ${changesToApply} value(s) in the generated array")
+
+        renderGeneratedPreview(previewView, values)
+        generatedValues = values
+        applyButton.isEnabled = generatorApplicator != null
+    }
 
         private fun setupBottomNavigation() {
             val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
