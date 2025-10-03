@@ -31,6 +31,15 @@
             android:text="@string/change_1_value_button" />
 
 
+        <Button
+            android:id="@+id/change_10_value"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:backgroundTint="@color/surface_dark"
+            android:textColor="@color/white"
+            android:text="@string/change_10_value_button" />
+
     </LinearLayout>
 
 

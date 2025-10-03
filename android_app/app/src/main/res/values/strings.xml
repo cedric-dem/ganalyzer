@@ -47,6 +47,7 @@
     <string name="input_text_hint">Input will appear here</string>
     <string name="generate_button">Generate</string>
     <string name="change_1_value_button">Change 1 Value</string>
+    <string name="change_10_value_button">Change 10 Value</string>
     <string name="apply_button">apply</string>
     <string name="generator_preview_content_description">Preview of generated latent vector values</string>
     <string name="select_photo_from_gallery">Select Photo From Gallery</string>

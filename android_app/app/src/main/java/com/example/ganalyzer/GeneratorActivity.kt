@@ -42,6 +42,7 @@ class GeneratorActivity : AppCompatActivity() {
     private fun setupButtons() {
         val generateButton = findViewById<Button>(R.id.button_generate_array)
         val change1ValueButton = findViewById<Button>(R.id.change_1_value)
+        val change10ValueButton = findViewById<Button>(R.id.change_10_value)
         val applyButton = findViewById<Button>(R.id.button_apply_generator)
         val generatedPreview = findViewById<ImageView>(R.id.image_generated_preview)
         val imagePreview = findViewById<ImageView>(R.id.image_generator_output)
@@ -83,6 +84,10 @@ class GeneratorActivity : AppCompatActivity() {
             renderGeneratedPreview(generatedPreview, values)
             generatedValues = values
             applyButton.isEnabled = generatorApplicator != null
+        }
+
+        change10ValueButton.setOnClickListener {
+            //TODO
         }
 
         applyButton.setOnClickListener {
