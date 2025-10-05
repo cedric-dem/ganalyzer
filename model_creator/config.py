@@ -2,20 +2,21 @@ import os
 
 from ganalyzer.model_config import *
 
-#common
-dataset_name = "humans_fifa" #"cars_2"
-dataset_dimension=str(model_output_size)
-dataset_path = "datasets/"+dataset_name+"/"+dataset_dimension
+# common
+dataset_name = "humans_fifa"  # "cars_2"
+dataset_dimension = str(model_output_size)
+dataset_path = os.path.join("datasets", dataset_name, dataset_dimension)
 
-global_path = "models/" + dataset_name+"/"+dataset_dimension + "/"
-model_path = global_path + model_name + "/"
+results_root_path = os.path.join("results", dataset_name, dataset_dimension)
+model_path = os.path.join(results_root_path, model_name)
+models_directory = os.path.join(model_path, "models")
 
-os.makedirs(model_path, exist_ok=True)
+os.makedirs(models_directory, exist_ok=True)
 
 rgb_images = True
 latent_dimension_generator = 121
 
-statistics_file_path = model_path + "statistics.csv"
+statistics_file_path = os.path.join(model_path, "statistics.csv")
 
 #train
 batch_size = 32
@@ -26,6 +27,9 @@ load_quantity_gui = 9
 
 #statistics
 show_every_models_statistic = True
-all_models = os.listdir(global_path)
-all_models.sort()
-every_models_statistics_path = [global_path + i for i in all_models]
+all_models = [
+    entry
+    for entry in sorted(os.listdir(results_root_path))
+    if os.path.isdir(os.path.join(results_root_path, entry))
+]
+every_models_statistics_path = [os.path.join(results_root_path, entry) for entry in all_models]

@@ -14,7 +14,9 @@ def get_discriminator_model_path_at_given_epoch(i):
 
 
 def get_model_path_at_given_epoch(model_type, i):
-    return model_path + model_type + "_epoch_" + "0" * (6 - len(str(i))) + str(i) + ".keras"
+    filename = f"{model_type}_epoch_{i:06d}.keras"
+    return os.path.join(models_directory, filename)
+
 
 
 def get_model_path_at_given_epoch_closest_possible(model_type, i, available_epochs):
@@ -78,7 +80,10 @@ def project_array(arr, to, project_from, project_to):
 
 
 def get_list_of_keras_models():
-    complete_list = os.listdir(model_path)
+    if not os.path.isdir(models_directory):
+        return []
+
+    complete_list = os.listdir(models_directory)
 
     complete_list.sort()
 
