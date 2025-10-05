@@ -1,10 +1,3 @@
-"""Generate training statistics plots and save them as JPEG images.
-
-This script reads the statistics.csv file produced during training and
-creates line plots for each numeric column. The resulting images are
-saved in a sibling ``plot`` directory so that they can be reviewed later
-without requiring an interactive display environment.
-"""
 
 from __future__ import annotations
 
@@ -18,31 +11,6 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
-
-def _parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Create plots from a training statistics CSV file and save them as JPEG images."
-        )
-    )
-    parser.add_argument(
-        "--stats",
-        type=Path,
-        default=Path("statistics.csv"),
-        help="Path to the statistics CSV file produced during training.",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=None,
-        help=(
-            "Directory where the generated plots will be stored. "
-            "Defaults to a 'plot' directory next to the CSV file."
-        ),
-    )
-    return parser.parse_args()
-
 
 def _read_csv(path: Path) -> tuple[Sequence[str], list[dict[str, str]]]:
     if not path.exists():
@@ -161,11 +129,8 @@ def generate_plots(stats_path: Path, output_directory: Path) -> list[Path]:
 
     return generated_files
 
-
-def main() -> None:
-    args = _parse_arguments()
-    stats_path: Path = args.stats
-    output_directory: Path = args.output_dir or stats_path.parent / "plot"
+if __name__ == "__main__":    stats_path: Path = "./" #TODO
+    output_directory: Path = "./" +  / "plot" #todo
     output_directory.mkdir(parents=True, exist_ok=True)
 
     generated_files = generate_plots(stats_path, output_directory)
@@ -175,7 +140,3 @@ def main() -> None:
         print("Generated the following plots:")
         for path in generated_files:
             print(f" - {path}")
-
-
-if __name__ == "__main__":
-    main()
