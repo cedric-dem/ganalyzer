@@ -1,4 +1,3 @@
-from __future__ import annotations
 
 import csv
 import os
@@ -11,42 +10,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from config import (
-    MODEL_PLOTS_DIRECTORY,
     PLOTS_ROOT_DIRECTORY,
-    RESULTS_DIRECTORY,
-    every_models_statistics_path,
-    show_every_models_statistic,
+    every_models_statistics_path
 )
+from ganalyzer.model_config import all_models
 
 STATISTICS_FILENAME = "statistics.csv"
-RESULTS_DIRECTORY_STR = str(RESULTS_DIRECTORY)
-STATISTICS_CSV_PATH = os.path.join(RESULTS_DIRECTORY_STR, STATISTICS_FILENAME)
-MODEL_PLOTS_DIRECTORY_STR = str(MODEL_PLOTS_DIRECTORY)
 PLOTS_ROOT_DIRECTORY_STR = str(PLOTS_ROOT_DIRECTORY)
-
-
-def _generate_statistics_plots(csv_path: str, output_dir: str) -> bool:
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"Unable to locate statistics CSV at '{csv_path}'.")
-
-    os.makedirs(output_dir, exist_ok=True)
-    stats = _load_statistics(csv_path)
-
-    _plot_losses(stats, output_dir)
-    _plot_epoch_times(stats, output_dir)
-
-    if (
-        stats.training_loss
-        or stats.validation_loss
-        or stats.generator_loss
-        or stats.discriminator_loss
-        or stats.epoch_durations
-    ):
-        print(f"Saved statistics plots to '{output_dir}'.")
-        return True
-
-    print("No numeric statistics were found to plot.")
-    return False
 
 
 def _parse_float(value: str | None) -> float | None:
@@ -123,11 +93,9 @@ def _plot_loss_series(
             continue
 
         epochs = range(1, len(values) + 1)
-        if label:
-            plt.plot(epochs, values, label=label)
-            show_legend = True
-        else:
-            plt.plot(epochs, values)
+
+        plt.plot(epochs, values, label=label,marker="o", color = get_color(label))
+        show_legend = True
         plotted_any = True
 
     if not plotted_any:
@@ -145,35 +113,12 @@ def _plot_loss_series(
     plt.close()
     return True
 
+def get_color(label):
+    return proportion_to_color(all_models.index(label) / len(all_models))
 
-
-def _plot_losses(stats: Statistics, output_dir: str) -> None:
-    _plot_loss_series(
-        [("Generator Loss", stats.generator_loss)],
-        os.path.join(output_dir, "generator_loss.jpg"),
-        "Generator Loss Over Epochs",
-    )
-
-    _plot_loss_series(
-        [("Discriminator Loss", stats.discriminator_loss)],
-        os.path.join(output_dir, "discriminator_loss.jpg"),
-        "Discriminator Loss Over Epochs",
-    )
-
-def _plot_epoch_times(stats: Statistics, output_dir: str) -> None:
-    if not stats.epoch_durations:
-        return
-
-    plt.figure()
-    plt.plot(range(1, len(stats.epoch_durations) + 1), stats.epoch_durations, marker="o")
-    plt.title("Epoch Duration")
-    plt.xlabel("Epoch")
-    plt.ylabel("Time (seconds)")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "epoch_times.jpg"), format="jpg")
-    plt.close()
-
+def proportion_to_color(p: float) -> str:
+    p = max(0.0, min(1.0, p))
+    return f"#{int(255 * (1 - p)):02x}{int(255 * p):02x}00"
 
 def _plot_combined_losses(stats_by_model: dict[str, Statistics], output_dir: str) -> bool:
     plotted_any = False
@@ -217,6 +162,7 @@ def _plot_combined_epoch_times(stats_by_model: dict[str, Statistics], output_dir
             stats.epoch_durations,
             marker="o",
             label=model_name,
+            color = get_color(model_name)
         )
         plotted_any = True
 
@@ -233,6 +179,28 @@ def _plot_combined_epoch_times(stats_by_model: dict[str, Statistics], output_dir
     plt.savefig(os.path.join(output_dir, "epoch_times.jpg"), format="jpg")
     plt.close()
     return True
+
+
+def _generate_all_models_statistics_plots() -> bool:
+    any_plots_generated = False
+
+    for model_directory in every_models_statistics_path:
+        csv_path = os.path.join(model_directory, STATISTICS_FILENAME)
+        if not os.path.exists(csv_path):
+            continue
+
+        output_dir = os.path.join(
+            PLOTS_ROOT_DIRECTORY_STR, os.path.basename(model_directory)
+        )
+        os.makedirs(output_dir, exist_ok=True)
+
+        if _generate_statistics_plots(csv_path, output_dir):
+            any_plots_generated = True
+
+    if not any_plots_generated:
+        print("No statistics were found to generate plots.")
+
+    return any_plots_generated
 
 def _collect_statistics_by_model() -> dict[str, Statistics]:
     stats_by_model: dict[str, Statistics] = {}
@@ -257,8 +225,6 @@ def _collect_statistics_by_model() -> dict[str, Statistics]:
 
 
 def _generate_combined_statistics_plots() -> None:
-    if not show_every_models_statistic:
-        return
 
     stats_by_model = _collect_statistics_by_model()
     if not stats_by_model:
@@ -281,33 +247,22 @@ def _generate_combined_statistics_plots() -> None:
         print("No numeric statistics were found to plot for combined statistics.")
         return
 
-    combined_output_dir = os.path.join(PLOTS_ROOT_DIRECTORY_STR, "combined")
-    os.makedirs(combined_output_dir, exist_ok=True)
+    os.makedirs(PLOTS_ROOT_DIRECTORY_STR, exist_ok=True)
 
     plotted_any = False
     if has_generator_loss or has_discriminator_loss:
-        if _plot_combined_losses(stats_by_model, combined_output_dir):
+        if _plot_combined_losses(stats_by_model, PLOTS_ROOT_DIRECTORY_STR):
             plotted_any = True
 
     if has_epoch_durations and _plot_combined_epoch_times(
-        stats_by_model, combined_output_dir
+        stats_by_model, PLOTS_ROOT_DIRECTORY_STR
     ):
         plotted_any = True
 
     if plotted_any:
-        print(f"Saved combined statistics plots to '{combined_output_dir}'.")
+        print(f"Saved combined statistics plots to '{PLOTS_ROOT_DIRECTORY_STR}'.")
     else:
         print("No numeric statistics were found to plot for combined statistics.")
 
-
-def generate_statistics_plots() -> None:
-    _generate_statistics_plots(STATISTICS_CSV_PATH, MODEL_PLOTS_DIRECTORY_STR)
-
-    if not show_every_models_statistic:
-        return
-
-    _generate_combined_statistics_plots()
-
-
 if __name__ == "__main__":
-    generate_statistics_plots()
+    _generate_combined_statistics_plots()

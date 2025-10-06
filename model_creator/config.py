@@ -20,8 +20,7 @@ latent_dimension_generator = 121
 # plotting
 PLOTS_DIRECTORY_NAME = "plots"
 PLOTS_ROOT_DIRECTORY = os.path.join(results_root_path, PLOTS_DIRECTORY_NAME)
-MODEL_PLOTS_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, model_name)
-os.makedirs(MODEL_PLOTS_DIRECTORY, exist_ok=True)
+os.makedirs(PLOTS_ROOT_DIRECTORY, exist_ok=True)
 
 RESULTS_DIRECTORY = model_path
 
@@ -35,16 +34,12 @@ save_train_epoch_every = 10
 load_quantity_gui = 9
 
 #statistics
-show_every_models_statistic = True
-if show_every_models_statistic:
-    all_models = [
-        entry
-        for entry in sorted(os.listdir(results_root_path))
-        if os.path.isdir(os.path.join(results_root_path, entry))
-        and entry != PLOTS_DIRECTORY_NAME
-    ]
-else:
-    all_models = [model_name]
+all_models = [
+    entry
+    for entry in sorted(os.listdir(results_root_path))
+    if os.path.isdir(os.path.join(results_root_path, entry))
+    and entry != PLOTS_DIRECTORY_NAME
+]
 
 every_models_statistics_path = [
     os.path.join(results_root_path, entry) for entry in all_models

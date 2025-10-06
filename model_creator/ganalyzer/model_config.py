@@ -1,3 +1,4 @@
 
-model_output_size = 120
-model_name = ["model_0_tiny","model_1_small","model_2_medium","model_3_large"][1]
+model_output_size = 80
+all_models =  ["model_0_tiny","model_1_small","model_2_medium","model_3_large"]
+model_name = all_models[2]
