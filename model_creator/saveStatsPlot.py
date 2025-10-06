@@ -94,7 +94,7 @@ def _plot_loss_series(
 
         epochs = range(1, len(values) + 1)
 
-        plt.plot(epochs, values, label=label,marker="o", color = get_color(label))
+        plt.plot(epochs, values, label=label, color = get_color(label))
         show_legend = True
         plotted_any = True
 
@@ -160,7 +160,6 @@ def _plot_combined_epoch_times(stats_by_model: dict[str, Statistics], output_dir
         plt.plot(
             range(1, len(stats.epoch_durations) + 1),
             stats.epoch_durations,
-            marker="o",
             label=model_name,
             color = get_color(model_name)
         )
