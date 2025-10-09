@@ -27,7 +27,7 @@ RESULTS_DIRECTORY = model_path
 statistics_file_path = os.path.join(model_path, "statistics.csv")
 
 #train
-batch_size = 30
+batch_size = 32
 save_train_epoch_every = 10
 
 #GUI
@@ -44,3 +44,4 @@ all_models = [
 every_models_statistics_path = [
     os.path.join(results_root_path, entry) for entry in all_models
 ]
+
