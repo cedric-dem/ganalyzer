@@ -3,6 +3,7 @@ from ganalyzer.misc import *
 import os
 import csv
 import time
+import shutil
 from tqdm import tqdm
 
 import cv2
@@ -11,6 +12,7 @@ from keras.preprocessing.image import img_to_array
 import numpy as np
 from ganalyzer.models import *
 import tensorflow as tf
+from PIL import Image
 
 
 def train(
@@ -55,6 +57,7 @@ def train(
             print("===> saving models")
             generator.save(get_generator_model_path_at_given_epoch(epoch))
             discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
+            save_generator_samples(generator, epoch, latent_dim)
 
         start = time.time()
 
@@ -140,6 +143,38 @@ def get_dataset():
         raise ValueError(f"No images found in dataset path {dataset_path}")
 
     return np.stack(dataset, axis=0)
+
+
+def save_generator_samples(generator, epoch, latent_dim, num_samples=20):
+    current_folder_name = f"sample_output_epoch_{epoch:04d}"
+    current_folder_path = os.path.join(sample_outputs_root_directory, current_folder_name)
+
+    if os.path.isdir(sample_outputs_root_directory):
+        for entry in os.listdir(sample_outputs_root_directory):
+            entry_path = os.path.join(sample_outputs_root_directory, entry)
+            if entry.startswith("sample_output_epoch_") and os.path.isdir(entry_path):
+                if entry_path != current_folder_path:
+                    shutil.rmtree(entry_path)
+
+    if os.path.isdir(current_folder_path):
+        shutil.rmtree(current_folder_path)
+
+    os.makedirs(current_folder_path, exist_ok=True)
+
+    print(f"===> generating sample outputs in {current_folder_path}")
+
+    noise = tf.random.normal([num_samples, latent_dim])
+    generated_images = generator(noise, training=False).numpy()
+    projected_images = np.clip((generated_images + 1.0) * 127.5, 0, 255).astype(np.uint8)
+
+    for index, image_array in enumerate(projected_images):
+        if image_array.shape[-1] == 1:
+            image_array = image_array.squeeze(-1)
+            image = Image.fromarray(image_array, mode="L")
+        else:
+            image = Image.fromarray(image_array, mode="RGB")
+
+        image.save(os.path.join(current_folder_path, f"sample_{index:02d}.png"))
 
 
 def launch_training():

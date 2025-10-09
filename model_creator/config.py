@@ -45,3 +45,6 @@ every_models_statistics_path = [
     os.path.join(results_root_path, entry) for entry in all_models
 ]
 
+# Sample outputs
+sample_outputs_root_directory = os.path.join(model_path, "sample_outputs")
+os.makedirs(sample_outputs_root_directory, exist_ok=True)
