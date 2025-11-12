@@ -12,7 +12,7 @@ model_path = os.path.join(results_root_path, model_name)
 models_directory = os.path.join(model_path, "models")
 
 # Ensure result folders exist for the active model and the shared plots directory
-os.makedirs(models_directory, exist_ok=True)
+os.makedirs(models_directory, exist_ok = True)
 
 rgb_images = True
 latent_dimension_generator = 121
@@ -20,31 +20,31 @@ latent_dimension_generator = 121
 # plotting
 PLOTS_DIRECTORY_NAME = "plots"
 PLOTS_ROOT_DIRECTORY = os.path.join(results_root_path, PLOTS_DIRECTORY_NAME)
-os.makedirs(PLOTS_ROOT_DIRECTORY, exist_ok=True)
+os.makedirs(PLOTS_ROOT_DIRECTORY, exist_ok = True)
 
 RESULTS_DIRECTORY = model_path
 
 statistics_file_path = os.path.join(model_path, "statistics.csv")
 
-#train
-batch_size = 32
+# train
+batch_size = 7
 save_train_epoch_every = 10
 
-#GUI
-load_quantity_gui = 9
+# GUI
+load_quantity_gui = 6
 
-#statistics
+# statistics
 all_models = [
-    entry
-    for entry in sorted(os.listdir(results_root_path))
-    if os.path.isdir(os.path.join(results_root_path, entry))
-    and entry != PLOTS_DIRECTORY_NAME
+	entry
+	for entry in sorted(os.listdir(results_root_path))
+	if os.path.isdir(os.path.join(results_root_path, entry))
+	   and entry != PLOTS_DIRECTORY_NAME
 ]
 
 every_models_statistics_path = [
-    os.path.join(results_root_path, entry) for entry in all_models
+	os.path.join(results_root_path, entry) for entry in all_models
 ]
 
 # Sample outputs
 sample_outputs_root_directory = os.path.join(model_path, "sample_outputs")
-os.makedirs(sample_outputs_root_directory, exist_ok=True)
+os.makedirs(sample_outputs_root_directory, exist_ok = True)

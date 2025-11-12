@@ -4,98 +4,86 @@ import keras
 import os
 import numpy as np
 
-
 def get_generator_model_path_at_given_epoch(i):
-    return get_model_path_at_given_epoch("generator", i)
-
+	return get_model_path_at_given_epoch("generator", i)
 
 def get_discriminator_model_path_at_given_epoch(i):
-    return get_model_path_at_given_epoch("discriminator", i)
-
+	return get_model_path_at_given_epoch("discriminator", i)
 
 def get_model_path_at_given_epoch(model_type, i):
-    filename = f"{model_type}_epoch_{i:06d}.keras"
-    return os.path.join(models_directory, filename)
-
-
+	filename = f"{model_type}_epoch_{i:06d}.keras"
+	return os.path.join(models_directory, filename)
 
 def get_model_path_at_given_epoch_closest_possible(model_type, i, available_epochs):
+	current_best_distance = None
+	current_best_result = None
 
-    current_best_distance = None
-    current_best_result = None
+	for available_epoch in available_epochs:
+		this_distance = abs(available_epoch - i)
+		if current_best_distance is None or current_best_distance > this_distance:
+			current_best_distance = this_distance
+			current_best_result = available_epoch
 
-    for available_epoch in available_epochs:
-        this_distance = abs(available_epoch - i)
-        if current_best_distance is None or current_best_distance > this_distance:
-            current_best_distance = this_distance
-            current_best_result = available_epoch
-
-    return get_model_path_at_given_epoch(model_type, current_best_result)
-
+	return get_model_path_at_given_epoch(model_type, current_best_result)
 
 def get_available_epochs():
-    models_list = get_list_of_keras_models()
-    models_list_discriminators = [i for i in models_list if i.startswith("discriminator")]
-    epochs_list = []
-    for model in models_list_discriminators:
-        epochs_list.append(int(model.split("_")[-1].split(".")[0]))
-    return epochs_list
-
+	models_list = get_list_of_keras_models()
+	models_list_discriminators = [i for i in models_list if i.startswith("discriminator")]
+	epochs_list = []
+	for model in models_list_discriminators:
+		epochs_list.append(int(model.split("_")[-1].split(".")[0]))
+	return epochs_list
 
 def get_all_models(model_type, available_epochs):
-    # This function, and get_model_path_at_given_epoch_closest_possible, other than being poorly named, are absurdly not optimal
-    # I am ashamed to have written that, but in this case that will be fast enough
+	# This function, and get_model_path_at_given_epoch_closest_possible, other than being poorly named, are absurdly not optimal
+	# I am ashamed to have written that, but in this case that will be fast enough
 
-    models_quantity = get_current_epoch()
+	models_quantity = get_current_epoch()
 
-    # if all indexes loaded
-    if load_quantity_gui >= models_quantity:
-        indexes = list(range(models_quantity))
-    else:
-        take_every = models_quantity // load_quantity_gui
-        indexes = sorted(set(range(0, models_quantity, take_every)) | {0, models_quantity - 1})
+	# if all indexes loaded
+	if load_quantity_gui >= models_quantity:
+		indexes = list(range(models_quantity))
+	else:
+		take_every = models_quantity // load_quantity_gui
+		indexes = sorted(set(range(0, models_quantity, take_every)) | {0, models_quantity - 1})
 
-    result = [None for _ in range(models_quantity)]
+	result = [None for _ in range(models_quantity)]
 
-    for current_index in indexes:
-        this_filename = get_model_path_at_given_epoch_closest_possible(model_type, current_index, available_epochs)
-        print(f"=> will load {model_type} epoch {current_index}, closest found is : {this_filename}")
-        result[current_index] = keras.models.load_model(this_filename)
+	for current_index in indexes:
+		this_filename = get_model_path_at_given_epoch_closest_possible(model_type, current_index, available_epochs)
+		print(f"=> will load {model_type} epoch {current_index}, closest found is : {this_filename}")
+		result[current_index] = keras.models.load_model(this_filename)
 
-    return result
-    
+	return result
 
 def find_limits_and_project(arr):
-    projected = project_array(arr, 254, np.min(arr), np.max(arr))
-    return np.round(projected).astype(np.uint8)
-
+	projected = project_array(arr, 254, np.min(arr), np.max(arr))
+	return np.round(projected).astype(np.uint8)
 
 def project_array(arr, to, project_from, project_to):
-    delta = project_to - project_from
-    if delta > 0:
-        result = ((arr - project_from) / delta) * to
-    else:
-        result = arr
-    return result
-
+	delta = project_to - project_from
+	if delta > 0:
+		result = ((arr - project_from) / delta) * to
+	else:
+		result = arr
+	return result
 
 def get_list_of_keras_models():
-    if not os.path.isdir(models_directory):
-        return []
+	if not os.path.isdir(models_directory):
+		return []
 
-    complete_list = os.listdir(models_directory)
+	complete_list = os.listdir(models_directory)
 
-    complete_list.sort()
+	complete_list.sort()
 
-    keras_models = [f for f in complete_list if not f.endswith(".csv")]
-    return keras_models
-
+	keras_models = [f for f in complete_list if not f.endswith(".csv")]
+	return keras_models
 
 def get_current_epoch():
-    keras_models = get_list_of_keras_models()
+	keras_models = get_list_of_keras_models()
 
-    if len(keras_models) == 0:
-        result = 0
-    else:
-        result = int(keras_models[-1].split("_")[-1].split(".")[0])
-    return result
+	if len(keras_models) == 0:
+		result = 0
+	else:
+		result = int(keras_models[-1].split("_")[-1].split(".")[0])
+	return result
