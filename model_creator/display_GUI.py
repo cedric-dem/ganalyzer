@@ -1,6 +1,7 @@
 import time
 
-from ganalyzer.GUI import *
+from ganalyzer.GUI import GUI
+from ganalyzer.misc import get_all_models, get_available_epochs
 
 # load all the models
 t0 = time.time()

@@ -29,7 +29,7 @@ RESULTS_DIRECTORY = model_path
 statistics_file_path = os.path.join(model_path, "statistics.csv")
 
 # train
-batch_size = 7
+batch_size = 32
 save_train_epoch_every = 10
 
 # GUI

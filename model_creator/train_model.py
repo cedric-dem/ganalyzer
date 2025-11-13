@@ -1,100 +1,121 @@
-from ganalyzer.misc import *
+from __future__ import annotations
 
 import csv
-import time
 import shutil
-from tqdm import tqdm
+import time
+from collections import defaultdict
+from pathlib import Path
+from typing import Dict, Iterable, Mapping
 
 import cv2
-import keras
-from keras.preprocessing.image import img_to_array
 import numpy as np
-from ganalyzer.models import *
 import tensorflow as tf
 from PIL import Image
+from keras.preprocessing.image import img_to_array
+from tensorflow import keras
+from tqdm import tqdm
+
+from config import (batch_size, dataset_path, latent_dimension_generator, rgb_images, sample_outputs_root_directory, save_train_epoch_every, statistics_file_path)
+from ganalyzer.misc import (get_current_epoch, get_discriminator_model_path_at_given_epoch, get_generator_model_path_at_given_epoch)
+from ganalyzer.models import get_discriminator, get_generator
+
+SAMPLE_OUTPUT_PREFIX = "sample_output_epoch_"
+
+@tf.function
+def _train_step(images, *, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer, cross_entropy):
+	noise = tf.random.normal([tf.shape(images)[0], latent_dim])
+
+	with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+		generated_images = generator(noise, training = True)
+
+		fake_output = discriminator(generated_images, training = True)
+		real_output = discriminator(images, training = True)
+
+		gen_loss = generator_loss(fake_output, cross_entropy)
+		dis_loss = discriminator_loss(fake_output, real_output, cross_entropy)
+
+	gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
+	gradients_of_discriminator = disc_tape.gradient(dis_loss, discriminator.trainable_variables)
+
+	generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
+	discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+
+	return gen_loss, dis_loss, fake_output, real_output
 
 def train(current_epoch, dataset, cross_entropy, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
 	epoch = current_epoch
 
-	@tf.function
-	def train_step(images):
-		noise = tf.random.normal([tf.shape(images)[0], latent_dim])
-
-		with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-			generated_images = generator(noise, training = True)
-
-			fake_output = discriminator(generated_images, training = True)
-			real_output = discriminator(images, training = True)
-
-			gen_loss = generator_loss(fake_output, cross_entropy)
-			dis_loss = discriminator_loss(fake_output, real_output, cross_entropy)
-
-		gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
-		gradients_of_discriminator = disc_tape.gradient(dis_loss, discriminator.trainable_variables)
-
-		generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
-		discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
-
-		return gen_loss, dis_loss, fake_output, real_output
-
 	while True:
 		print("==> current epoch : ", epoch)
 
-		if epoch == 0 or epoch % save_train_epoch_every == 0:
-			print("===> saving models")
-			generator.save(get_generator_model_path_at_given_epoch(epoch))
-			discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
-			save_generator_samples(generator, epoch, latent_dim)
+		if _should_save_models(epoch):
+			_save_models(generator, discriminator, epoch, latent_dim)
 
 		start = time.time()
-
-		total_stats = {}
-		num_batches = 0
+		running_totals: Dict[str, float] = defaultdict(float)
+		batch_count = 0
 
 		for batch in dataset:
-			gen_loss, dis_loss, fake_output, real_output = train_step(batch)
-			num_batches += 1
+			gen_loss, dis_loss, fake_output, real_output = _train_step(batch, latent_dim = latent_dim, generator = generator, discriminator = discriminator, generator_optimizer = generator_optimizer, discriminator_optimizer = discriminator_optimizer, cross_entropy = cross_entropy, )
 
-			real_output_np = real_output.numpy()
-			fake_output_np = fake_output.numpy()
-			this_stats = {
-				"median_real": float(np.median(real_output_np)),
-				"median_fake": float(np.median(fake_output_np)),
-				"mean_real": float(np.mean(real_output_np)),
-				"mean_fake": float(np.mean(fake_output_np)),
-				"gen_loss": float(gen_loss.numpy()),
-				"disc_loss": float(dis_loss.numpy()),
-			}
+			batch_stats = _collect_batch_statistics(gen_loss, dis_loss, fake_output, real_output)
 
-			for key in this_stats:
-				if key in total_stats:
-					total_stats[key] += this_stats[key]
-				else:
-					total_stats[key] = this_stats[key]
+			for key, value in batch_stats.items():
+				running_totals[key] += value
 
-		time_taken = str(np.round(time.time() - start, 2))
+			batch_count += 1
+
+		time_taken = float(np.round(time.time() - start, 2))
 		print("===> Time taken : ", time_taken)
-		total_stats["time"] = time_taken
 
-		if num_batches > 0:
-			for key in list(total_stats.keys()):
-				if key != "time":
-					total_stats[key] /= num_batches
+		averaged_stats = _average_statistics(running_totals, batch_count)
+		averaged_stats["time"] = time_taken
 
-		# TODO fix csv update possibly overlapping old train
-		add_statistics_to_file(epoch, total_stats)
+		add_statistics_to_file(epoch, averaged_stats)
 		epoch += 1
 
-def add_statistics_to_file(epoch, new_stats):
-	exists = os.path.isfile(statistics_file_path)
+def _should_save_models(epoch):
+	return epoch == 0 or epoch % save_train_epoch_every == 0
 
-	with open(statistics_file_path, mode = "a", newline = "", encoding = "utf-8") as statistics_file:
+def _save_models(generator, discriminator, epoch, latent_dim):
+	print("===> saving models")
+	generator.save(get_generator_model_path_at_given_epoch(epoch))
+	discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
+	save_generator_samples(generator, epoch, latent_dim)
+
+def _collect_batch_statistics(gen_loss, dis_loss, fake_output, real_output):
+	real_output_np = real_output.numpy()
+	fake_output_np = fake_output.numpy()
+
+	return {
+		"median_real": float(np.median(real_output_np)),
+		"median_fake": float(np.median(fake_output_np)),
+		"mean_real": float(np.mean(real_output_np)),
+		"mean_fake": float(np.mean(fake_output_np)),
+		"gen_loss": float(gen_loss.numpy()),
+		"disc_loss": float(dis_loss.numpy()),
+	}
+
+def _average_statistics(running_totals, batch_count):
+	if batch_count == 0:
+		return dict(running_totals)
+
+	return {key: value / batch_count for key, value in running_totals.items()}
+
+def add_statistics_to_file(epoch, new_stats):
+	statistics_path = Path(statistics_file_path)
+	statistics_path.parent.mkdir(parents = True, exist_ok = True)
+
+	file_exists = statistics_path.exists()
+	headers = list(new_stats.keys())
+
+	with statistics_path.open(mode = "a", newline = "", encoding = "utf-8") as statistics_file:
 		writer = csv.writer(statistics_file)
 
-		if not exists:
-			writer.writerow(["epoch_id"] + [key for key in new_stats])
+		if not file_exists:
+			writer.writerow(["epoch_id", *headers])
 
-		writer.writerow([str(epoch)] + [new_stats[key] for key in new_stats])
+		writer.writerow([str(epoch), *[new_stats[key] for key in headers]])
 
 def generator_loss(fake_output, cross_entropy):
 	return cross_entropy(tf.ones_like(fake_output), fake_output)
@@ -105,59 +126,73 @@ def discriminator_loss(fake_output, real_output, cross_entropy):
 	return fake_loss + real_loss
 
 def get_dataset():
+	dataset_directory = Path(dataset_path)
+	if not dataset_directory.exists():
+		raise FileNotFoundError(f"Dataset path does not exist: {dataset_directory}")
+
 	dataset = []
 
-	files = os.listdir(dataset_path)
-	for i in tqdm(files):
-		if rgb_images:
-			current_image = cv2.cvtColor(
-				cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_COLOR),
-				cv2.COLOR_BGR2RGB,
-			)
-		else:
-			current_image = cv2.imread(os.path.join(dataset_path, i), cv2.IMREAD_GRAYSCALE)
+	for image_path in tqdm(sorted(dataset_directory.iterdir())):
+		if not image_path.is_file():
+			continue
 
-		current_image = current_image.astype("float32")
-		current_image = (current_image - 127.5) / 127.5
+		current_image = _load_image(image_path)
 		dataset.append(img_to_array(current_image))
 
 	if not dataset:
-		raise ValueError(f"No images found in dataset path {dataset_path}")
+		raise ValueError(f"No images found in dataset path {dataset_directory}")
 
 	return np.stack(dataset, axis = 0)
 
+def _load_image(image_path):
+	read_mode = cv2.IMREAD_COLOR if rgb_images else cv2.IMREAD_GRAYSCALE
+	image = cv2.imread(str(image_path), read_mode)
+	if image is None:
+		raise ValueError(f"Failed to load image: {image_path}")
+
+	if rgb_images:
+		image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+	image = image.astype("float32")
+	return (image - 127.5) / 127.5
+
 def save_generator_samples(generator, epoch, latent_dim, num_samples = 20):
-	current_folder_name = f"sample_output_epoch_{epoch:04d}"
-	current_folder_path = os.path.join(sample_outputs_root_directory, current_folder_name)
+	root_directory = Path(sample_outputs_root_directory)
+	target_directory = root_directory / f"{SAMPLE_OUTPUT_PREFIX}{epoch:04d}"
 
-	if os.path.isdir(sample_outputs_root_directory):
-		for entry in os.listdir(sample_outputs_root_directory):
-			entry_path = os.path.join(sample_outputs_root_directory, entry)
-			if entry.startswith("sample_output_epoch_") and os.path.isdir(entry_path):
-				if entry_path != current_folder_path:
-					shutil.rmtree(entry_path)
+	_cleanup_previous_samples(root_directory, keep = target_directory)
 
-	if os.path.isdir(current_folder_path):
-		shutil.rmtree(current_folder_path)
+	if target_directory.exists():
+		shutil.rmtree(target_directory)
 
-	os.makedirs(current_folder_path, exist_ok = True)
+	target_directory.mkdir(parents = True, exist_ok = True)
 
-	print(f"===> generating sample outputs in {current_folder_path}")
+	print(f"===> generating sample outputs in {target_directory}")
 
 	noise = tf.random.normal([num_samples, latent_dim])
 	generated_images = generator(noise, training = False).numpy()
 	projected_images = np.clip((generated_images + 1.0) * 127.5, 0, 255).astype(np.uint8)
 
 	for index, image_array in enumerate(projected_images):
-		if image_array.shape[-1] == 1:
-			image_array = image_array.squeeze(-1)
-			image = Image.fromarray(image_array, mode = "L")
-		else:
-			image = Image.fromarray(image_array, mode = "RGB")
+		image = _array_to_pil_image(image_array)
+		image.save(target_directory / f"sample_{index:02d}.png")
 
-		image.save(os.path.join(current_folder_path, f"sample_{index:02d}.png"))
+def _cleanup_previous_samples(root_directory: Path, *, keep: Path) -> None:
+	if not root_directory.is_dir():
+		return
 
-def launch_training():
+	for entry in root_directory.iterdir():
+		if entry == keep:
+			continue
+		if entry.is_dir() and entry.name.startswith(SAMPLE_OUTPUT_PREFIX):
+			shutil.rmtree(entry)
+
+def _array_to_pil_image(image_array):
+	if image_array.shape[-1] == 1:
+		return Image.fromarray(image_array.squeeze(-1), mode = "L")
+	return Image.fromarray(image_array, mode = "RGB")
+
+def launch_training() -> None:
 	current_epoch = get_current_epoch()
 	print("==> will start from epoch  : ", current_epoch)
 
@@ -170,14 +205,12 @@ def launch_training():
 		.prefetch(tf.data.AUTOTUNE)
 	)
 
-	if current_epoch == 0:  # if start from scratch
+	if current_epoch == 0:
 		print("==> Creating models")
 		generator = get_generator()
 		discriminator = get_discriminator()
-
 	else:
 		print("==> Loading latest models")
-
 		discriminator = keras.models.load_model(get_discriminator_model_path_at_given_epoch(current_epoch))
 		generator = keras.models.load_model(get_generator_model_path_at_given_epoch(current_epoch))
 
@@ -189,7 +222,13 @@ def launch_training():
 
 	cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits = False)
 
-	print("==> Number of batches : ", len(dataset_batches))
+	cardinality = tf.data.experimental.cardinality(dataset_batches).numpy()
+	if cardinality < 0:
+		print("==> Number of batches : unknown")
+	else:
+		print(f"==> Number of batches : {int(cardinality)}")
+
 	train(current_epoch, dataset_batches, cross_entropy, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
-launch_training()
+if __name__ == "__main__":
+	launch_training()
