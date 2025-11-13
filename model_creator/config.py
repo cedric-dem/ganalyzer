@@ -11,6 +11,8 @@ results_root_path = os.path.join("results", dataset_name, dataset_dimension)
 model_path = os.path.join(results_root_path, model_name)
 models_directory = os.path.join(model_path, "models")
 
+models_as_tflite = "models_as_tflite"
+
 # Ensure result folders exist for the active model and the shared plots directory
 os.makedirs(models_directory, exist_ok = True)
 
