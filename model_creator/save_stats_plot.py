@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -9,7 +10,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path
+from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path
 from ganalyzer.model_config import all_models
 
 STATISTICS_FILENAME = "statistics.csv"
@@ -71,7 +72,7 @@ def _load_statistics(csv_path):
 		epoch_durations = epoch_durations,
 	)
 
-def _plot_loss_series(series, output_path, title, xlabel = "Epoch", ylabel = "Loss"):
+def _plot_loss_series(l_settings, series, output_path, title, xlabel = "Epoch", ylabel = "Loss"):
 	plt.figure()
 	plotted_any = False
 
@@ -80,7 +81,7 @@ def _plot_loss_series(series, output_path, title, xlabel = "Epoch", ylabel = "Lo
 			continue
 
 		epochs = range(1, len(values) + 1)
-		plt.plot(epochs, values, label = label, color = _color_for_label(label))
+		plt.plot(epochs, values, label = label, color = _color_for_label(label, l_settings))
 		plotted_any = True
 
 	if not plotted_any:
@@ -98,14 +99,8 @@ def _plot_loss_series(series, output_path, title, xlabel = "Epoch", ylabel = "Lo
 	plt.close()
 	return True
 
-def _color_for_label(label):
-	try:
-		index = all_models.index(label)
-	except ValueError:
-		return "#000000"
-
-	total = max(1, len(all_models))
-	proportion = index / total
+def _color_for_label(label, lst_settings):
+	proportion = lst_settings.index(label) / (len(lst_settings) - 2)
 	return _proportion_to_color(proportion)
 
 def _proportion_to_color(proportion):
@@ -114,7 +109,7 @@ def _proportion_to_color(proportion):
 	green = int(255 * clamped)
 	return f"#{red:02x}{green:02x}00"
 
-def _plot_combined_losses(stats_by_model, output_dir):
+def _plot_combined_losses(l_settings, stats_by_model, output_dir):
 	generator_series = []
 	discriminator_series = []
 
@@ -128,15 +123,15 @@ def _plot_combined_losses(stats_by_model, output_dir):
 	generator_plot = output_dir / "generator_loss.jpg"
 	discriminator_plot = output_dir / "discriminator_loss.jpg"
 
-	if generator_series and _plot_loss_series(generator_series, generator_plot, "Generator Loss Over Epochs"):
+	if generator_series and _plot_loss_series(l_settings, generator_series, generator_plot, "Generator Loss Over Epochs"):
 		plotted_any = True
 
-	if discriminator_series and _plot_loss_series(discriminator_series, discriminator_plot, "Discriminator Loss Over Epochs"):
+	if discriminator_series and _plot_loss_series(l_settings, discriminator_series, discriminator_plot, "Discriminator Loss Over Epochs"):
 		plotted_any = True
 
 	return plotted_any
 
-def _plot_combined_epoch_times(stats_by_model, output_dir):
+def _plot_combined_epoch_times(l_settings, stats_by_model, output_dir):
 	plt.figure()
 	plotted_any = False
 
@@ -145,7 +140,7 @@ def _plot_combined_epoch_times(stats_by_model, output_dir):
 			continue
 
 		epochs = range(1, len(stats.epoch_durations) + 1)
-		plt.plot(epochs, stats.epoch_durations, label = model_name, color = _color_for_label(model_name))
+		plt.plot(epochs, stats.epoch_durations, label = model_name, color = _color_for_label(model_name, l_settings))
 		plotted_any = True
 
 	if not plotted_any:
@@ -158,7 +153,7 @@ def _plot_combined_epoch_times(stats_by_model, output_dir):
 	plt.legend()
 	plt.grid(True)
 	plt.tight_layout()
-	plt.savefig(output_dir / "epoch_times.jpg", format = "jpg")
+	plt.savefig(output_dir / "times_epoch.jpg", format = "jpg")
 	plt.close()
 	return True
 
@@ -195,12 +190,15 @@ def _generate_combined_statistics_plots():
 
 	PLOTS_ROOT_DIRECTORY_PATH.mkdir(parents = True, exist_ok = True)
 
+	l_settings = os.listdir(results_root_path)
+	l_settings.sort()
+
 	plotted_any = False
 	if has_generator_loss or has_discriminator_loss:
-		if _plot_combined_losses(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH):
+		if _plot_combined_losses(l_settings, stats_by_model, PLOTS_ROOT_DIRECTORY_PATH):
 			plotted_any = True
 
-	if has_epoch_durations and _plot_combined_epoch_times(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH):
+	if has_epoch_durations and _plot_combined_epoch_times(l_settings, stats_by_model, PLOTS_ROOT_DIRECTORY_PATH):
 		plotted_any = True
 
 	if plotted_any:

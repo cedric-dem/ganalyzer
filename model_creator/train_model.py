@@ -23,7 +23,7 @@ SAMPLE_OUTPUT_PREFIX = "sample_output_epoch_"
 
 @tf.function
 def _train_step(images, *, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer, cross_entropy):
-	noise = tf.random.normal([tf.shape(images)[0], latent_dim])
+	noise = tf.random.normal([batch_size, latent_dim], mean=0.0, stddev=1.0)
 
 	with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
 		generated_images = generator(noise, training = True)
@@ -169,7 +169,7 @@ def save_generator_samples(generator, epoch, latent_dim, num_samples = 20):
 
 	print(f"===> generating sample outputs in {target_directory}")
 
-	noise = tf.random.normal([num_samples, latent_dim])
+	noise = tf.random.normal([num_samples, latent_dim], mean=0.0, stddev=1.0)
 	generated_images = generator(noise, training = False).numpy()
 	projected_images = np.clip((generated_images + 1.0) * 127.5, 0, 255).astype(np.uint8)
 

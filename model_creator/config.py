@@ -3,12 +3,15 @@ import os
 from ganalyzer.model_config import *
 
 # common
+
+latent_dimension_generator = 49  # 49 #121 #225
+
 dataset_name = "humans_fifa"  # "cars_2"
 dataset_dimension = str(model_output_size)
 dataset_path = os.path.join("datasets", dataset_name, dataset_dimension)
 
-results_root_path = os.path.join("results", dataset_name, dataset_dimension)
-model_path = os.path.join(results_root_path, model_name)
+results_root_path = os.path.join("results", dataset_name + "_" + dataset_dimension)
+model_path = os.path.join(results_root_path, model_name + "-ls_" + (4 - len(str(latent_dimension_generator))) * "0" + str(latent_dimension_generator))
 models_directory = os.path.join(model_path, "models")
 
 models_as_tflite = "models_as_tflite"
@@ -17,7 +20,6 @@ models_as_tflite = "models_as_tflite"
 os.makedirs(models_directory, exist_ok = True)
 
 rgb_images = True
-latent_dimension_generator = 121
 
 # plotting
 PLOTS_DIRECTORY_NAME = "plots"
