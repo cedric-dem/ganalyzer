@@ -100,14 +100,30 @@ def _plot_loss_series(l_settings, series, output_path, title, xlabel = "Epoch", 
 	return True
 
 def _color_for_label(label, lst_settings):
-	proportion = lst_settings.index(label) / (len(lst_settings) - 2)
-	return _proportion_to_color(proportion)
+	# those two just count the position in the list of sorted models settings
+	# proportion = lst_settings.index(label) / (len(lst_settings) - 2)
+	# color_direction = [[0, 1], [1, -1], [0, 0]]
 
-def _proportion_to_color(proportion):
+	# here it split between small, medium and large models
+	proportion = [s for s in lst_settings if s.startswith(label[:7])].index(label) / 3
+	if label.startswith("model_0"):
+		color_direction = [[0, 1], [1, -1], [0, 0]]
+	elif label.startswith("model_1"):
+		color_direction = [[0, 0], [0, 1], [1, -1]]
+	elif label.startswith("model_2"):
+		color_direction = [[1, -1], [0, 0], [0, 1]]
+	else:
+		print("not found col dir")
+	return _proportion_to_color(proportion, color_direction)
+
+def _proportion_to_color(proportion, color_direction):
 	clamped = max(0.0, min(1.0, proportion))
-	red = int(255 * (1 - clamped))
-	green = int(255 * clamped)
-	return f"#{red:02x}{green:02x}00"
+
+	red = int(255 * (color_direction[0][0] + (color_direction[0][1] * clamped)))
+	green = int(255 * (color_direction[1][0] + (color_direction[1][1] * clamped)))
+	blue = int(255 * (color_direction[2][0] + (color_direction[2][1] * clamped)))
+
+	return f"#{red:02x}{green:02x}{blue:02x}"
 
 def _plot_combined_losses(l_settings, stats_by_model, output_dir):
 	generator_series = []
