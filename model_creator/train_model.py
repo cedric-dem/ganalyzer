@@ -5,6 +5,7 @@ import shutil
 import time
 from collections import defaultdict
 from pathlib import Path
+import random
 from typing import Dict, Iterable, Mapping
 
 import cv2
@@ -21,12 +22,21 @@ from ganalyzer.models import get_discriminator, get_generator
 
 SAMPLE_OUTPUT_PREFIX = "sample_output_epoch_"
 
-@tf.function
+def save_train_images(generated_images):
+	for i in range(batch_size):
+		this_array = generated_images[i, :, :, :]
+		this_img = np.clip((this_array + 1.0) * 127.5, 0, 255).astype(np.uint8)
+		filename = "subset_train/img_" + str(i) + ".png"
+		Image.fromarray(this_img.astype(np.uint8), 'RGB').save(filename, format = 'PNG')
+		print(f"Image saved to {filename}")
+
 def _train_step(images, *, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer, cross_entropy):
-	noise = tf.random.normal([batch_size, latent_dim], mean=0.0, stddev=1.0)
+	noise = tf.random.normal([batch_size, latent_dim], mean = 0.0, stddev = 1.0)
 
 	with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
 		generated_images = generator(noise, training = True)
+
+		# save_train_images(generated_images.numpy())
 
 		fake_output = discriminator(generated_images, training = True)
 		real_output = discriminator(images, training = True)
@@ -52,7 +62,7 @@ def train(current_epoch, dataset, cross_entropy, latent_dim, generator, discrimi
 			_save_models(generator, discriminator, epoch, latent_dim)
 
 		start = time.time()
-		running_totals: Dict[str, float] = defaultdict(float)
+		running_totals = defaultdict(float)
 		batch_count = 0
 
 		for batch in dataset:
@@ -169,7 +179,7 @@ def save_generator_samples(generator, epoch, latent_dim, num_samples = 20):
 
 	print(f"===> generating sample outputs in {target_directory}")
 
-	noise = tf.random.normal([num_samples, latent_dim], mean=0.0, stddev=1.0)
+	noise = tf.random.normal([num_samples, latent_dim], mean = 0.0, stddev = 1.0)
 	generated_images = generator(noise, training = False).numpy()
 	projected_images = np.clip((generated_images + 1.0) * 127.5, 0, 255).astype(np.uint8)
 

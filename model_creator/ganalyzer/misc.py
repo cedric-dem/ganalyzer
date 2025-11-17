@@ -53,7 +53,7 @@ def get_all_models(model_type, available_epochs):
 	models_quantity = get_current_epoch()
 	indexes = _indexes_to_load(models_quantity)
 
-	result: List[Optional[keras.Model]] = [None for _ in range(models_quantity)]
+	result = [None for _ in range(models_quantity)]
 
 	for current_index in indexes:
 		filename = get_model_path_at_given_epoch_closest_possible(model_type, current_index, available_epochs)
@@ -61,10 +61,6 @@ def get_all_models(model_type, available_epochs):
 		result[current_index] = keras.models.load_model(filename)
 
 	return result
-
-def find_limits_and_project(arr):
-	projected = project_array(arr, 254, float(np.min(arr)), float(np.max(arr)))
-	return np.round(projected).astype(np.uint8)
 
 def project_array(arr, destination_max, project_from, project_to):
 	delta = project_to - project_from

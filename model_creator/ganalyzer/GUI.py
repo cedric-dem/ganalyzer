@@ -3,9 +3,10 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 from typing import Iterable, List
+import copy
 
 from ganalyzer.ModelViewer import ModelViewer
-from ganalyzer.misc import find_limits_and_project, project_array
+from ganalyzer.misc import project_array
 from config import latent_dimension_generator, model_name, rgb_images
 import numpy as np
 
@@ -120,11 +121,11 @@ class GUI:
 		self.generator_viewer.current_input = np.array([input_raw])
 
 		if rgb_images:
-			predicted_raw = self.generator_viewer.current_model.predict(self.generator_viewer.current_input)[0, :, :, :]
+			predicted_raw = self.generator_viewer.current_model(self.generator_viewer.current_input, training = False)[0, :, :, :]
 		else:
-			predicted_raw = self.generator_viewer.current_model.predict(self.generator_viewer.current_input)[0, :, :, 0]
+			predicted_raw = self.generator_viewer.current_model(self.generator_viewer.current_input)[0, :, :, 0]
 
-		return find_limits_and_project(predicted_raw)
+		return np.round(project_array(predicted_raw, 254, -1, 1)).astype(np.uint8)
 
 	def update_generator(self, _event = None):
 		if self.initializing:
