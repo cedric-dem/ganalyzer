@@ -4,7 +4,7 @@ from ganalyzer.model_config import *
 
 # common
 
-latent_dimension_generator = 49  # 49 #121 #225
+latent_dimension_generator = 121  # 49 #121 #225
 
 dataset_name = "humans_fifa"  # "cars_2"
 dataset_dimension = str(model_output_size)
@@ -35,6 +35,7 @@ batch_size = 32
 save_train_epoch_every = 10
 
 # GUI
+GUI_tkinter = False
 load_quantity_gui = 6
 
 # statistics
