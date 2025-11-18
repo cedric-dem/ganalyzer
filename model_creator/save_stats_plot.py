@@ -112,6 +112,8 @@ def _color_for_label(label, lst_settings):
 		color_direction = [[0, 0], [0, 1], [1, -1]]
 	elif label.startswith("model_2"):
 		color_direction = [[1, -1], [0, 0], [0, 1]]
+	elif label.startswith("model_3"):
+		color_direction = [[0, 0], [1, -1], [0, 1]]
 	else:
 		print("not found col dir")
 	return _proportion_to_color(proportion, color_direction)

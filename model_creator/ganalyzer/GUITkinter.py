@@ -10,7 +10,7 @@ from ganalyzer.misc import project_array
 from config import latent_dimension_generator, model_name, rgb_images
 import numpy as np
 
-class GUI:
+class GUITkinter:
 	def __init__(self, models_list_generator, models_list_discriminator):
 		self.n_col = 15
 		self.n_row = 12

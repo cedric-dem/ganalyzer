@@ -1,0 +1,207 @@
+async function get_result_generator() {
+
+    const latent_vector_as_matrix = get_input_vector_as_matrix()
+    change_image(latent_vector_as_matrix, generator_input_pixels)
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/get-result-generator", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({vector: generator_input}),
+        });
+
+        const data = await response.json();
+        change_image(data.generated_image, generator_image_pixels)
+
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
+function get_input_vector_as_matrix() {
+    var latent_vector_as_matrix = Array.from({length: LATENT_SPACE_SIZE_SQRT}, () => Array(LATENT_SPACE_SIZE_SQRT).fill(null));
+
+    for (var i = 0; i < LATENT_SPACE_SIZE_SQRT; i++) {
+        for (var j = 0; j < LATENT_SPACE_SIZE_SQRT; j++) {
+            intensity = generator_input[i * LATENT_SPACE_SIZE_SQRT + j]
+            intensity_projected = projectTo255(intensity)//between 0 black and 255 white
+            latent_vector_as_matrix[i][j] = [intensity_projected, intensity_projected, intensity_projected]
+        }
+    }
+    return latent_vector_as_matrix;
+}
+
+function projectTo255(x) {
+    x = Math.min(Math.max(x, -MAX_VALUE_VISUALIZATION_INPUT), MAX_VALUE_VISUALIZATION_INPUT);
+    return ((x + MAX_VALUE_VISUALIZATION_INPUT) / (2 * MAX_VALUE_VISUALIZATION_INPUT)) * 255;
+}
+
+function randomize_input() {
+    const mu = parseFloat(document.getElementById("sliderMuValue").value);
+    const sigma = parseFloat(document.getElementById("sliderSigmaValue").value);
+
+    for (let i = 0; i < LATENT_SPACE_SIZE; i++) {
+        const z = Math.sqrt(-2.0 * Math.log(Math.random())) * Math.cos(2.0 * Math.PI * Math.random());
+        generator_input[i] = mu + sigma * z;
+    }
+    refresh_sliders()
+    get_result_generator()
+}
+
+function set_constant_input() {
+    const k = parseFloat(document.getElementById("sliderConstantValue").value);
+    for (let i = 0; i < generator_input.length; i++) {
+        generator_input[i] = k;
+    }
+    refresh_sliders()
+    get_result_generator()
+}
+
+function re_randomize() {
+    randomize_input()
+    get_result_generator()
+}
+
+
+function refresh_sliders() {
+    for (let i = 0; i < LATENT_SPACE_SIZE_SQRT; i++) {
+        for (let j = 0; j < LATENT_SPACE_SIZE_SQRT; j++) {
+            sliders_grid[i][j].value = generator_input[i * 7 + j];
+        }
+    }
+}
+
+function change_image(new_data, location) {
+    for (let i = 0; i < new_data.length; i++) {
+        for (let j = 0; j < new_data[0].length; j++) {
+            const [r, g, b] = new_data[i][j];
+            location[i][j].style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        }
+    }
+}
+
+function initialize_image(element_id, location_image, size_x, size_y) {
+    const div_grid_generator = document.getElementById(element_id);
+
+
+    const availableWidth = div_grid_generator.clientWidth;
+    const availableHeight = div_grid_generator.clientHeight;
+
+    const pixelSize = Math.floor(Math.min(availableWidth / size_y, availableHeight / size_x));
+
+    div_grid_generator.style.display = 'grid';
+    div_grid_generator.style.gridTemplateColumns = `repeat(${size_y}, ${pixelSize}px)`;
+    div_grid_generator.style.gridTemplateRows = `repeat(${size_x}, ${pixelSize}px)`;
+
+
+    for (let i = 0; i < size_x; i++) {
+        for (let j = 0; j < size_y; j++) {
+            const new_element = document.createElement('div');
+            new_element.classList.add('slider_input_representation');
+            div_grid_generator.appendChild(new_element);
+            new_element.style.width = `${pixelSize}px`;
+            new_element.style.height = `${pixelSize}px`;
+
+            location_image[i][j] = new_element;
+        }
+    }
+}
+
+function handleSliderMuValue(value) {
+    document.getElementById("sliderMuValueLabel").textContent = value;
+    randomize_input()
+}
+
+function handleSliderSigmaValue(value) {
+    document.getElementById("sliderSigmaValueLabel").textContent = value;
+    randomize_input()
+}
+
+function handleSliderConstantValue(value) {
+    document.getElementById("sliderConstantValueLabel").textContent = value;
+    set_constant_input()
+}
+
+function initialize_generator_image() {
+    initialize_image('grid_input_generator', generator_input_pixels, LATENT_SPACE_SIZE_SQRT, LATENT_SPACE_SIZE_SQRT)
+    initialize_image('grid_visual_generator', generator_image_pixels, IMAGE_SIZE, IMAGE_SIZE)
+}
+
+function initialize_generator_sliders() {
+
+    const div_sliders = document.getElementById("sliders_grid");
+
+    div_sliders.style.gridTemplateColumns = `repeat(${LATENT_SPACE_SIZE_SQRT}, auto)`;
+    div_sliders.style.gridTemplateRows = `repeat(${LATENT_SPACE_SIZE_SQRT}, auto)`;
+
+    for (let i = 0; i < LATENT_SPACE_SIZE_SQRT; i++) {
+        for (let j = 0; j < LATENT_SPACE_SIZE_SQRT; j++) {
+            const new_element = document.createElement('input');
+
+            new_element.type = "range";
+            new_element.min = -5;
+            new_element.max = 5;
+            new_element.step = 0.01;
+            new_element.value = 0;
+            new_element.classList.add('slider');
+            new_element.style.width = "100px"; //TODO : automatic retrieval of these values
+            new_element.style.height = "10px";
+
+            new_element.oninput = function () {
+                handleSliderValueChange(i, j, new_element.value);
+            };
+
+            div_sliders.appendChild(new_element);
+            sliders_grid[i][j] = new_element;
+        }
+    }
+}
+
+function handleSliderValueChange(i, j, new_value) {
+    generator_input[i * LATENT_SPACE_SIZE_SQRT + j] = new_value;
+    get_result_generator()
+}
+
+function handleSliderGeneratorEpochValue() {
+    new_epoch = document.getElementById("sliderGeneratorEpochValue").value;
+
+    //change text
+    document.getElementById("labelGeneratorEpochValue").textContent = "Epoch : " + new_epoch + "/" + AVAILABLE_EPOCHS;
+
+    //send message to python api
+    // TODO
+}
+
+function handleSliderDiscriminatorEpochValue() {
+    new_epoch = document.getElementById("sliderDiscriminatorEpochValue").value;
+
+    //change text
+    document.getElementById("labelDiscriminatorEpochValue").textContent = "Epoch : " + new_epoch + "/" + AVAILABLE_EPOCHS;
+
+    //send message to python api
+    // TODO
+}
+
+/// config
+const AVAILABLE_EPOCHS = 300
+const IMAGE_SIZE = 100;
+const LATENT_SPACE_SIZE = 121;
+const LATENT_SPACE_SIZE_SQRT = LATENT_SPACE_SIZE ** 0.5;
+
+/// generator panel
+let sliders_grid = Array.from({length: LATENT_SPACE_SIZE_SQRT}, () => Array(LATENT_SPACE_SIZE_SQRT).fill(null));
+let generator_input = new Array(LATENT_SPACE_SIZE).fill(0);
+
+/// generator visualization
+const MAX_VALUE_VISUALIZATION_INPUT = 5;
+const generator_input_pixels = Array.from({length: LATENT_SPACE_SIZE_SQRT}, () => Array(LATENT_SPACE_SIZE_SQRT).fill(null));
+const generator_image_pixels = Array.from({length: IMAGE_SIZE}, () => Array(IMAGE_SIZE).fill(null));
+
+/// generator visualization
+
+/// initialize page
+initialize_generator_image()
+initialize_generator_sliders()
+randomize_input()

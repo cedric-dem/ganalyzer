@@ -2,8 +2,8 @@ import os
 from PIL import Image
 
 # Hardcoded path to the folder containing images
-INPUT_FOLDER = "humans_fifa/240"
-OUTPUT_FOLDER = "humans_fifa/120"
+INPUT_FOLDER = "humans_faces/128"
+OUTPUT_FOLDER = "humans_faces/100"
 
 # Hardcoded new size (square)
 NEW_SIZE = 120
