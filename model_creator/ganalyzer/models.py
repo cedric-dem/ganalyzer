@@ -45,6 +45,15 @@ MODEL_CONFIGS_64 = {
                 gen_pre_dense = [640],
                 extra_conv = True,
         ),
+       "model_3_large": _make_config(
+                gen_base = [416, 208, 104, 52, 26, 13],
+                gen_min = 13,
+                disc_seq = [52, 104, 208, 416, 416, 416],
+                disc_fc = lambda image_size: [image_size * 3, image_size * 3],
+                gen_ch0 = 416,
+                gen_pre_dense = [640],
+                extra_conv = True,
+        ),
 }
 
 MODEL_CONFIGS_80 = {
@@ -69,6 +78,15 @@ MODEL_CONFIGS_80 = {
                 gen_min = 15,
                 disc_seq = [60, 120, 240, 480, 480, 480],
                 disc_fc = lambda image_size: [image_size * 3],
+                gen_ch0 = 480,
+                gen_pre_dense = [704],
+                extra_conv = True,
+        ),
+        "model_3_large": _make_config(
+                gen_base = [480, 240, 120, 60, 30, 15],
+                gen_min = 15,
+                disc_seq = [60, 120, 240, 480, 480, 480],
+                disc_fc = lambda image_size: [image_size * 3, image_size * 3],
                 gen_ch0 = 480,
                 gen_pre_dense = [704],
                 extra_conv = True,
@@ -101,6 +119,15 @@ MODEL_CONFIGS_100 = {
                 gen_pre_dense = [896],
                 extra_conv = True,
         ),
+        "model_3_large": _make_config(
+                gen_base = [528, 264, 132, 66, 33, 17],
+                gen_min = 17,
+                disc_seq = [66, 132, 264, 528, 528, 528],
+                disc_fc = lambda image_size: [image_size * 4, image_size * 4],
+                gen_ch0 = 528,
+                gen_pre_dense = [896],
+                extra_conv = True,
+        ),
 }
 
 MODEL_CONFIGS_114 = {
@@ -125,6 +152,15 @@ MODEL_CONFIGS_114 = {
                 gen_min = 19,
                 disc_seq = [74, 148, 296, 592, 592, 592, 592],
                 disc_fc = lambda image_size: [192],
+                gen_ch0 = 592,
+                gen_pre_dense = [640],
+                extra_conv = True,
+        ),
+        "model_3_large": _make_config(
+                gen_base = [592, 296, 148, 74, 37, 19, 19],
+                gen_min = 19,
+                disc_seq = [74, 148, 296, 592, 592, 592, 592],
+                disc_fc = lambda image_size: [192, 192],
                 gen_ch0 = 592,
                 gen_pre_dense = [640],
                 extra_conv = True,
@@ -157,6 +193,15 @@ MODEL_CONFIGS_120 = {
                 gen_pre_dense = [768],
                 extra_conv = True,
         ),
+        "model_3_large": _make_config(
+                gen_base = [640, 320, 160, 80, 40, 20, 20],
+                gen_min = 20,
+                disc_seq = [80, 160, 320, 640, 640, 640, 640],
+                disc_fc = lambda image_size: [192, 192],
+                gen_ch0 = 640,
+                gen_pre_dense = [768],
+                extra_conv = True,
+        ),
 }
 
 MODEL_CONFIGS_128 = {
@@ -181,6 +226,15 @@ MODEL_CONFIGS_128 = {
                 gen_min = 22,
                 disc_seq = [88, 176, 352, 704, 704, 704, 704],
                 disc_fc = lambda image_size: [224],
+                gen_ch0 = 704,
+                gen_pre_dense = [896],
+                extra_conv = True,
+        ),
+        "model_3_large": _make_config(
+                gen_base = [704, 352, 176, 88, 44, 22, 22],
+                gen_min = 22,
+                disc_seq = [88, 176, 352, 704, 704, 704, 704],
+                disc_fc = lambda image_size: [224, 224],
                 gen_ch0 = 704,
                 gen_pre_dense = [896],
                 extra_conv = True,
@@ -210,6 +264,15 @@ MODEL_CONFIGS_240 = {
                 gen_min = 88,
                 disc_seq = [104, 192, 280, 392, 560, 560],
                 disc_fc = lambda image_size: [image_size * 4],
+                gen_ch0 = 720,
+                gen_pre_dense = [1600],
+                extra_conv = True,
+        ),
+        "model_3_large": _make_config(
+                gen_base = [560, 392, 280, 192, 144, 88],
+                gen_min = 88,
+                disc_seq = [104, 192, 280, 392, 560, 560],
+                disc_fc = lambda image_size: [image_size * 4, image_size * 4],
                 gen_ch0 = 720,
                 gen_pre_dense = [1600],
                 extra_conv = True,
