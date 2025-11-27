@@ -6,11 +6,16 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import matplotlib
+import numpy as np
+import random
+import cv2
+import keras
+from keras.preprocessing.image import img_to_array
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path
+from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path, comparisons_elements, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator
 from ganalyzer.model_config import all_models
 
 STATISTICS_FILENAME = "statistics.csv"
@@ -223,6 +228,139 @@ def _generate_combined_statistics_plots():
 		print(f"Saved combined statistics plots to '{PLOTS_ROOT_DIRECTORY_PATH}'.")
 	else:
 		print("No numeric statistics were found to plot for combined statistics.")
+
+	save_comparisons_models()
+
+def get_real_images_sample():
+	print('===> Generating real images ')
+	dataset_directory = Path(dataset_path)
+
+	image_paths = [path for path in sorted(dataset_directory.iterdir()) if path.is_file()]
+
+	selected_paths = random.sample(image_paths, k = min(nb_comparisons, len(image_paths)))
+	images = []
+	read_mode = cv2.IMREAD_COLOR if rgb_images else cv2.IMREAD_GRAYSCALE
+
+	for image_path in selected_paths:
+		image = cv2.imread(str(image_path), read_mode)
+		if image is None:
+			print(f"Failed to load image: {image_path}")
+			continue
+
+		if rgb_images:
+			image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+		normalized = (image.astype("float32") - 127.5) / 127.5
+		images.append(img_to_array(normalized))
+
+	return images
+
+def get_fake_images_sample(generator_name, generator_epoch):
+	print('===> Generating fake images using ', generator_name, generator_epoch)
+	epoch_number = int(str(generator_epoch).replace("epoch_", ""))
+
+	generator_path = Path(results_root_path) / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
+
+	generator = keras.models.load_model(generator_path)
+	ls_size = int(generator_name.split("_")[-1])
+	latent_vectors = np.random.normal(0.0, 1.0, size = (nb_comparisons, ls_size))
+
+	generated_images = generator(latent_vectors, training = False).numpy()
+	images = []
+
+	for image in generated_images:
+		if not rgb_images and image.shape[-1] == 3:
+			image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+			image = np.expand_dims(image, axis = -1)
+
+		images.append(img_to_array(image.astype("float32")))
+
+	return images
+
+def get_accuracy_on_images(model_name, model_epoch, images_set, is_real_images):
+	# could use get_model_path_at_given_epoch(model_type, current_best_result) ? i don't know
+	# should obtain the accuracy of a given model on a given epoch, using a special set of images. they are either all real or all fake, given by boolean is_real_images
+
+	if not images_set:
+		return 0.0
+
+	epoch_number = int(str(model_epoch).replace("epoch_", ""))
+
+	model_path = Path(results_root_path) / model_name / "models" / f"discriminator_epoch_{epoch_number:06d}.keras"
+
+	discriminator = keras.models.load_model(model_path)
+	images_array = np.asarray(images_set, dtype = np.float32)
+	predictions = np.squeeze(discriminator(images_array, training = False).numpy())
+
+	expected_label = 1.0 if is_real_images else 0.0
+	predicted_labels = (predictions >= 0.5).astype(np.float32)
+
+	return float(np.mean(predicted_labels == expected_label))
+
+def get_values_comparisons(size):
+	result = [[0 for i in range(size)] for j in range(size + 1)]
+	# nb_comparisons
+
+	for current_generator_index in range(size + 1):
+		################################################################################# First, generate images
+		if current_generator_index == 0:
+			real_images = True
+			generated_images = get_real_images_sample()
+		else:
+			real_images = False
+			generated_images = get_fake_images_sample(comparisons_elements[current_generator_index - 1][0], comparisons_elements[current_generator_index - 1][1])
+
+		################################################################################# then, see what discriminators could have discriminated them
+
+		for current_discriminator_index in range(size):
+			model_name = comparisons_elements[current_discriminator_index][0]
+			epoch = comparisons_elements[current_discriminator_index][1]
+			accuracy = get_accuracy_on_images(model_name, epoch, generated_images, real_images)
+			result[current_generator_index][current_discriminator_index] = accuracy
+
+	return result
+
+def save_comparisons_models():
+	size = len(comparisons_elements)
+
+	data = get_values_comparisons(size)
+
+	# todo detect if only one element differs
+	# row_labels = ["real images"] + [elem[0] + "\n" + elem[1] for elem in comparisons_elements]
+	# col_labels = [elem[0] + "\n" + elem[1] for elem in comparisons_elements]
+	row_labels = ["real images"] + [elem[0] + elem[1] for elem in comparisons_elements]
+	col_labels = [elem[0] + elem[1] for elem in comparisons_elements]
+
+	fig, ax = plt.subplots()
+	im = ax.imshow(data, cmap = 'gray', interpolation = 'nearest')
+
+	ax.set_xticks(np.arange(len(col_labels)))
+	ax.set_yticks(np.arange(len(row_labels)))
+	ax.set_xticklabels(col_labels)
+	ax.set_yticklabels(row_labels)
+
+	# plt.setp(ax.get_xticklabels(), rotation = 75, ha = "right", rotation_mode = "anchor")
+	plt.setp(ax.get_xticklabels(), rotation = 90, ha = "right", rotation_mode = "anchor")
+
+	plt.colorbar(im)
+	plt.title("Using given Generator on Given Discriminator")
+	ax.set_xlabel("Discriminator")
+	ax.set_ylabel("Generator")
+
+	for i in range(len(data)):
+		for j in range(len(data[0])):
+			data_as_percentage = data[i][j] * 100
+			if data_as_percentage < 50:
+				color = "white"
+			else:
+				color = "black"
+
+			# ax.text(j, i, str(round(data_as_percentage, 1)) + "%", ha = "center", va = "center", color = color, fontsize = 8)
+			ax.text(j, i, str(round(data_as_percentage, 1)) + "%", ha = "center", va = "center", color = color, fontsize = 4)
+
+	plt.subplots_adjust(bottom = 0.6)
+	plt.savefig(Path(PLOTS_ROOT_DIRECTORY_PATH, "heatmap.png"), dpi=300)
+	plt.close()
 
 if __name__ == "__main__":
 	_generate_combined_statistics_plots()

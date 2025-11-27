@@ -4,7 +4,7 @@ from ganalyzer.model_config import *
 
 # common
 
-latent_dimension_generator = 121  # 49 #121 #225
+latent_dimension_generator = 49  # 49 #121 #225
 
 dataset_name = "humans_fifa"  # "cars_2"
 dataset_dimension = str(model_output_size)
@@ -49,6 +49,17 @@ all_models = [
 every_models_statistics_path = [
 	os.path.join(results_root_path, entry) for entry in all_models
 ]
+
+# comparisons_elements = [('model_0_tiny-ls_0049','epoch_000000'),('model_0_tiny-ls_0049','epoch_000050'),('model_0_tiny-ls_0049','epoch_000100')] #ls 49, trough epochs
+# comparisons_elements = [('model_0_tiny-ls_0121','epoch_000000'),('model_0_tiny-ls_0121','epoch_000050'),('model_0_tiny-ls_0121','epoch_000100')] #ls 121, trough epochs
+# comparisons_elements = [('model_0_tiny-ls_0225','epoch_000000'),('model_0_tiny-ls_0225','epoch_000050'),('model_0_tiny-ls_0225','epoch_000100')] #ls 225, trough epochs
+
+# comparisons_elements = [('model_0_tiny-ls_0121','epoch_000000'),('model_0_tiny-ls_0121','epoch_000025'),('model_0_tiny-ls_0121','epoch_000050'),('model_0_tiny-ls_0121','epoch_000075'),('model_0_tiny-ls_0121','epoch_000100')] #ls 121, trough epochs
+comparisons_elements = [('model_0_tiny-ls_0121', 'epoch_000000'), ('model_0_tiny-ls_0121', 'epoch_000020'), ('model_0_tiny-ls_0121', 'epoch_000040'), ('model_0_tiny-ls_0121', 'epoch_000060'), ('model_0_tiny-ls_0121', 'epoch_000080'), ('model_0_tiny-ls_0121', 'epoch_000100')]  # ls 121, trough epochs
+
+# comparisons_elements = [('model_0_tiny-ls_0049', 'epoch_000100'), ('model_0_tiny-ls_0121', 'epoch_000100'), ('model_0_tiny-ls_0225', 'epoch_000100')]  # ls 121, epoch 100, trough var
+
+nb_comparisons = 200
 
 # Sample outputs
 sample_outputs_root_directory = os.path.join(model_path, "sample_outputs")
