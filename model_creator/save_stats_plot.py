@@ -15,7 +15,8 @@ from keras.preprocessing.image import img_to_array
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path, comparisons_elements, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator
+from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator, latent_dimension_generator_available, models_directory, nb_epoch_taken_comparison, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
+	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY
 from ganalyzer.model_config import all_models
 
 STATISTICS_FILENAME = "statistics.csv"
@@ -229,10 +230,10 @@ def _generate_combined_statistics_plots():
 	else:
 		print("No numeric statistics were found to plot for combined statistics.")
 
-	save_comparisons_models()
+	save_all_comparisons_models()
 
 def get_real_images_sample():
-	print('===> Generating real images ')
+	print('getting real images ')
 	dataset_directory = Path(dataset_path)
 
 	image_paths = [path for path in sorted(dataset_directory.iterdir()) if path.is_file()]
@@ -256,7 +257,7 @@ def get_real_images_sample():
 	return images
 
 def get_fake_images_sample(generator_name, generator_epoch):
-	print('===> Generating fake images using ', generator_name, generator_epoch)
+	print('Generating fake images using ', generator_name, generator_epoch)
 	epoch_number = int(str(generator_epoch).replace("epoch_", ""))
 
 	generator_path = Path(results_root_path) / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
@@ -297,7 +298,7 @@ def get_accuracy_on_images(model_name, model_epoch, images_set, is_real_images):
 
 	return float(np.mean(predicted_labels == expected_label))
 
-def get_values_comparisons(size):
+def get_values_comparisons(size, comparisons_elements):
 	result = [[0 for i in range(size)] for j in range(size + 1)]
 	# nb_comparisons
 
@@ -320,10 +321,104 @@ def get_values_comparisons(size):
 
 	return result
 
-def save_comparisons_models():
+def save_all_comparisons_models():
+	print('\n======> Generate heatmap epoch')
+	produce_heatmap_epoch()
+
+	print('\n======> Generate heatmap model size')
+	produce_heatmap_model_size()
+
+	print('\n======> Generate heatmap latent space')
+	produce_heatmap_latent_space()
+
+def get_number_epoch_in_given_setting(setting):
+	setting_models_directory = Path(results_root_path) / setting / "models"
+
+	if not setting_models_directory.exists():
+		return 0
+
+	max_epoch = 0
+
+	for model_file in setting_models_directory.iterdir():
+		if not model_file.is_file():
+			continue
+
+		if not model_file.name.endswith(".keras"):
+			continue
+
+		try:
+			current_epoch = int(model_file.stem.split("_")[-1])
+		except ValueError:
+			continue
+
+		max_epoch = max(max_epoch, current_epoch)
+
+	print('========> debug ', setting, results_root_path, max_epoch)
+	return max_epoch
+
+def produce_heatmap_epoch():
+	available_settings = os.listdir(results_root_path)
+	if "plots" in available_settings:
+		available_settings.remove("plots")
+
+	for current_setting in available_settings:
+		print("====> Current setting : ", current_setting)
+		max_epoch = get_number_epoch_in_given_setting(current_setting)
+		if max_epoch == 100:
+			print("==> Has 100 epoch")
+			step = int(max_epoch / nb_epoch_taken_comparison)
+			current_epoch = 0
+			comparisons_elements = []
+			for i in range(nb_epoch_taken_comparison + 1):
+				epoch_name = get_epoch_name(current_epoch)
+				comparisons_elements.append((current_setting, epoch_name))
+				current_epoch = current_epoch + step
+
+			save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_EPOCHS_DIRECTORY, current_setting)
+
+def get_epoch_name(current_epoch):  # TODO use this in train etc
+	return "epoch_" + ((6 - len(str(current_epoch))) * "0") + str(current_epoch)
+
+def get_ls_name(current_latent_dimension_generator):
+	return "ls_" + ((4 - len(str(current_latent_dimension_generator))) * "0") + str(current_latent_dimension_generator)
+
+def produce_heatmap_model_size():
+	for current_latent_dimension_generator in latent_dimension_generator_available:
+		comparisons_elements = []  # list every model size for that ls
+		current_latent_dimension_generator_str = get_ls_name(current_latent_dimension_generator)
+
+		print("====> now on ", current_latent_dimension_generator_str)
+
+		for current_model in all_models:
+			total_name = current_model + "-" + current_latent_dimension_generator_str
+			available_epochs = get_number_epoch_in_given_setting(total_name)
+			epoch_name = get_epoch_name(available_epochs)
+
+			new_elem = (total_name, epoch_name)
+			comparisons_elements.append(new_elem)
+
+			print("==> Current model : ", current_model, " nb epochs ", epoch_name, " result ", new_elem)
+
+		save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, "ls_size =  " + str(current_latent_dimension_generator))
+
+def produce_heatmap_latent_space():
+	for current_model in all_models:
+		comparisons_elements = []  # list every ls for that model size
+		print("====> now on ", current_model)
+		for current_ls in latent_dimension_generator_available:
+			current_latent_dimension_generator_str = get_ls_name(current_ls)
+			print("==> Current ls ", current_latent_dimension_generator_str)
+			total_name = current_model + "-" + current_latent_dimension_generator_str
+			epoch_name = get_epoch_name(get_number_epoch_in_given_setting(total_name))
+			new_elem = (total_name, epoch_name)
+			comparisons_elements.append(new_elem)
+
+		save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, "model_size " + current_model)
+
+def save_comparisons_models(comparisons_elements, directory, setting_name):
 	size = len(comparisons_elements)
 
-	data = get_values_comparisons(size)
+	data = get_values_comparisons(size, comparisons_elements)
 
 	# todo detect if only one element differs
 	# row_labels = ["real images"] + [elem[0] + "\n" + elem[1] for elem in comparisons_elements]
@@ -343,7 +438,7 @@ def save_comparisons_models():
 	plt.setp(ax.get_xticklabels(), rotation = 90, ha = "right", rotation_mode = "anchor")
 
 	plt.colorbar(im)
-	plt.title("Using given Generator on Given Discriminator")
+	plt.title("Heatmap for  " + setting_name)
 	ax.set_xlabel("Discriminator")
 	ax.set_ylabel("Generator")
 
@@ -359,7 +454,8 @@ def save_comparisons_models():
 			ax.text(j, i, str(round(data_as_percentage, 1)) + "%", ha = "center", va = "center", color = color, fontsize = 4)
 
 	plt.subplots_adjust(bottom = 0.6)
-	plt.savefig(Path(PLOTS_ROOT_DIRECTORY_PATH, "heatmap.png"), dpi=300)
+	# plt.savefig(Path(PLOTS_ROOT_DIRECTORY_PATH, "heatmap.png"), dpi = 300)
+	plt.savefig(Path(directory) / f"{setting_name}.png", dpi = 300)
 	plt.close()
 
 if __name__ == "__main__":

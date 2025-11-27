@@ -4,7 +4,8 @@ from ganalyzer.model_config import *
 
 # common
 
-latent_dimension_generator = 49  # 49 #121 #225
+latent_dimension_generator_available = [49, 121, 225]
+latent_dimension_generator = latent_dimension_generator_available[0]
 
 dataset_name = "humans_fifa"  # "cars_2"
 dataset_dimension = str(model_output_size)
@@ -25,6 +26,13 @@ rgb_images = True
 PLOTS_DIRECTORY_NAME = "plots"
 PLOTS_ROOT_DIRECTORY = os.path.join(results_root_path, PLOTS_DIRECTORY_NAME)
 os.makedirs(PLOTS_ROOT_DIRECTORY, exist_ok = True)
+
+PLOTS_HEATMAP_EPOCHS_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, "heatmap_epochs")
+os.makedirs(PLOTS_HEATMAP_EPOCHS_DIRECTORY, exist_ok = True)
+PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, "heatmap_model_size")
+os.makedirs(PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, exist_ok = True)
+PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, "heatmap_latent_space_size")
+os.makedirs(PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, exist_ok = True)
 
 RESULTS_DIRECTORY = model_path
 
@@ -50,15 +58,7 @@ every_models_statistics_path = [
 	os.path.join(results_root_path, entry) for entry in all_models
 ]
 
-# comparisons_elements = [('model_0_tiny-ls_0049','epoch_000000'),('model_0_tiny-ls_0049','epoch_000050'),('model_0_tiny-ls_0049','epoch_000100')] #ls 49, trough epochs
-# comparisons_elements = [('model_0_tiny-ls_0121','epoch_000000'),('model_0_tiny-ls_0121','epoch_000050'),('model_0_tiny-ls_0121','epoch_000100')] #ls 121, trough epochs
-# comparisons_elements = [('model_0_tiny-ls_0225','epoch_000000'),('model_0_tiny-ls_0225','epoch_000050'),('model_0_tiny-ls_0225','epoch_000100')] #ls 225, trough epochs
-
-# comparisons_elements = [('model_0_tiny-ls_0121','epoch_000000'),('model_0_tiny-ls_0121','epoch_000025'),('model_0_tiny-ls_0121','epoch_000050'),('model_0_tiny-ls_0121','epoch_000075'),('model_0_tiny-ls_0121','epoch_000100')] #ls 121, trough epochs
-comparisons_elements = [('model_0_tiny-ls_0121', 'epoch_000000'), ('model_0_tiny-ls_0121', 'epoch_000020'), ('model_0_tiny-ls_0121', 'epoch_000040'), ('model_0_tiny-ls_0121', 'epoch_000060'), ('model_0_tiny-ls_0121', 'epoch_000080'), ('model_0_tiny-ls_0121', 'epoch_000100')]  # ls 121, trough epochs
-
-# comparisons_elements = [('model_0_tiny-ls_0049', 'epoch_000100'), ('model_0_tiny-ls_0121', 'epoch_000100'), ('model_0_tiny-ls_0225', 'epoch_000100')]  # ls 121, epoch 100, trough var
-
+nb_epoch_taken_comparison = 5
 nb_comparisons = 200
 
 # Sample outputs
