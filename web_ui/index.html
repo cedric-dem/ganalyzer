@@ -5,200 +5,175 @@
     <title>GANalyzer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-    <body>
-        <div class="container">
-            <div class="box">  <!-- Generator Input -->
-                <h1 class="top_bar">Generator Input</h1>
-                <div style="height:20%;flex-direction: row; display: flex;">
 
-                    <div style="width:50%; flex-direction: row;display: flex;">
-                        <div style="width:90%; flex-direction: row;display: flex; background-color: black; border-radius: 50px; padding: 5px;margin-left: 2.5%">
-                            <p style="width:30%; flex-direction: row;display: flex; color: white;justify-content: center; align-items: center;">
-                                Set Random Values
-                            </p>
+<div class="container">
+    <div class="box">  <!-- Generator Input -->
+        <h1 class="top_bar">Generator Input</h1>
 
-                            <div style="width:30%; flex-direction: column;display: flex;">
-                                <div style="height:50%">
-                                    <input type="range" id="sliderMuValue" min="-10" max="10" value="0" step="0.01" oninput="handleSliderMuValue(this.value)"/>
-                                </div>
-
-                                <div style="height:50%; display:flex; justify-content:center; align-items:flex-start;">
-                                    <p style="margin:0; color: white">mu = <span id="sliderMuValueLabel">0</span></p>
-                                </div>
-                            </div>
-
-                            <div style="width:30%; height:100%;flex-direction: column;display: flex;">
-                                <div style="height:50%;">
-                                    <input type="range" id="sliderSigmaValue" min="0" max="5" value="1" step="0.01" oninput="handleSliderSigmaValue(this.value)"/>
-                                </div>
-
-                                <div style="height:50%; display:flex; justify-content:center; align-items:flex-start;">
-                                    <p style="margin:0; color: white">sigma = <span id="sliderSigmaValueLabel">1</span></p>
-                                </div>
-                            </div>
-
-                            <button style="border-radius: 20px; border: 1px solid white; width:10%; flex-direction: row;display: flex; background-color: grey; display:flex; justify-content:center; align-items:center;" onclick="re_randomize()">
-                                Regenerate
-                            </button>
-                        </div>
+        <div class="panel-row">
+            <div class="control-card">
+                <div class="control-card__header">Set Random Values</div>
+                <div class="control-card__content">
+                    <div class="slider-stack">
+                        <label for="sliderMuValue">Mean (μ)</label>
+                        <input type="range" id="sliderMuValue" min="-10" max="10" value="0" step="0.01"
+                               oninput="handleSliderMuValue(this.value)"/>
+                        <p class="value-label">mu = <span id="sliderMuValueLabel">0</span></p>
                     </div>
-
-                    <div style="width:50%; flex-direction: row;display: flex;">
-
-                        <div style="width:90%; flex-direction: row;display: flex; background-color: black; border-radius: 50px; padding: 5px;margin-left: 2.5%">
-
-                            <p style="width:40%; flex-direction: row;display: flex; color: white;justify-content: center; align-items: center;">
-                                Set All Values Constant
-                            </p>
-
-                            <div style="width:50%; flex-direction: column;display: flex;">
-                                <div style="height:50%">
-                                    <input type="range" id="sliderConstantValue" min="-5" max="5" value="0" step="0.01" oninput="handleSliderConstantValue(this.value)"/>
-                                </div>
-
-                                <div style="height:50%; display:flex; justify-content:center; align-items:flex-start;">
-                                    <p style="margin:0; color: white">k = <span id="sliderConstantValueLabel">0</span></p>
-                                </div>
-                            </div>
-
-                            <button style="border-radius: 20px; border: 1px solid white; width:10%; flex-direction: row;display: flex; background-color: grey; display:flex; justify-content:center; align-items:center;" onclick="set_constant_input()">
-                                Set
-                            </button>
-
-                        </div>
-
+                    <div class="slider-stack">
+                        <label for="sliderSigmaValue">Std Dev (σ)</label>
+                        <input type="range" id="sliderSigmaValue" min="0" max="5" value="1" step="0.01"
+                               oninput="handleSliderSigmaValue(this.value)"/>
+                        <p class="value-label">sigma = <span id="sliderSigmaValueLabel">1</span></p>
                     </div>
-                </div>
-
-                <div style = "height:60%; width: 100%">
-                    <div style = "height:90%; width: 90%; margin-left: 5%; margin-top: 0.1%">
-                        <div id="sliders_grid" style="height:100%; width: 100%; background-color: black; ">
-                        </div>
-                    </div>
+                    <button class="primary-btn" onclick="re_randomize()">Regenerate</button>
                 </div>
             </div>
 
-            <div class="box">  <!-- Generator Visualization -->
-                <h1 class="top_bar">Generator Visualization</h1>
-                <div style = "width:100%; height:80%;flex-direction: row; display: flex;">
-
-                    <div style = "width : 25%; background-color: black; display: flex; flex-direction: column; justify-content: center; align-items: center;"> <!-- epoch slider-->
-                        <div class="small_inside_panel_quarter_title" style="display: flex; justify-content: center; align-items: center;">
-                            <p style="align-items: center">Epoch Slider</p>
-                        </div>
-                        <div class="small_inside_panel_quarter">
-                            <div style="background-color:#aaaaaa; height: 50%; display: flex; justify-content: center; align-items: center;">
-                                <p id = "labelGeneratorEpochValue"> Current Epoch : 0 / 300 </p>
-                            </div>
-                            <div style="background-color:#bbbbbb; height: 50%; display: flex; justify-content: center; align-items: center;">
-                                <input type="range" id="sliderGeneratorEpochValue" min="0" max="300" value="250" step="1" oninput="handleSliderGeneratorEpochValue(this.value)"/>
-                            </div>
-                        </div>
+            <div class="control-card">
+                <div class="control-card__header">Set All Values Constant</div>
+                <div class="control-card__content">
+                    <div class="slider-stack">
+                        <label for="sliderConstantValue">Constant value</label>
+                        <input type="range" id="sliderConstantValue" min="-5" max="5" value="0" step="0.01"
+                               oninput="handleSliderConstantValue(this.value)"/>
+                        <p class="value-label">k = <span id="sliderConstantValueLabel">0</span></p>
                     </div>
-
-                    <div style = "width : 25%; background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;"><!-- input visualization-->
-                        <div class="small_inside_panel_quarter_title" style="display: flex; justify-content: center; align-items: center;">
-                            <p style="align-items: center">Input Generator</p>
-                        </div>
-                        <div class="small_inside_panel_quarter">
-                            <div id="grid_input_generator"> </div>
-                        </div>
-                    </div>
-
-                    <div style = "width : 25%; background-color: black; display: flex; flex-direction: column; justify-content: center; align-items: center;"><!-- inside visualization-->
-                        <div class="small_inside_panel_quarter_title" style="display: flex; justify-content: center; align-items: center;">
-                            <p style="align-items: center">Inside Generator</p>
-                        </div>
-
-                        <div class="small_inside_panel_quarter">
-                            <div style="background-color:#aaaaaa; height: 20%; display: flex; justify-content: center; align-items: center;">
-                                <label for="choice_layer_generator">Choose a layer to visualize:</label>
-                                <select id="choice_layer_generator">
-                                    <option value="option1">Option 1</option>
-                                    <option value="option2">Option 2</option>
-                                </select>
-                            </div>
-
-                            <div style="background-color:#ffffff; height: 80%; display: flex; justify-content: center; align-items: center;">
-                                todo
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style = "width : 25%; background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;"><!-- output visualization-->
-                        <div class="small_inside_panel_quarter_title" style="display: flex; justify-content: center; align-items: center;">
-                            <p style="align-items: center">Output Generator</p>
-                        </div>
-                        <div class="small_inside_panel_quarter"  style="display: flex; justify-content: center; align-items: center;">
-                            <div id="grid_visual_generator"></div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="box">   <!-- Discriminator visualization -->
-                <h1 class="top_bar">Discriminator Visualization</h1>
-
-                <div style = "width:100%; height:80%;flex-direction: row; display: flex;">
-
-                    <div style = "width : 25%; background-color: black; display: flex; flex-direction: column; justify-content: center; align-items: center;"> <!-- epoch slider-->
-                        <div class="small_inside_panel_quarter_title" style="display: flex; justify-content: center; align-items: center;">
-                            <p style="align-items: center">Epoch Slider</p>
-                        </div>
-                        <div class="small_inside_panel_quarter">
-                            <div style="background-color:#aaaaaa; height: 50%; display: flex; justify-content: center; align-items: center;">
-                                <p id = "labelDiscriminatorEpochValue"> Current Epoch : 0 / 300 </p>
-                            </div>
-                            <div style="background-color:#bbbbbb; height: 50%; display: flex; justify-content: center; align-items: center;">
-                                <input type="range" id="sliderDiscriminatorEpochValue" min="0" max="300" value="250" step="1" oninput="handleSliderDiscriminatorEpochValue(this.value)"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style = "width : 25%; background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;"><!-- input visualization-->
-                        <div class="small_inside_panel_quarter_title" style="display: flex; justify-content: center; align-items: center;">
-                            <p style="align-items: center">Input Discriminator</p>
-                        </div>
-                        <div class="small_inside_panel_quarter"  style="display: flex; justify-content: center; align-items: center;">
-                            <div id="grid_input_discriminator"></div>
-                        </div>
-                    </div>
-
-                    <div style = "width : 25%; background-color: black; display: flex; flex-direction: column; justify-content: center; align-items: center;"><!-- inside visualization-->
-                        <div class="small_inside_panel_quarter_title" style="display: flex; justify-content: center; align-items: center;">
-                            <p style="align-items: center">Inside Discriminator</p>
-                        </div>
-
-                        <div class="small_inside_panel_quarter">
-                            <div style="background-color:#aaaaaa; height: 20%; display: flex; justify-content: center; align-items: center;">
-                                <label for="choice_layer_discriminator">Choose a layer to visualize:</label>
-                                <select id="choice_layer_discriminator">
-                                    <option value="option1">Option 1</option>
-                                    <option value="option2">Option 2</option>
-                                </select>
-                            </div>
-
-                            <div style="background-color:#ffffff; height: 80%; display: flex; justify-content: center; align-items: center;">
-                                todo
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style = "width : 25%; background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;"><!-- output visualization-->
-                        <div class="small_inside_panel_quarter_title" style="display: flex; justify-content: center; align-items: center;">
-                            <p style="align-items: center">Output Discriminator</p>
-                        </div>
-                        <div class="small_inside_panel_quarter"  style="display: flex; justify-content: center; align-items: center;">
-                            <div>
-                                Prediction : todo
-                            </div>
-                        </div>
-                    </div>
-
+                    <button class="primary-btn" onclick="set_constant_input()">Set</button>
                 </div>
             </div>
         </div>
-        <script src="script.js"></script>
-    </body>
+
+        <div class="panel-block">
+            <div class="panel-block__inner">
+                <div id="sliders_grid" class="card-surface"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="box">  <!-- Generator Visualization -->
+        <h1 class="top_bar">Generator Visualization</h1>
+        <div class="panel-row">
+
+            <div class="small-panel">
+                <div class="small_inside_panel_quarter_title center">
+                    <p>Epoch Slider</p>
+                </div>
+                <div class="small_inside_panel_quarter">
+                    <div class="card-surface center">
+                        <p id="labelGeneratorEpochValue"> Current Epoch : 0 / 300 </p>
+                    </div>
+                    <div class="card-surface center">
+                        <input type="range" id="sliderGeneratorEpochValue" min="0" max="300" value="250" step="1"
+                               oninput="handleSliderGeneratorEpochValue(this.value)"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="small-panel">
+                <div class="small_inside_panel_quarter_title center">
+                    <p>Input Generator</p>
+                </div>
+                <div class="small_inside_panel_quarter center">
+                    <div id="grid_input_generator"></div>
+                </div>
+            </div>
+
+            <div class="small-panel">
+                <div class="small_inside_panel_quarter_title center">
+                    <p>Inside Generator</p>
+                </div>
+
+                <div class="small_inside_panel_quarter">
+                    <div class="card-surface center column">
+                        <label for="choice_layer_generator">Choose a layer to visualize:</label>
+                        <select id="choice_layer_generator">
+                            <option value="option1">Option 1</option>
+                            <option value="option2">Option 2</option>
+                        </select>
+                    </div>
+
+                    <div class="card-surface center">
+                        todo
+                    </div>
+                </div>
+            </div>
+
+            <div class="small-panel">
+                <div class="small_inside_panel_quarter_title center">
+                    <p>Output Generator</p>
+                </div>
+                <div class="small_inside_panel_quarter center">
+                    <div id="grid_visual_generator"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="box">   <!-- Discriminator visualization -->
+        <h1 class="top_bar">Discriminator Visualization</h1>
+
+        <div class="panel-row">
+
+            <div class="small-panel">
+                <div class="small_inside_panel_quarter_title center">
+                    <p>Epoch Slider</p>
+                </div>
+                <div class="small_inside_panel_quarter">
+                    <div class="card-surface center">
+                        <p id="labelDiscriminatorEpochValue"> Current Epoch : 0 / 300 </p>
+                    </div>
+                    <div class="card-surface center">
+                        <input type="range" id="sliderDiscriminatorEpochValue" min="0" max="300" value="250" step="1"
+                               oninput="handleSliderDiscriminatorEpochValue(this.value)"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="small-panel">
+                <div class="small_inside_panel_quarter_title center">
+                    <p>Input Discriminator</p>
+                </div>
+                <div class="small_inside_panel_quarter center">
+                    <div id="grid_input_discriminator"></div>
+                </div>
+            </div>
+
+            <div class="small-panel">
+                <div class="small_inside_panel_quarter_title center">
+                    <p>Inside Discriminator</p>
+                </div>
+
+                <div class="small_inside_panel_quarter">
+                    <div class="card-surface center column">
+                        <label for="choice_layer_discriminator">Choose a layer to visualize:</label>
+                        <select id="choice_layer_discriminator">
+                            <option value="option1">Option 1</option>
+                            <option value="option2">Option 2</option>
+                        </select>
+                    </div>
+
+                    <div class="card-surface center">
+                        todo
+                    </div>
+                </div>
+            </div>
+
+            <div class="small-panel">
+                <div class="small_inside_panel_quarter_title center">
+                    <p>Output Discriminator</p>
+                </div>
+                <div class="small_inside_panel_quarter center">
+                    <div>
+                        Prediction : todo
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="script.js"></script>
+</body>
 </html>
