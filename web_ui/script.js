@@ -133,7 +133,7 @@ function initialize_generator_sliders() {
 
     const div_sliders = document.getElementById("sliders_grid");
 
-    div_sliders.style.gridTemplateColumns = `repeat(${LATENT_SPACE_SIZE_SQRT}, auto)`;
+    div_sliders.style.gridTemplateColumns = `repeat(${LATENT_SPACE_SIZE_SQRT}, minmax(0, 1fr))`;
     div_sliders.style.gridTemplateRows = `repeat(${LATENT_SPACE_SIZE_SQRT}, auto)`;
 
     for (let i = 0; i < LATENT_SPACE_SIZE_SQRT; i++) {
@@ -146,8 +146,6 @@ function initialize_generator_sliders() {
             new_element.step = 0.01;
             new_element.value = 0;
             new_element.classList.add('slider');
-            new_element.style.width = "100px"; //TODO : automatic retrieval of these values
-            new_element.style.height = "10px";
 
             new_element.oninput = function () {
                 handleSliderValueChange(i, j, new_element.value);
@@ -187,7 +185,7 @@ function handleSliderDiscriminatorEpochValue() {
 /// config
 const AVAILABLE_EPOCHS = 300
 const IMAGE_SIZE = 100;
-const LATENT_SPACE_SIZE = 121;
+const LATENT_SPACE_SIZE = 49;
 const LATENT_SPACE_SIZE_SQRT = LATENT_SPACE_SIZE ** 0.5;
 
 /// generator panel
