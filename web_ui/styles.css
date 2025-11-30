@@ -265,3 +265,7 @@ p {
     box-sizing: border-box;
     min-width: 0;
 }
+.small_inside_panel_quarter input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+}
