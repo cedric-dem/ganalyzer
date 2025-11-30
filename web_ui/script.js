@@ -20,6 +20,28 @@ async function get_result_generator() {
     }
 }
 
+
+async function change_epoch(model_type, new_epoch) {
+    // console.log('change epoch' + model_type);
+    try {
+        const response = await fetch("http://127.0.0.1:5000/change-epoch-" + model_type, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({new_epoch: new_epoch}),
+        });
+
+        const data = await response.json();
+        // todo add error if not changed
+        return data.new_epoch_found
+
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
+
 function get_input_vector_as_matrix() {
     var latent_vector_as_matrix = Array.from({length: LATENT_SPACE_SIZE_SQRT}, () => Array(LATENT_SPACE_SIZE_SQRT).fill(null));
 
@@ -162,28 +184,31 @@ function handleSliderValueChange(i, j, new_value) {
     get_result_generator()
 }
 
-function handleSliderGeneratorEpochValue() {
+async function handleSliderGeneratorEpochValue() {
     new_epoch = document.getElementById("sliderGeneratorEpochValue").value;
 
-    //change text
-    document.getElementById("labelGeneratorEpochValue").textContent = "Epoch : " + new_epoch + "/" + AVAILABLE_EPOCHS;
-
     //send message to python api
-    // TODO
+    found_epoch = await change_epoch("generator", new_epoch)
+
+    //change text
+    document.getElementById("labelGeneratorEpochValue").textContent = "Epoch : " + new_epoch + "(" + found_epoch + ")" + "/" + AVAILABLE_EPOCHS;
+    get_result_generator()
+
 }
 
-function handleSliderDiscriminatorEpochValue() {
+async function handleSliderDiscriminatorEpochValue() {
     new_epoch = document.getElementById("sliderDiscriminatorEpochValue").value;
 
-    //change text
-    document.getElementById("labelDiscriminatorEpochValue").textContent = "Epoch : " + new_epoch + "/" + AVAILABLE_EPOCHS;
-
     //send message to python api
-    // TODO
+    found_epoch = await change_epoch("generator", new_epoch)
+
+    //change text
+    document.getElementById("labelDiscriminatorEpochValue").textContent = "Epoch : " + new_epoch + "(" + found_epoch + ")" + "/" + AVAILABLE_EPOCHS;
+    //get_result_discriminator()
 }
 
 /// config
-const AVAILABLE_EPOCHS = 300
+const AVAILABLE_EPOCHS = 100;
 const IMAGE_SIZE = 100;
 const LATENT_SPACE_SIZE = 49;
 const LATENT_SPACE_SIZE_SQRT = LATENT_SPACE_SIZE ** 0.5;
@@ -203,3 +228,6 @@ const generator_image_pixels = Array.from({length: IMAGE_SIZE}, () => Array(IMAG
 initialize_generator_image()
 initialize_generator_sliders()
 randomize_input()
+
+handleSliderGeneratorEpochValue()
+handleSliderDiscriminatorEpochValue()
