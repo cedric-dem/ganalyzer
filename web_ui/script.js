@@ -185,7 +185,7 @@ function handleSliderDiscriminatorEpochValue() {
 /// config
 const AVAILABLE_EPOCHS = 300
 const IMAGE_SIZE = 100;
-const LATENT_SPACE_SIZE = 225;
+const LATENT_SPACE_SIZE = 49;
 const LATENT_SPACE_SIZE_SQRT = LATENT_SPACE_SIZE ** 0.5;
 
 /// generator panel
