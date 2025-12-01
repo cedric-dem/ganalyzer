@@ -6,17 +6,20 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import matplotlib
+import colorsys
 import numpy as np
 import random
 import cv2
 import keras
 from keras.preprocessing.image import img_to_array
+import statistics
+from tensorflow.keras.models import load_model
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator, latent_dimension_generator_available, models_directory, nb_epoch_taken_comparison, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
-	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY
+	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, RESULTS_DIRECTORY
 from ganalyzer.model_config import all_models
 
 STATISTICS_FILENAME = "statistics.csv"
@@ -78,62 +81,30 @@ def _load_statistics(csv_path):
 		epoch_durations = epoch_durations,
 	)
 
-def _plot_loss_series(l_settings, series, output_path, title, xlabel = "Epoch", ylabel = "Loss"):
-	plt.figure()
-	plotted_any = False
+def _plot_loss_series(all_colors, series, output_path, title):
+	plt.figure(figsize = (12, 6))
 
+	current_idx = 0
 	for label, values in series:
 		if not values:
 			continue
 
 		epochs = range(1, len(values) + 1)
-		plt.plot(epochs, values, label = label, color = _color_for_label(label, l_settings))
-		plotted_any = True
+		plt.plot(epochs, values, label = label, color = all_colors[current_idx])
 
-	if not plotted_any:
-		plt.close()
-		return False
+		current_idx += 1
 
 	plt.title(title)
-	plt.xlabel(xlabel)
-	plt.ylabel(ylabel)
+	plt.xlabel("Epoch")
+	plt.ylabel("Loss")
 	if len(series) > 1:
-		plt.legend()
+		plt.legend(loc = "center left", bbox_to_anchor = (1, 0.5))
 	plt.grid(True)
 	plt.tight_layout()
 	plt.savefig(output_path, format = "jpg")
 	plt.close()
-	return True
 
-def _color_for_label(label, lst_settings):
-	# those two just count the position in the list of sorted models settings
-	# proportion = lst_settings.index(label) / (len(lst_settings) - 2)
-	# color_direction = [[0, 1], [1, -1], [0, 0]]
-
-	# here it split between small, medium and large models
-	proportion = [s for s in lst_settings if s.startswith(label[:7])].index(label) / 3
-	if label.startswith("model_0"):
-		color_direction = [[0, 1], [1, -1], [0, 0]]
-	elif label.startswith("model_1"):
-		color_direction = [[0, 0], [0, 1], [1, -1]]
-	elif label.startswith("model_2"):
-		color_direction = [[1, -1], [0, 0], [0, 1]]
-	elif label.startswith("model_3"):
-		color_direction = [[0, 0], [1, -1], [0, 1]]
-	else:
-		print("not found col dir")
-	return _proportion_to_color(proportion, color_direction)
-
-def _proportion_to_color(proportion, color_direction):
-	clamped = max(0.0, min(1.0, proportion))
-
-	red = int(255 * (color_direction[0][0] + (color_direction[0][1] * clamped)))
-	green = int(255 * (color_direction[1][0] + (color_direction[1][1] * clamped)))
-	blue = int(255 * (color_direction[2][0] + (color_direction[2][1] * clamped)))
-
-	return f"#{red:02x}{green:02x}{blue:02x}"
-
-def _plot_combined_losses(l_settings, stats_by_model, output_dir):
+def _plot_combined_losses(color_list, stats_by_model, output_dir):
 	generator_series = []
 	discriminator_series = []
 
@@ -143,43 +114,96 @@ def _plot_combined_losses(l_settings, stats_by_model, output_dir):
 		if stats.discriminator_loss:
 			discriminator_series.append((model_name, stats.discriminator_loss))
 
-	plotted_any = False
-	generator_plot = output_dir / "generator_loss.jpg"
-	discriminator_plot = output_dir / "discriminator_loss.jpg"
+	_plot_loss_series(color_list, generator_series, output_dir / "generator_loss.jpg", "Generator Loss Over Epochs")
+	_plot_loss_series(color_list, discriminator_series, output_dir / "discriminator_loss.jpg", "Discriminator Loss Over Epochs")
 
-	if generator_series and _plot_loss_series(l_settings, generator_series, generator_plot, "Generator Loss Over Epochs"):
-		plotted_any = True
+def get_number_parameters(model_name, model_type = "discriminator"):
+	model_path = results_root_path + "/" + model_name + "/models"
+	complete_models_list = os.listdir(model_path)
+	complete_models_list.sort()
 
-	if discriminator_series and _plot_loss_series(l_settings, discriminator_series, discriminator_plot, "Discriminator Loss Over Epochs"):
-		plotted_any = True
+	if model_type == "discriminator":
+		total_path = model_path + "/" + complete_models_list[0]
+	elif model_type == "generator":
+		total_path = model_path + "/" + complete_models_list[-1]
 
-	return plotted_any
+	model = load_model(total_path)
+	nb_params = sum([layer.count_params() for layer in model.layers if layer.trainable])
+	return nb_params
 
-def _plot_combined_epoch_times(l_settings, stats_by_model, output_dir):
-	plt.figure()
-	plotted_any = False
+def _get_model_indexes(model_name):
+	model_size = model_name.split("-")[0]
+	latent_size = int(model_name.split("-")[1].split("_")[1])
+
+	idx_x = all_models.index(model_size)
+	idx_y = [str(elem) for elem in latent_dimension_generator_available].index(str(latent_size))
+
+	return idx_x, idx_y
+
+def produce_heatmap(stats_by_model, output_dir, title, output_filename, value_getter, *, color_threshold, text_formatter):
+	data = np.zeros((len(all_models), len(latent_dimension_generator_available)))
 
 	for model_name, stats in stats_by_model.items():
-		if not stats.epoch_durations:
-			continue
+		idx_x, idx_y = _get_model_indexes(model_name)
+		data[idx_x, idx_y] = value_getter(model_name, stats)
 
-		epochs = range(1, len(stats.epoch_durations) + 1)
-		plt.plot(epochs, stats.epoch_durations, label = model_name, color = _color_for_label(model_name, l_settings))
-		plotted_any = True
+	x_labels = latent_dimension_generator_available
+	y_labels = all_models
 
-	if not plotted_any:
-		plt.close()
-		return False
+	plt.figure(figsize = (6, 5))
 
-	plt.title("Epoch Duration")
-	plt.xlabel("Epoch")
-	plt.ylabel("Time (seconds)")
-	plt.legend()
-	plt.grid(True)
-	plt.tight_layout()
-	plt.savefig(output_dir / "times_epoch.jpg", format = "jpg")
-	plt.close()
-	return True
+	heatmap = plt.imshow(data, cmap = 'grey')
+
+	plt.title(title)
+	plt.xlabel("Latent Space Size")
+	plt.ylabel("Model Size")
+
+	plt.xticks(ticks = np.arange(len(x_labels)), labels = x_labels)
+	plt.yticks(ticks = np.arange(len(y_labels)), labels = y_labels)
+
+	for i in range(data.shape[0]):
+		for j in range(data.shape[1]):
+			color = 'white' if data[i, j] < color_threshold else 'black'
+			plt.text(j, i, text_formatter(data[i, j]), ha = 'center', va = 'center', color = color)
+
+	plt.colorbar(heatmap)
+
+	plt.savefig(output_dir / output_filename, format = 'jpg', dpi = 300)
+
+	plt.show()
+
+def _plot_current_number_epoch(stats_by_model, output_dir):
+	produce_heatmap(
+		stats_by_model,
+		output_dir,
+		"Number of training epochs",
+		"current_number_epochs.jpg",
+		lambda _model_name, stats: len(stats.epoch_durations),
+		color_threshold = 95,
+		text_formatter = lambda value: str(int(value)),
+	)
+
+def _plot_number_parameters(stats_by_model, output_dir, model_type):
+	produce_heatmap(
+		stats_by_model,
+		output_dir,
+		"Number of trainable parameters for " + model_type,
+		"parameters_per_model_" + model_type + ".jpg",
+		lambda model_name, _stats: int(get_number_parameters(model_name, model_type)),
+		color_threshold = 10000000,
+		text_formatter = lambda value: f"{int(value):,d}".replace(",", " "),
+	)
+
+def _plot_median_time_per_epoch(stats_by_model, output_dir):  # todo merge with time taken
+	produce_heatmap(
+		stats_by_model,
+		output_dir,
+		"Time per epoch, in seconds",
+		"time_per_epoch.jpg",
+		lambda _model_name, stats: statistics.median(stats.epoch_durations),
+		color_threshold = 200,
+		text_formatter = lambda value: str(round(value, 2)),
+	)
 
 def _collect_statistics_by_model():
 	stats_by_model = {}
@@ -200,37 +224,21 @@ def _collect_statistics_by_model():
 
 def _generate_combined_statistics_plots():
 	stats_by_model = _collect_statistics_by_model()
-	if not stats_by_model:
-		print("No statistics were found to generate combined plots.")
-		return
-
-	has_generator_loss = any(stats.generator_loss for stats in stats_by_model.values())
-	has_discriminator_loss = any(stats.discriminator_loss for stats in stats_by_model.values())
-	has_epoch_durations = any(stats.epoch_durations for stats in stats_by_model.values())
-
-	if not (has_generator_loss or has_discriminator_loss or has_epoch_durations):
-		print("No numeric statistics were found to plot for combined statistics.")
-		return
 
 	PLOTS_ROOT_DIRECTORY_PATH.mkdir(parents = True, exist_ok = True)
 
-	l_settings = os.listdir(results_root_path)
-	l_settings.sort()
-
-	plotted_any = False
-	if has_generator_loss or has_discriminator_loss:
-		if _plot_combined_losses(l_settings, stats_by_model, PLOTS_ROOT_DIRECTORY_PATH):
-			plotted_any = True
-
-	if has_epoch_durations and _plot_combined_epoch_times(l_settings, stats_by_model, PLOTS_ROOT_DIRECTORY_PATH):
-		plotted_any = True
-
-	if plotted_any:
-		print(f"Saved combined statistics plots to '{PLOTS_ROOT_DIRECTORY_PATH}'.")
-	else:
-		print("No numeric statistics were found to plot for combined statistics.")
+	colors_list = generate_colors(len(stats_by_model))
 
 	save_all_comparisons_models()
+
+	_plot_combined_losses(colors_list, stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
+
+	_plot_current_number_epoch(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
+
+	_plot_number_parameters(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH, "discriminator")
+	_plot_number_parameters(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH, "generator")
+
+	_plot_median_time_per_epoch(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
 
 def get_real_images_sample():
 	print('getting real images ')
@@ -353,7 +361,6 @@ def get_number_epoch_in_given_setting(setting):
 
 		max_epoch = max(max_epoch, current_epoch)
 
-	print('========> debug ', setting, results_root_path, max_epoch)
 	return max_epoch
 
 def produce_heatmap_epoch():
@@ -415,6 +422,19 @@ def produce_heatmap_latent_space():
 
 		save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, "model_size " + current_model)
 
+def generate_colors(n):
+	colors = []
+	for i in range(n):
+		h = i / n
+		s = 1.0
+		v = 1.0
+
+		r, g, b = colorsys.hsv_to_rgb(h, s, v)
+
+		colors.append("#{0:02x}{1:02x}{2:02x}".format(int(r * 255), int(g * 255), int(b * 255)))
+
+	return colors
+
 def save_comparisons_models(comparisons_elements, directory, setting_name):
 	size = len(comparisons_elements)
 
@@ -427,7 +447,7 @@ def save_comparisons_models(comparisons_elements, directory, setting_name):
 	col_labels = [elem[0] + elem[1] for elem in comparisons_elements]
 
 	fig, ax = plt.subplots()
-	im = ax.imshow(data, cmap = 'gray', interpolation = 'nearest')
+	im = ax.imshow(data, cmap = 'gray', interpolation = 'nearest', vmin = 0, vmax = 1)
 
 	ax.set_xticks(np.arange(len(col_labels)))
 	ax.set_yticks(np.arange(len(row_labels)))
