@@ -193,6 +193,17 @@ body {
     align-content: center;
 }
 
+#grid_input_discriminator {
+    display: grid;
+    grid-template-columns: repeat(100, 2px);
+    grid-template-rows: repeat(100, 2px);
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-content: center;
+}
+
 .cell {
     width: 2px;
     height: 2px;

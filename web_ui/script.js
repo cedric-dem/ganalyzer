@@ -15,11 +15,35 @@ async function get_result_generator() {
         const data = await response.json();
         change_image(data.generated_image, generator_image_pixels)
 
+        refresh_discriminator(data.generated_image, data.result_discriminator)
+
+
     } catch (error) {
         console.error("Error:", error);
     }
 }
 
+function toPercentage(value) {
+    return (value * 100).toFixed(2) + "%";
+}
+
+function refresh_discriminator(new_image, result_discriminator) {
+    //change input
+    change_image(new_image, discriminator_input_image_pixels)
+
+    // print it
+    text_result = ""
+
+    if (result_discriminator > 0.5) {
+        text_result = "real image"
+    } else {
+        text_result = "fake image"
+    }
+    text_result += " (" + toPercentage(result_discriminator) + ")"
+
+    document.getElementById("prediction_output_text").textContent = text_result;
+
+}
 
 async function change_epoch(model_type, new_epoch) {
     // console.log('change epoch' + model_type);
@@ -105,24 +129,24 @@ function change_image(new_data, location) {
 }
 
 function initialize_image(element_id, location_image, size_x, size_y) {
-    const div_grid_generator = document.getElementById(element_id);
+    const div_grid = document.getElementById(element_id);
 
 
-    const availableWidth = div_grid_generator.clientWidth;
-    const availableHeight = div_grid_generator.clientHeight;
+    const availableWidth = div_grid.clientWidth;
+    const availableHeight = div_grid.clientHeight;
 
     const pixelSize = Math.floor(Math.min(availableWidth / size_y, availableHeight / size_x));
 
-    div_grid_generator.style.display = 'grid';
-    div_grid_generator.style.gridTemplateColumns = `repeat(${size_y}, ${pixelSize}px)`;
-    div_grid_generator.style.gridTemplateRows = `repeat(${size_x}, ${pixelSize}px)`;
+    div_grid.style.display = 'grid';
+    div_grid.style.gridTemplateColumns = `repeat(${size_y}, ${pixelSize}px)`;
+    div_grid.style.gridTemplateRows = `repeat(${size_x}, ${pixelSize}px)`;
 
 
     for (let i = 0; i < size_x; i++) {
         for (let j = 0; j < size_y; j++) {
             const new_element = document.createElement('div');
             new_element.classList.add('slider_input_representation');
-            div_grid_generator.appendChild(new_element);
+            div_grid.appendChild(new_element);
             new_element.style.width = `${pixelSize}px`;
             new_element.style.height = `${pixelSize}px`;
 
@@ -149,6 +173,10 @@ function handleSliderConstantValue(value) {
 function initialize_generator_image() {
     initialize_image('grid_input_generator', generator_input_pixels, LATENT_SPACE_SIZE_SQRT, LATENT_SPACE_SIZE_SQRT)
     initialize_image('grid_visual_generator', generator_image_pixels, IMAGE_SIZE, IMAGE_SIZE)
+}
+
+function initialize_discriminator_image() {
+    initialize_image('grid_input_discriminator', discriminator_input_image_pixels, IMAGE_SIZE, IMAGE_SIZE)
 }
 
 function initialize_generator_sliders() {
@@ -222,11 +250,15 @@ const MAX_VALUE_VISUALIZATION_INPUT = 5;
 const generator_input_pixels = Array.from({length: LATENT_SPACE_SIZE_SQRT}, () => Array(LATENT_SPACE_SIZE_SQRT).fill(null));
 const generator_image_pixels = Array.from({length: IMAGE_SIZE}, () => Array(IMAGE_SIZE).fill(null));
 
+/// Discriminator
+const discriminator_input_image_pixels = Array.from({length: IMAGE_SIZE}, () => Array(IMAGE_SIZE).fill(null));
+
 /// generator visualization
 
 /// initialize page
 initialize_generator_image()
 initialize_generator_sliders()
+initialize_discriminator_image()
 randomize_input()
 
 handleSliderGeneratorEpochValue()

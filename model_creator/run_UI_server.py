@@ -58,11 +58,15 @@ else:
 		inpt = np.array([vector]).astype(np.float32)
 
 		result = current_generator.predict(inpt)[0, :, :, :]
-		result_r = np.round(project_array(result, 254, -1, 1)).astype(np.uint8).tolist()
+		generated = np.round(project_array(result, 254, -1, 1)).astype(np.uint8).tolist()
 
-		# result = [[[random.randint(0,255),random.randint(0,255),random.randint(0,255)] for i in range(114)] for j in range(114)]
+		generated_resized = np.array([result.astype(np.float64)])
+		prediction_discriminator = current_discriminator.predict(generated_resized)[0][0]
 
-		return jsonify({"generated_image": result_r})
+		return jsonify({
+			"generated_image": generated,
+			"result_discriminator": str(prediction_discriminator)
+		})
 
 	@app.route("/change-epoch-generator", methods = ["POST"])
 	def changeEpochGenerator():
