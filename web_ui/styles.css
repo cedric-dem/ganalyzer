@@ -276,7 +276,23 @@ p {
     box-sizing: border-box;
     min-width: 0;
 }
+
 .small_inside_panel_quarter input[type="range"] {
     width: 100%;
     accent-color: var(--accent);
+}
+
+.inside-visualization {
+    grid-template-rows: 20% 80%;
+}
+
+.label-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.label-select-row label,
+.label-select-row select {
+    width: 50%;
 }

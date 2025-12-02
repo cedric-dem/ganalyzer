@@ -14,6 +14,7 @@ async function get_result_generator() {
 
         const data = await response.json();
         change_image(data.generated_image, generator_image_pixels)
+        refresh_inside_generator()
 
         refresh_discriminator(data.generated_image, data.result_discriminator)
 
@@ -22,6 +23,17 @@ async function get_result_generator() {
         console.error("Error:", error);
     }
 }
+
+function refresh_inside_generator() {
+    // todo
+    // location : grid_visual_inside_discriminator
+}
+
+function refresh_inside_discriminator() {
+    // todo
+    // location : grid_visual_inside_generator
+}
+
 
 function toPercentage(value) {
     return (value * 100).toFixed(2) + "%";
@@ -43,6 +55,7 @@ function refresh_discriminator(new_image, result_discriminator) {
 
     document.getElementById("prediction_output_text").textContent = text_result;
 
+    refresh_inside_discriminator()
 }
 
 async function change_epoch(model_type, new_epoch) {
@@ -179,6 +192,18 @@ function initialize_discriminator_image() {
     initialize_image('grid_input_discriminator', discriminator_input_image_pixels, IMAGE_SIZE, IMAGE_SIZE)
 }
 
+/*
+function initialize_inside_generator(){
+    // location : grid_visual_inside_generator
+
+}
+
+function initialize_inside_discriminator(){
+    // location : grid_visual_inside_discriminator
+
+}
+*/
+
 function initialize_generator_sliders() {
 
     const div_sliders = document.getElementById("sliders_grid");
@@ -259,6 +284,10 @@ const discriminator_input_image_pixels = Array.from({length: IMAGE_SIZE}, () => 
 initialize_generator_image()
 initialize_generator_sliders()
 initialize_discriminator_image()
+
+//initialize_inside_generator()
+//initialize_inside_discriminator()
+
 randomize_input()
 
 handleSliderGeneratorEpochValue()
