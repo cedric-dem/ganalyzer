@@ -1,3 +1,80 @@
+//todo : why a generate calls generate twice
+
+async function synchronize_server() {
+    //todo introduce the following settings in the gui,
+    // like on the menu page the user can select the model and ls
+    //send model size, ls,
+    // could also send image size but i only trained on 100
+    // retrieve list of layers in  both models (maybe should be in different function ?), AVAILABLE_EPOCHS also ?
+
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/sync-server", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model_size: MODEL_NAME,
+                latent_space_size: LATENT_SPACE_SIZE
+            }),
+        });
+
+        const data = await response.json();
+
+        //todo change list visual to data.discriminator_layers
+        add_choices(true, "choice_layer_generator", data.generator_layers)
+
+        //todo change list visual to data.generator_layers
+        add_choices(false, "choice_layer_discriminator", data.discriminator_layers)
+
+    } catch (error) {
+        console.error("Error:", error);
+    }
+
+}
+
+function add_choices(is_generator, location, layers_list) {
+    const select = document.getElementById(location);
+
+    var temp_option;
+    layers_list.forEach(layer => {
+        temp_option = new Option(layer)
+        select.add(temp_option)
+    })
+
+    var value;
+    select.addEventListener("change", () => {
+        value = select.value;
+        change_inside_visualisation(is_generator, value)
+    })
+
+}
+
+function change_inside_visualisation(is_generator, selected_value) {
+    console.log("change inside visualization ", is_generator, selected_value)
+
+    var values_to_display;
+    var location;
+
+    if (is_generator) {
+        values_to_display = input_values_generator[selected_value]
+        location = "grid_visual_inside_discriminator"
+
+    } else {
+        values_to_display = input_values_discriminator[selected_value]
+        location = "grid_visual_inside_generator"
+    }
+
+    console.log(">> values to add in input field", values_to_display, "location : ", location)
+
+
+    // TODO empty location
+    // TODO initialize div
+    // TODO fill with all_values_list[selected_value]
+
+}
+
 async function get_result_generator() {
 
     const latent_vector_as_matrix = get_input_vector_as_matrix()
@@ -16,6 +93,22 @@ async function get_result_generator() {
         change_image(data.generated_image, generator_image_pixels)
         refresh_inside_generator()
 
+        //todo modify
+        input_values_generator = {
+            "input": [23, 24],
+            "gen1": [4, 4, 45],
+            "gen2": [879, 7, 4, 5],
+            "gen3": [41, 2],
+            "out": [4]
+        }
+        input_values_discriminator = {
+            "input": [23, 214],
+            "disc1": [44, 41, 145],
+            "disc2": [879, 7, 41, 5],
+            "disc3": [41, 12],
+            "out": [14]
+        }
+
         refresh_discriminator(data.generated_image, data.result_discriminator)
 
 
@@ -25,13 +118,13 @@ async function get_result_generator() {
 }
 
 function refresh_inside_generator() {
-    // todo
-    // location : grid_visual_inside_discriminator
+    current_value = document.getElementById("choice_layer_generator").value
+    //change_inside_visualisation(true, current_value) //todo why cant be uncommented
 }
 
 function refresh_inside_discriminator() {
-    // todo
-    // location : grid_visual_inside_generator
+    current_value = document.getElementById("choice_layer_discriminator").value
+    change_inside_visualisation(false, current_value)
 }
 
 
@@ -261,14 +354,16 @@ async function handleSliderDiscriminatorEpochValue() {
 }
 
 /// config
+const MODEL_NAME = "model_0_small"
 const AVAILABLE_EPOCHS = 100;
 const IMAGE_SIZE = 100;
-const LATENT_SPACE_SIZE = 49;
+const LATENT_SPACE_SIZE = 121;
 const LATENT_SPACE_SIZE_SQRT = LATENT_SPACE_SIZE ** 0.5;
 
 /// generator panel
 let sliders_grid = Array.from({length: LATENT_SPACE_SIZE_SQRT}, () => Array(LATENT_SPACE_SIZE_SQRT).fill(null));
 let generator_input = new Array(LATENT_SPACE_SIZE).fill(0);
+let input_values_generator = null;
 
 /// generator visualization
 const MAX_VALUE_VISUALIZATION_INPUT = 5;
@@ -277,6 +372,7 @@ const generator_image_pixels = Array.from({length: IMAGE_SIZE}, () => Array(IMAG
 
 /// Discriminator
 const discriminator_input_image_pixels = Array.from({length: IMAGE_SIZE}, () => Array(IMAGE_SIZE).fill(null));
+let input_values_discriminator = null;
 
 /// generator visualization
 
@@ -285,10 +381,9 @@ initialize_generator_image()
 initialize_generator_sliders()
 initialize_discriminator_image()
 
-//initialize_inside_generator()
-//initialize_inside_discriminator()
-
-randomize_input()
+synchronize_server().then(r =>
+    randomize_input()
+)
 
 handleSliderGeneratorEpochValue()
 handleSliderDiscriminatorEpochValue()

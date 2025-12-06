@@ -13,7 +13,7 @@ dataset_dimension = str(model_output_size)
 dataset_path = os.path.join("datasets", dataset_name, dataset_dimension)
 
 results_root_path = os.path.join("results", dataset_name + "_" + dataset_dimension)
-model_path = os.path.join(results_root_path, model_name + "-ls_" + (4 - len(str(latent_dimension_generator))) * "0" + str(latent_dimension_generator))
+model_path = os.path.join(results_root_path, model_name + "-ls_" + (4 - len(str(latent_dimension_generator))) * "0" + str(latent_dimension_generator)) #todo isolate in function str_ls
 models_directory = os.path.join(model_path, "models")
 
 models_as_tflite = "models_as_tflite"
@@ -60,7 +60,7 @@ every_models_statistics_path = [
 ]
 
 nb_epoch_taken_comparison = 5
-nb_comparisons = 200
+nb_comparisons = 100
 
 # Sample outputs
 sample_outputs_root_directory = os.path.join(model_path, "sample_outputs")
