@@ -1,3 +1,37 @@
+async function synchronize_server() {
+    //todo introduce the following settings in the gui,
+    // like on the menu page the user can select the model and ls
+    //send model size, ls,
+    // could also send image size but i only trained on 100
+    // retrieve list of layers in  both models (maybe should be in different function ?)
+
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/sync-server", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model_size: "model_0_small",
+                latent_space_size: 121
+            }),
+        });
+
+        const data = await response.json();
+
+        //todo change list visual to data.discriminator_layers
+        console.log('received ', data.discriminator_layers)
+
+        //todo change list visual to data.generator_layers
+        console.log('received ', data.generator_layers)
+
+    } catch (error) {
+        console.error("Error:", error);
+    }
+
+}
+
 async function get_result_generator() {
 
     const latent_vector_as_matrix = get_input_vector_as_matrix()
@@ -288,7 +322,10 @@ initialize_discriminator_image()
 //initialize_inside_generator()
 //initialize_inside_discriminator()
 
-randomize_input()
+synchronize_server().then(r =>
+    randomize_input()
+)
+
 
 handleSliderGeneratorEpochValue()
 handleSliderDiscriminatorEpochValue()

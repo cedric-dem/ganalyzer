@@ -50,6 +50,21 @@ else:
 	current_generator = generators_list[-1]
 	current_discriminator = discriminators_list[-1]
 
+	@app.route("/sync-server", methods = ["POST"])
+	def synchronizeServerWithClient():
+		print("sync server")
+		data = request.get_json()
+
+		model_size_synced = str(data.get("model_size", []))
+		latent_space_size_synced = int(data.get("latent_space_size", []))
+
+		print('====> synced with data', model_size_synced, latent_space_size_synced)
+
+		return jsonify({
+			"discriminator_layers": ["input", "disc1", "disc2", "disc3", "out"],
+			"generator_layers": ["input", "gen1", "gen2", "gen3", "out"],
+		})
+
 	@app.route("/get-result-generator", methods = ["POST"])
 	def getResultFromGenerator():
 		data = request.get_json()
