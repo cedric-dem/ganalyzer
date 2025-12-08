@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -19,11 +18,17 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator, latent_dimension_generator_available, models_directory, nb_epoch_taken_comparison, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
-	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, RESULTS_DIRECTORY
+	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, RESULTS_DIRECTORY, PATH_LOSS_PLOTS
 from ganalyzer.model_config import all_models
 
 STATISTICS_FILENAME = "statistics.csv"
 PLOTS_ROOT_DIRECTORY_PATH = Path(PLOTS_ROOT_DIRECTORY)
+RESULTS_ROOT_PATH = Path(results_root_path)
+DATASET_PATH = Path(dataset_path)
+PLOTS_HEATMAP_EPOCHS_PATH = Path(PLOTS_HEATMAP_EPOCHS_DIRECTORY)
+PLOTS_HEATMAP_MODEL_SIZE_PATH = Path(PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY)
+PLOTS_HEATMAP_LATENT_SPACE_SIZE_PATH = Path(PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY)
+PATH_LOSS_PLOTS_PATH = Path(PATH_LOSS_PLOTS)
 
 @dataclass
 class Statistics:
@@ -90,7 +95,7 @@ def _plot_loss_series(all_colors, series, output_path, title):
 			continue
 
 		epochs = range(1, len(values) + 1)
-		plt.plot(epochs, values, label = label, color = all_colors[current_idx])
+		plt.plot(epochs, values, label = label, color = all_colors[label])
 
 		current_idx += 1
 
@@ -108,24 +113,71 @@ def _plot_combined_losses(color_list, stats_by_model, output_dir):
 	generator_series = []
 	discriminator_series = []
 
-	for model_name, stats in stats_by_model.items():
+	for model_name, stats in stats_by_model.items():  ##TODO refactor the handling of statistics, not good
 		if stats.generator_loss:
 			generator_series.append((model_name, stats.generator_loss))
 		if stats.discriminator_loss:
 			discriminator_series.append((model_name, stats.discriminator_loss))
 
-	_plot_loss_series(color_list, generator_series, output_dir / "generator_loss.jpg", "Generator Loss Over Epochs")
-	_plot_loss_series(color_list, discriminator_series, output_dir / "discriminator_loss.jpg", "Discriminator Loss Over Epochs")
+	# original
+	_plot_loss_series(color_list, generator_series, output_dir / "every_generator_loss.jpg", "Generator Loss Over Epochs")
+	_plot_loss_series(color_list, discriminator_series, output_dir / "every_discriminator_loss.jpg", "Discriminator Loss Over Epochs")
+
+	# by model_sizes
+	for current_plot_model in all_models:
+		print('===> Current plot generator', current_plot_model)
+		this_generator_series = []
+		for current_elem_in_series in generator_series:
+			if current_elem_in_series[0].startswith(current_plot_model):
+				this_generator_series.append(current_elem_in_series)
+
+		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
+		_plot_loss_series(color_list, this_generator_series, output_dir / str(current_plot_model + "_generator_loss.jpg"), "Generator Loss Over Epochs for " + current_plot_model)
+
+		print('===> Current plot discriminator', current_plot_model)
+		this_discriminator_series = []
+		for current_elem_in_series in discriminator_series:
+			if current_elem_in_series[0].startswith(current_plot_model):
+				this_discriminator_series.append(current_elem_in_series)
+
+		color_list = get_colors_associated(generate_colors(len(this_discriminator_series)), [name[0] for name in this_discriminator_series])
+		_plot_loss_series(color_list, this_discriminator_series, output_dir / str(current_plot_model + "_discriminator_loss.jpg"), "Discriminator Loss Over Epochs for " + current_plot_model)
+
+	# by ls_size
+	ls_sizes_as_string = [get_ls_name(curr_ls) for curr_ls in latent_dimension_generator_available]
+
+	for current_plot_ls_size in ls_sizes_as_string:
+		print('===> Current plot generator', current_plot_ls_size)
+		this_generator_series = []
+		for current_elem_in_series in generator_series:
+			if current_elem_in_series[0].endswith(current_plot_ls_size):
+				this_generator_series.append(current_elem_in_series)
+
+		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
+		_plot_loss_series(color_list, this_generator_series, output_dir / str(current_plot_ls_size + "_generator_loss.jpg"), "Generator Loss Over Epochs for " + current_plot_ls_size)
+
+		print('===> Current plot discriminator', current_plot_ls_size)
+		this_discriminator_series = []
+		for current_elem_in_series in discriminator_series:
+			if current_elem_in_series[0].endswith(current_plot_ls_size):
+				this_discriminator_series.append(current_elem_in_series)
+
+		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
+		_plot_loss_series(color_list, this_discriminator_series, output_dir / str(current_plot_ls_size + "_discriminator_loss.jpg"), "Discriminator Loss Over Epochs for " + current_plot_ls_size)
 
 def get_number_parameters(model_name, model_type = "discriminator"):
-	model_path = results_root_path + "/" + model_name + "/models"
-	complete_models_list = os.listdir(model_path)
-	complete_models_list.sort()
+	model_path = RESULTS_ROOT_PATH / model_name / "models"
+	complete_models_list = sorted([path for path in model_path.iterdir() if path.is_file()])
+
+	if not complete_models_list:
+		return 0
 
 	if model_type == "discriminator":
-		total_path = model_path + "/" + complete_models_list[0]
+		total_path = complete_models_list[0]
 	elif model_type == "generator":
-		total_path = model_path + "/" + complete_models_list[-1]
+		total_path = complete_models_list[-1]
+	else:
+		return 0
 
 	model = load_model(total_path)
 	nb_params = sum([layer.count_params() for layer in model.layers if layer.trainable])
@@ -222,16 +274,26 @@ def _collect_statistics_by_model():
 
 	return stats_by_model
 
+def get_colors_associated(colors_list, stats):
+	result = {}
+	current_index = 0
+
+	for name in stats:
+		result[name] = colors_list[current_index]
+		current_index += 1
+
+	return result
+
 def _generate_combined_statistics_plots():
 	stats_by_model = _collect_statistics_by_model()
 
 	PLOTS_ROOT_DIRECTORY_PATH.mkdir(parents = True, exist_ok = True)
 
-	colors_list = generate_colors(len(stats_by_model))
+	colors_list_with_names = get_colors_associated(generate_colors(len(stats_by_model)), [name for name in stats_by_model.keys()])
 
 	save_all_comparisons_models()
 
-	_plot_combined_losses(colors_list, stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
+	_plot_combined_losses(colors_list_with_names, stats_by_model, PATH_LOSS_PLOTS_PATH)
 
 	_plot_current_number_epoch(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
 
@@ -242,7 +304,7 @@ def _generate_combined_statistics_plots():
 
 def get_real_images_sample():
 	print('getting real images ')
-	dataset_directory = Path(dataset_path)
+	dataset_directory = DATASET_PATH
 
 	image_paths = [path for path in sorted(dataset_directory.iterdir()) if path.is_file()]
 
@@ -268,7 +330,7 @@ def get_fake_images_sample(generator_name, generator_epoch):
 	print('Generating fake images using ', generator_name, generator_epoch)
 	epoch_number = int(str(generator_epoch).replace("epoch_", ""))
 
-	generator_path = Path(results_root_path) / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
+	generator_path = RESULTS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
 
 	generator = keras.models.load_model(generator_path)
 	ls_size = int(generator_name.split("_")[-1])
@@ -295,7 +357,7 @@ def get_accuracy_on_images(model_name, model_epoch, images_set, is_real_images):
 
 	epoch_number = int(str(model_epoch).replace("epoch_", ""))
 
-	model_path = Path(results_root_path) / model_name / "models" / f"discriminator_epoch_{epoch_number:06d}.keras"
+	model_path = RESULTS_ROOT_PATH / model_name / "models" / f"discriminator_epoch_{epoch_number:06d}.keras"
 
 	discriminator = keras.models.load_model(model_path)
 	images_array = np.asarray(images_set, dtype = np.float32)
@@ -340,7 +402,7 @@ def save_all_comparisons_models():
 	produce_heatmap_latent_space()
 
 def get_number_epoch_in_given_setting(setting):
-	setting_models_directory = Path(results_root_path) / setting / "models"
+	setting_models_directory = RESULTS_ROOT_PATH / setting / "models"
 
 	if not setting_models_directory.exists():
 		return 0
@@ -364,9 +426,9 @@ def get_number_epoch_in_given_setting(setting):
 	return max_epoch
 
 def produce_heatmap_epoch():
-	available_settings = os.listdir(results_root_path)
-	if "plots" in available_settings:
-		available_settings.remove("plots")
+	available_settings = [entry.name for entry in RESULTS_ROOT_PATH.iterdir() if entry.is_dir()]
+	if PLOTS_ROOT_DIRECTORY_PATH.name in available_settings:
+		available_settings.remove(PLOTS_ROOT_DIRECTORY_PATH.name)
 
 	for current_setting in available_settings:
 		print("====> Current setting : ", current_setting)
@@ -381,7 +443,7 @@ def produce_heatmap_epoch():
 				comparisons_elements.append((current_setting, epoch_name))
 				current_epoch = current_epoch + step
 
-			save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_EPOCHS_DIRECTORY, current_setting)
+			save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_EPOCHS_PATH, current_setting)
 
 def get_epoch_name(current_epoch):  # TODO use this in train etc
 	return "epoch_" + ((6 - len(str(current_epoch))) * "0") + str(current_epoch)
@@ -406,7 +468,7 @@ def produce_heatmap_model_size():
 
 			print("==> Current model : ", current_model, " nb epochs ", epoch_name, " result ", new_elem)
 
-		save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, "ls_size =  " + str(current_latent_dimension_generator))
+		save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_MODEL_SIZE_PATH, "ls_size =  " + str(current_latent_dimension_generator))
 
 def produce_heatmap_latent_space():
 	for current_model in all_models:
@@ -420,7 +482,7 @@ def produce_heatmap_latent_space():
 			new_elem = (total_name, epoch_name)
 			comparisons_elements.append(new_elem)
 
-		save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, "model_size " + current_model)
+		save_comparisons_models(comparisons_elements, PLOTS_HEATMAP_LATENT_SPACE_SIZE_PATH, "model_size " + current_model)
 
 def generate_colors(n):
 	colors = []

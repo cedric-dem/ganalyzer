@@ -6,7 +6,7 @@ from ganalyzer.model_config import *
 additional_dense_units = 500
 
 latent_dimension_generator_available = [49, 121, 225, 400]  # maybe 49, 100, 196, 400
-latent_dimension_generator = latent_dimension_generator_available[0]
+latent_dimension_generator = latent_dimension_generator_available[2]
 
 dataset_name = "humans_fifa"  # "cars_2"
 dataset_dimension = str(model_output_size)
@@ -34,6 +34,9 @@ PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, "heatmap
 os.makedirs(PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, exist_ok = True)
 PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, "heatmap_latent_space_size")
 os.makedirs(PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, exist_ok = True)
+
+PATH_LOSS_PLOTS = os.path.join(PLOTS_ROOT_DIRECTORY, "loss")
+os.makedirs(PATH_LOSS_PLOTS, exist_ok = True)
 
 RESULTS_DIRECTORY = model_path
 
