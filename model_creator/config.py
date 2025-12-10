@@ -34,9 +34,16 @@ PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, "heatmap
 os.makedirs(PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, exist_ok = True)
 PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, "heatmap_latent_space_size")
 os.makedirs(PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, exist_ok = True)
+PLOTS_NUMBER_PARAMETERS_DIRECTORY = os.path.join(PLOTS_ROOT_DIRECTORY, "number_parameters")
+os.makedirs(PLOTS_NUMBER_PARAMETERS_DIRECTORY, exist_ok = True)
 
 PATH_LOSS_PLOTS = os.path.join(PLOTS_ROOT_DIRECTORY, "loss")
 os.makedirs(PATH_LOSS_PLOTS, exist_ok = True)
+
+PATH_LOSS_BY_LS_PLOTS = os.path.join(PATH_LOSS_PLOTS, "by_ls_size")
+os.makedirs(PATH_LOSS_BY_LS_PLOTS, exist_ok = True)
+PATH_LOSS_BY_MODEL_PLOTS =  os.path.join(PATH_LOSS_PLOTS, "by_model_name")
+os.makedirs(PATH_LOSS_BY_MODEL_PLOTS, exist_ok = True)
 
 RESULTS_DIRECTORY = model_path
 

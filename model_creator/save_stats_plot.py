@@ -18,17 +18,20 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator, latent_dimension_generator_available, models_directory, nb_epoch_taken_comparison, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
-	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, RESULTS_DIRECTORY, PATH_LOSS_PLOTS
+	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, RESULTS_DIRECTORY, PATH_LOSS_PLOTS, PATH_LOSS_BY_LS_PLOTS, PATH_LOSS_BY_MODEL_PLOTS, PLOTS_NUMBER_PARAMETERS_DIRECTORY
 from ganalyzer.model_config import all_models
 
 STATISTICS_FILENAME = "statistics.csv"
 PLOTS_ROOT_DIRECTORY_PATH = Path(PLOTS_ROOT_DIRECTORY)
 RESULTS_ROOT_PATH = Path(results_root_path)
 DATASET_PATH = Path(dataset_path)
+PLOTS_NUMBER_PARAMETERS_PATH = Path(PLOTS_NUMBER_PARAMETERS_DIRECTORY)
 PLOTS_HEATMAP_EPOCHS_PATH = Path(PLOTS_HEATMAP_EPOCHS_DIRECTORY)
 PLOTS_HEATMAP_MODEL_SIZE_PATH = Path(PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY)
 PLOTS_HEATMAP_LATENT_SPACE_SIZE_PATH = Path(PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY)
 PATH_LOSS_PLOTS_PATH = Path(PATH_LOSS_PLOTS)
+PATH_LOSS_PLOTS_BY_LS_PATH = Path(PATH_LOSS_BY_LS_PLOTS)
+PATH_LOSS_PLOTS_BY_MODEL_PATH = Path(PATH_LOSS_BY_MODEL_PLOTS)
 
 @dataclass
 class Statistics:
@@ -109,7 +112,7 @@ def _plot_loss_series(all_colors, series, output_path, title):
 	plt.savefig(output_path, format = "jpg")
 	plt.close()
 
-def _plot_combined_losses(color_list, stats_by_model, output_dir):
+def _plot_combined_losses(color_list, stats_by_model):
 	generator_series = []
 	discriminator_series = []
 
@@ -120,8 +123,8 @@ def _plot_combined_losses(color_list, stats_by_model, output_dir):
 			discriminator_series.append((model_name, stats.discriminator_loss))
 
 	# original
-	_plot_loss_series(color_list, generator_series, output_dir / "every_generator_loss.jpg", "Generator Loss Over Epochs")
-	_plot_loss_series(color_list, discriminator_series, output_dir / "every_discriminator_loss.jpg", "Discriminator Loss Over Epochs")
+	_plot_loss_series(color_list, generator_series, PATH_LOSS_PLOTS_PATH / "every_generator_loss.jpg", "Generator Loss Over Epochs")
+	_plot_loss_series(color_list, discriminator_series, PATH_LOSS_PLOTS_PATH / "every_discriminator_loss.jpg", "Discriminator Loss Over Epochs")
 
 	# by model_sizes
 	for current_plot_model in all_models:
@@ -132,7 +135,7 @@ def _plot_combined_losses(color_list, stats_by_model, output_dir):
 				this_generator_series.append(current_elem_in_series)
 
 		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
-		_plot_loss_series(color_list, this_generator_series, output_dir / str(current_plot_model + "_generator_loss.jpg"), "Generator Loss Over Epochs for " + current_plot_model)
+		_plot_loss_series(color_list, this_generator_series, PATH_LOSS_PLOTS_BY_MODEL_PATH / str(current_plot_model + "_generator_loss.jpg"), "Generator Loss Over Epochs for " + current_plot_model)
 
 		print('===> Current plot discriminator', current_plot_model)
 		this_discriminator_series = []
@@ -141,7 +144,7 @@ def _plot_combined_losses(color_list, stats_by_model, output_dir):
 				this_discriminator_series.append(current_elem_in_series)
 
 		color_list = get_colors_associated(generate_colors(len(this_discriminator_series)), [name[0] for name in this_discriminator_series])
-		_plot_loss_series(color_list, this_discriminator_series, output_dir / str(current_plot_model + "_discriminator_loss.jpg"), "Discriminator Loss Over Epochs for " + current_plot_model)
+		_plot_loss_series(color_list, this_discriminator_series, PATH_LOSS_PLOTS_BY_MODEL_PATH / str(current_plot_model + "_discriminator_loss.jpg"), "Discriminator Loss Over Epochs for " + current_plot_model)
 
 	# by ls_size
 	ls_sizes_as_string = [get_ls_name(curr_ls) for curr_ls in latent_dimension_generator_available]
@@ -154,7 +157,7 @@ def _plot_combined_losses(color_list, stats_by_model, output_dir):
 				this_generator_series.append(current_elem_in_series)
 
 		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
-		_plot_loss_series(color_list, this_generator_series, output_dir / str(current_plot_ls_size + "_generator_loss.jpg"), "Generator Loss Over Epochs for " + current_plot_ls_size)
+		_plot_loss_series(color_list, this_generator_series, PATH_LOSS_PLOTS_BY_LS_PATH / str(current_plot_ls_size + "_generator_loss.jpg"), "Generator Loss Over Epochs for " + current_plot_ls_size)
 
 		print('===> Current plot discriminator', current_plot_ls_size)
 		this_discriminator_series = []
@@ -163,7 +166,7 @@ def _plot_combined_losses(color_list, stats_by_model, output_dir):
 				this_discriminator_series.append(current_elem_in_series)
 
 		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
-		_plot_loss_series(color_list, this_discriminator_series, output_dir / str(current_plot_ls_size + "_discriminator_loss.jpg"), "Discriminator Loss Over Epochs for " + current_plot_ls_size)
+		_plot_loss_series(color_list, this_discriminator_series, PATH_LOSS_PLOTS_BY_LS_PATH / str(current_plot_ls_size + "_discriminator_loss.jpg"), "Discriminator Loss Over Epochs for " + current_plot_ls_size)
 
 def get_number_parameters(model_name, model_type = "discriminator"):
 	model_path = RESULTS_ROOT_PATH / model_name / "models"
@@ -240,7 +243,7 @@ def _plot_number_parameters(stats_by_model, output_dir, model_type):
 		stats_by_model,
 		output_dir,
 		"Number of trainable parameters for " + model_type,
-		"parameters_per_model_" + model_type + ".jpg",
+		str("parameters_per_model_" + model_type + ".jpg"),
 		lambda model_name, _stats: int(get_number_parameters(model_name, model_type)),
 		color_threshold = 10000000,
 		text_formatter = lambda value: f"{int(value):,d}".replace(",", " "),
@@ -291,14 +294,14 @@ def _generate_combined_statistics_plots():
 
 	colors_list_with_names = get_colors_associated(generate_colors(len(stats_by_model)), [name for name in stats_by_model.keys()])
 
-	save_all_comparisons_models()
+	# save_all_comparisons_models()
 
-	_plot_combined_losses(colors_list_with_names, stats_by_model, PATH_LOSS_PLOTS_PATH)
+	_plot_combined_losses(colors_list_with_names, stats_by_model)
 
 	_plot_current_number_epoch(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
 
-	_plot_number_parameters(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH, "discriminator")
-	_plot_number_parameters(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH, "generator")
+	_plot_number_parameters(stats_by_model, PLOTS_NUMBER_PARAMETERS_PATH, "discriminator")
+	_plot_number_parameters(stats_by_model, PLOTS_NUMBER_PARAMETERS_PATH, "generator")
 
 	_plot_median_time_per_epoch(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
 
