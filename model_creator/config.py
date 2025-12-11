@@ -55,7 +55,7 @@ save_train_epoch_every = 5
 
 # GUI
 GUI_tkinter = False
-load_quantity_gui = 6
+load_quantity_gui = 3#6
 
 # statistics
 all_models = [

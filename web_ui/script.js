@@ -108,6 +108,8 @@ async function get_result_generator() {
             "disc3": [41, 12],
             "out": [14]
         }
+        result_inside = data.inside_values
+        console.log("===> inside data",result_inside)
 
         refresh_discriminator(data.generated_image, data.result_discriminator)
 

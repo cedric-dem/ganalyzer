@@ -234,7 +234,7 @@ def _plot_current_number_epoch(stats_by_model, output_dir):
 		"Number of training epochs",
 		"current_number_epochs.jpg",
 		lambda _model_name, stats: len(stats.epoch_durations),
-		color_threshold = 95,
+		color_threshold = 150,
 		text_formatter = lambda value: str(int(value)),
 	)
 
@@ -294,7 +294,7 @@ def _generate_combined_statistics_plots():
 
 	colors_list_with_names = get_colors_associated(generate_colors(len(stats_by_model)), [name for name in stats_by_model.keys()])
 
-	# save_all_comparisons_models()
+	save_all_comparisons_models()
 
 	_plot_combined_losses(colors_list_with_names, stats_by_model)
 
