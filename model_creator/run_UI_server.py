@@ -62,6 +62,32 @@ def get_closest_model_loaded_index(model_index, models_list):
 
 	raise ValueError("No models available in the provided list.")
 
+def get_inside_values(generator, discriminator, inpt):
+	result = generator.predict(inpt)[0, :, :, :]
+	generated = np.round(project_array(result, 254, -1, 1)).astype(np.uint8).tolist()
+
+	generated_resized = np.array([result.astype(np.float64)])
+	prediction_discriminator = discriminator.predict(generated_resized)[0][0]
+
+	# todo
+	return {
+		"generator": {
+			"input": [12, 4],
+			"gen1": [4, 7, 7],
+			"den2": [[1, 2], [5, 9]],
+			"gen3": [4, 5],
+			"out": [4, 1]
+		},
+		"discriminator": {
+			"input": [12, 4],
+			"disc1": [4, 7, 7],
+			"disc2": [[1, 2], [5, 9]],
+			"disc3": [4, 5],
+			"out": [4, 1]
+		}
+	}
+
+
 if GUI_tkinter:
 	main_gui = GUITkinter(generators_list, discriminators_list)
 else:
@@ -92,8 +118,8 @@ else:
 		print('====> synced with data', model_size_synced, latent_space_size_synced_str)
 
 		return jsonify({
-			"discriminator_layers": ["input", "disc1", "disc2", "disc3", "out"],
-			"generator_layers": ["input", "gen1", "gen2", "gen3", "out"],
+			"discriminator_layers": ["input", "disc1", "disc2", "disc3", "out"],  # todo
+			"generator_layers": ["input", "gen1", "gen2", "gen3", "out"],  # todo
 		})
 
 	@app.route("/get-result-generator", methods = ["POST"])
@@ -109,8 +135,9 @@ else:
 		generated_resized = np.array([result.astype(np.float64)])
 		prediction_discriminator = discriminators_list[current_discriminator_index].predict(generated_resized)[0][0]
 
-		return jsonify({
+		return jsonify({ #todo move all in inside values
 			"generated_image": generated,
+			"inside_values": get_inside_values(generators_list[current_generator_index], discriminators_list[current_generator_index], inpt),
 			"result_discriminator": str(prediction_discriminator)
 		})
 
@@ -135,3 +162,4 @@ else:
 		return jsonify({"new_epoch_found": epoch_found})
 
 	app.run(debug = True)
+
