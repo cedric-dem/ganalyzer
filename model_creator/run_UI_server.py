@@ -63,12 +63,53 @@ def get_closest_model_loaded_index(model_index, models_list):
 	raise ValueError("No models available in the provided list.")
 
 def get_inside_values(generator, discriminator, inpt):
+	"""
 	result = generator.predict(inpt)[0, :, :, :]
 	generated = np.round(project_array(result, 254, -1, 1)).astype(np.uint8).tolist()
 
 	generated_resized = np.array([result.astype(np.float64)])
 	prediction_discriminator = discriminator.predict(generated_resized)[0][0]
+	"""
+	result = {"generator": [], "discriminator": []}
 
+	for i in range(len(generator.layers)):
+		print("==> generator", generator.layers[i])
+
+	for j in range(len(discriminator.layers)):
+		print("==> discriminator", discriminator.layers[j])
+
+	"""
+	if not self.current_model:
+		logger.warning("Cannot refresh layer visualization without a model.")
+		return
+	
+	try:
+		index_layer = self.get_current_layer_index()
+		layer = self.current_model.layers[index_layer]
+	except (ValueError, IndexError):
+		logger.warning("Invalid layer selected for visualization.")
+		return
+	
+	try:
+		intermediate = tf.keras.Model(inputs = self.current_model.inputs, outputs = layer.output)
+		layer_output = intermediate.predict(self.current_input)
+	except Exception:  # pragma: no cover - defensive log
+		logger.exception("Failed to compute intermediate output for layer %s", layer.name)
+		return
+	
+	if layer_output.ndim == 4:
+		representation = self.get_array_representation(layer_output[0])
+		is_color = representation.ndim == 3 and representation.shape[-1] in {3, 4}
+	elif layer_output.ndim == 2:
+		representation = self.get_rectangle_representation(layer_output[0])
+		is_color = False
+	else:
+		logger.warning("Unsupported output shape %s for visualization", layer_output.shape)
+		return
+	
+	self.refresh_tk_image(representation, is_color = is_color, tk_image = self.image_inside_data)
+	
+	"""
 	# todo
 	return {
 		"generator": {
@@ -86,7 +127,6 @@ def get_inside_values(generator, discriminator, inpt):
 			"out": [4, 1]
 		}
 	}
-
 
 if GUI_tkinter:
 	main_gui = GUITkinter(generators_list, discriminators_list)
@@ -135,7 +175,7 @@ else:
 		generated_resized = np.array([result.astype(np.float64)])
 		prediction_discriminator = discriminators_list[current_discriminator_index].predict(generated_resized)[0][0]
 
-		return jsonify({ #todo move all in inside values
+		return jsonify({  # todo move all in inside values
 			"generated_image": generated,
 			"inside_values": get_inside_values(generators_list[current_generator_index], discriminators_list[current_generator_index], inpt),
 			"result_discriminator": str(prediction_discriminator)
@@ -162,4 +202,3 @@ else:
 		return jsonify({"new_epoch_found": epoch_found})
 
 	app.run(debug = True)
-

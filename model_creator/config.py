@@ -6,7 +6,7 @@ from ganalyzer.model_config import *
 additional_dense_units = 500
 
 latent_dimension_generator_available = [49, 121, 225, 400]  # maybe 49, 100, 196, 400
-latent_dimension_generator = latent_dimension_generator_available[2]
+latent_dimension_generator = latent_dimension_generator_available[3]
 
 dataset_name = "humans_fifa"  # "cars_2"
 dataset_dimension = str(model_output_size)
@@ -55,7 +55,7 @@ save_train_epoch_every = 5
 
 # GUI
 GUI_tkinter = False
-load_quantity_gui = 6
+load_quantity_gui = 3#6
 
 # statistics
 all_models = [
