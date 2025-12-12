@@ -73,10 +73,14 @@ def get_inside_values(generator, discriminator, inpt):
 	result = {"generator": [], "discriminator": []}
 
 	for i in range(len(generator.layers)):
-		print("==> generator", generator.layers[i])
+		layer_name = generator.layers[i].name
+		print("==> generator", layer_name)
+		result["generator"].append((layer_name, [[12.3, 3], [4, 5]]))
 
 	for j in range(len(discriminator.layers)):
-		print("==> discriminator", discriminator.layers[j])
+		layer_name = discriminator.layers[j].name
+		print("==> discriminator", layer_name)
+		result["discriminator"].append((layer_name, [[32.3, 3], [4, 5]]))
 
 	"""
 	if not self.current_model:
@@ -111,22 +115,7 @@ def get_inside_values(generator, discriminator, inpt):
 	
 	"""
 	# todo
-	return {
-		"generator": {
-			"input": [12, 4],
-			"gen1": [4, 7, 7],
-			"den2": [[1, 2], [5, 9]],
-			"gen3": [4, 5],
-			"out": [4, 1]
-		},
-		"discriminator": {
-			"input": [12, 4],
-			"disc1": [4, 7, 7],
-			"disc2": [[1, 2], [5, 9]],
-			"disc3": [4, 5],
-			"out": [4, 1]
-		}
-	}
+	return result
 
 if GUI_tkinter:
 	main_gui = GUITkinter(generators_list, discriminators_list)
