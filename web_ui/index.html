@@ -5,7 +5,7 @@
     <title>GANalyzer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
+<body>
 <div class="container">
     <div class="box">  <!-- Generator Input -->
         <h1 class="top_bar">Generator Input</h1>
@@ -64,7 +64,7 @@
                         <p id="labelGeneratorEpochValue"> Current Epoch : 0 / 100 </p>
                     </div>
                     <div class="card-surface center">
-                        <input type="range" id="sliderGeneratorEpochValue" min="0" max="100" value="95" step="1"
+                        <input type="range" id="sliderGeneratorEpochValue" min="0" max="200" value="95" step="1"
                                oninput="handleSliderGeneratorEpochValue(this.value)"/>
                     </div>
                 </div>
@@ -123,7 +123,7 @@
                         <p id="labelDiscriminatorEpochValue"> Current Epoch : 0 / 100 </p>
                     </div>
                     <div class="card-surface center">
-                        <input type="range" id="sliderDiscriminatorEpochValue" min="0" max="100" value="95" step="1"
+                        <input type="range" id="sliderDiscriminatorEpochValue" min="0" max="200" value="95" step="1"
                                oninput="handleSliderDiscriminatorEpochValue(this.value)"/>
                     </div>
                 </div>
