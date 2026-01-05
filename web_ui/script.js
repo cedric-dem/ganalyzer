@@ -430,13 +430,14 @@ function bootstrapApp() {
         //todo change list visual to data.generator_layers
         addChoices(discriminatorController, false, "choice_layer_discriminator", data.discriminator_layers);
 
+        const generatorEpochValue = generatorEpochSlider.value;
+        updateGeneratorEpoch(generatorEpochValue, state, apiClient, generatorController);
+
+        const discriminatorEpochValue = discriminatorEpochSlider.value;
+        updateDiscriminatorEpoch(discriminatorEpochValue, state, apiClient);
+
         generatorController.randomizeInput();
     });
-    const generatorEpochValue = generatorEpochSlider.value;
-    updateGeneratorEpoch(generatorEpochValue, state, apiClient, generatorController);
-
-    const discriminatorEpochValue = discriminatorEpochSlider.value;
-    updateDiscriminatorEpoch(discriminatorEpochValue, state, apiClient);
 
     window.handleSliderMuValue = (value) => {
         document.getElementById("sliderMuValueLabel").textContent = value;
@@ -473,6 +474,9 @@ function bootstrapApp() {
 async function updateGeneratorEpoch(newEpoch, state, apiClient, generatorController) {
     //send message to python api
     const foundEpoch = await apiClient.changeEpoch("generator", newEpoch);
+    if (foundEpoch === null) {
+        return;
+    }
 
     //change text
     document.getElementById("labelGeneratorEpochValue").textContent =
@@ -483,6 +487,9 @@ async function updateGeneratorEpoch(newEpoch, state, apiClient, generatorControl
 async function updateDiscriminatorEpoch(newEpoch, state, apiClient) {
     //send message to python api
     const foundEpoch = await apiClient.changeEpoch("discriminator", newEpoch);
+    if (foundEpoch === null) {
+        return;
+    }
 
     //change text
     document.getElementById("labelDiscriminatorEpochValue").textContent =
