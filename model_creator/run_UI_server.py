@@ -74,12 +74,12 @@ def get_inside_values(generator, discriminator, inpt):
 
 	for i in range(len(generator.layers)):
 		layer_name = generator.layers[i].name
-		#print("==> generator", layer_name)
+		# print("==> generator", layer_name)
 		result["generator"].append((i, layer_name, [[12.3, 3], [4, 5]]))
 
 	for j in range(len(discriminator.layers)):
 		layer_name = discriminator.layers[j].name
-		#print("==> discriminator", layer_name)
+		# print("==> discriminator", layer_name)
 		result["discriminator"].append((j, layer_name, [[32.3, 3], [4, 5]]))
 
 	"""
@@ -117,6 +117,13 @@ def get_inside_values(generator, discriminator, inpt):
 	# todo
 	return result
 
+def get_layers_list(model):
+	list_layers = model.layers
+	result = []
+	for i in range(len(list_layers)):
+		result.append(str(i) + ") " + list_layers[i].name)
+	return result
+
 if GUI_tkinter:
 	main_gui = GUITkinter(generators_list, discriminators_list)
 else:
@@ -147,8 +154,8 @@ else:
 		print('====> synced with data', model_size_synced, latent_space_size_synced_str)
 
 		return jsonify({
-			"discriminator_layers": ["input", "disc1", "disc2", "disc3", "out"],  # todo
-			"generator_layers": ["input", "gen1", "gen2", "gen3", "out"],  # todo
+			"discriminator_layers": get_layers_list(discriminators_list[0]),
+			"generator_layers": get_layers_list(generators_list[0]),
 		})
 
 	@app.route("/get-result-generator", methods = ["POST"])
@@ -178,7 +185,7 @@ else:
 		epoch_found = get_closest_model_loaded_index(epoch_to_look, generators_list)
 		global current_generator_index
 		current_generator_index = epoch_found
-		print('====In epoch :',epoch_to_look, " .. ", epoch_found)
+		print('====In epoch :', epoch_to_look, " .. ", epoch_found)
 		return jsonify({"new_epoch_found": epoch_found})
 
 	@app.route("/change-epoch-discriminator", methods = ["POST"])
@@ -189,7 +196,7 @@ else:
 		epoch_found = get_closest_model_loaded_index(epoch_to_look, discriminators_list)
 		global current_discriminator_index
 		current_discriminator_index = epoch_found
-		print('====In epoch :',epoch_to_look, " .. ", epoch_found)
+		print('====In epoch :', epoch_to_look, " .. ", epoch_found)
 		return jsonify({"new_epoch_found": epoch_found})
 
 	app.run(debug = True)
