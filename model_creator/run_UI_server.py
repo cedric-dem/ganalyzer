@@ -74,12 +74,12 @@ def get_inside_values(generator, discriminator, inpt):
 
 	for i in range(len(generator.layers)):
 		layer_name = generator.layers[i].name
-		print("==> generator", layer_name)
+		#print("==> generator", layer_name)
 		result["generator"].append((i, layer_name, [[12.3, 3], [4, 5]]))
 
 	for j in range(len(discriminator.layers)):
 		layer_name = discriminator.layers[j].name
-		print("==> discriminator", layer_name)
+		#print("==> discriminator", layer_name)
 		result["discriminator"].append((j, layer_name, [[32.3, 3], [4, 5]]))
 
 	"""
@@ -178,6 +178,7 @@ else:
 		epoch_found = get_closest_model_loaded_index(epoch_to_look, generators_list)
 		global current_generator_index
 		current_generator_index = epoch_found
+		print('====In epoch :',epoch_to_look, " .. ", epoch_found)
 		return jsonify({"new_epoch_found": epoch_found})
 
 	@app.route("/change-epoch-discriminator", methods = ["POST"])
@@ -188,6 +189,7 @@ else:
 		epoch_found = get_closest_model_loaded_index(epoch_to_look, discriminators_list)
 		global current_discriminator_index
 		current_discriminator_index = epoch_found
+		print('====In epoch :',epoch_to_look, " .. ", epoch_found)
 		return jsonify({"new_epoch_found": epoch_found})
 
 	app.run(debug = True)

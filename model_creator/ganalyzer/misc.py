@@ -52,10 +52,15 @@ def _indexes_to_load(models_quantity):
 	if load_quantity_gui >= models_quantity:
 		return list(range(models_quantity))
 
-	take_every = max(1, models_quantity // load_quantity_gui)
-	indexes = set(range(0, models_quantity, take_every))
-	indexes.update({0, models_quantity - 1})
-	return sorted(indexes)
+	target_count = min(load_quantity_gui, models_quantity)
+	if target_count == 1:
+		return [0]
+
+	step = (models_quantity - 1) / (target_count - 1)
+	indexes = [int(step * index) for index in range(target_count)]
+	indexes[-1] = models_quantity - 1
+	res = sorted(set(indexes))
+	return res
 
 def get_all_models(model_type, available_epochs, model_name, latent_space_size):
 	models_dir = _model_directory_for(model_name, latent_space_size)
