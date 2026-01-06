@@ -8,6 +8,8 @@
     --accent: #22d3ee;
     --text-primary: #e2e8f0;
     --text-muted: #94a3b8;
+    --inside-visual-size: clamp(180px, 22vw, 240px);
+    --image-grid-size: clamp(180px, 22vw, 240px);
 }
 
 html, body {
@@ -177,9 +179,13 @@ body {
 
 #grid_visual_generator {
     display: grid;
-    grid-template-columns: repeat(100, 2px);
-    grid-template-rows: repeat(100, 2px);
+    grid-template-columns: repeat(11, 2px);
+    grid-template-rows: repeat(11, 2px);
     gap: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-content: center;
 }
 
 #grid_input_generator {
@@ -285,6 +291,11 @@ p {
 .inside-visualization {
     grid-template-rows: 20% 80%;
 }
+.inside-visualization .card-surface {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
 .label-select-row {
     display: flex;
@@ -295,4 +306,23 @@ p {
 .label-select-row label,
 .label-select-row select {
     width: 50%;
+}
+
+
+#grid_visual_inside_generator {
+    display: grid;
+    gap: 0;
+    width: var(--inside-visual-size);
+    height: var(--inside-visual-size);
+    justify-content: center;
+    align-content: center;
+}
+
+#grid_visual_inside_discriminator {
+    display: grid;
+    gap: 0;
+    width: var(--inside-visual-size);
+    height: var(--inside-visual-size);
+    justify-content: center;
+    align-content: center;
 }

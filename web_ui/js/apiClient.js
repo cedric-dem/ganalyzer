@@ -40,6 +40,25 @@ class ApiClient {
         return null;
     }
 
+    async getInsideValues(vector, which_model, layer_name) {
+        try {
+            const response = await fetch(`${this.baseUrl}/get-inside-values`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({vector: vector, which_model: which_model,  layer_name: layer_name}),
+            });
+
+            const result =  await response.json();
+            return result.inside_values
+
+        } catch (error) {
+            console.error("Error:", error);
+        }
+        return null;
+    }
+
     async changeEpoch(modelType, newEpoch) {
         try {
             const response = await fetch(`${this.baseUrl}/change-epoch-${modelType}`, {

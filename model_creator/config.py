@@ -54,6 +54,7 @@ batch_size = 32
 save_train_epoch_every = 5
 
 # GUI
+show_inside_values = True
 GUI_tkinter = False
 load_quantity_gui = 3#6
 

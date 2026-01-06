@@ -234,7 +234,7 @@ def _plot_current_number_epoch(stats_by_model, output_dir):
 		"Number of training epochs",
 		"current_number_epochs.jpg",
 		lambda _model_name, stats: len(stats.epoch_durations),
-		color_threshold = 150,
+		color_threshold = 210,
 		text_formatter = lambda value: str(int(value)),
 	)
 

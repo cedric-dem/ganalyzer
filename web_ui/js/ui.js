@@ -1,4 +1,4 @@
-function addChoices(discriminatorController, isGenerator, location, layersList) {
+function addChoices(controller, isGenerator, location, layersList) { //todo coulr remove boolean isgenerator
     const select = document.getElementById(location);
 
     layersList.forEach((layer) => {
@@ -8,7 +8,12 @@ function addChoices(discriminatorController, isGenerator, location, layersList) 
 
     select.addEventListener("change", () => {
         const value = select.value;
-        discriminatorController.changeInsideVisualization(isGenerator, value);
+
+        if (isGenerator){ //todo refactor code, both controller should inherit from controler abstract class so no if needed here
+            controller.refreshInsideGeneratorNew(value)
+        } else {
+            controller.refreshInsideDiscriminatorNew(value)
+        }
     });
 }
 
@@ -19,7 +24,7 @@ async function updateGeneratorEpoch(newEpoch, state, apiClient, generatorControl
     //change text
     document.getElementById("labelGeneratorEpochValue").textContent =
         "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + state.availableEpochs;
-    generatorController.submitToApi();
+    generatorController.refreshGeneratorAndDiscriminator();
 }
 
 async function updateDiscriminatorEpoch(newEpoch, state, apiClient) {
