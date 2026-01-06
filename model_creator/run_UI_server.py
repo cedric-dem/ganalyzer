@@ -8,6 +8,7 @@ from ganalyzer.misc import get_all_models, get_available_epochs, project_array
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import numpy as np
+import tensorflow as tf
 
 def _configure_model_paths(model_name, latent_space_size):
 	config.model_name = model_name
@@ -62,60 +63,35 @@ def get_closest_model_loaded_index(model_index, models_list):
 
 	raise ValueError("No models available in the provided list.")
 
-def get_inside_values(generator, discriminator, inpt):
-	"""
-	result = generator.predict(inpt)[0, :, :, :]
-	generated = np.round(project_array(result, 254, -1, 1)).astype(np.uint8).tolist()
+def get_value_at_given_layer(vector, layer_name, which_model):
+	layer_index = int(layer_name.split(")")[0])
+	# print("===*****************", vector, layer_name, which_model, " l_index:", layer_index)
 
-	generated_resized = np.array([result.astype(np.float64)])
-	prediction_discriminator = discriminator.predict(generated_resized)[0][0]
-	"""
-	result = {"generator": [], "discriminator": []}
+	if which_model == "generator":
+		model = generators_list[current_generator_index]
+		intermediate = tf.keras.Model(inputs = model.inputs, outputs = model.layers[layer_index].output)
 
-	for i in range(len(generator.layers)):
-		layer_name = generator.layers[i].name
-		# print("==> generator", layer_name)
-		result["generator"].append((i, layer_name, [[12.3, 3], [4, 5]]))
+		inpt = np.array([vector]).astype(np.float32)  # todo isolate in a function
 
-	for j in range(len(discriminator.layers)):
-		layer_name = discriminator.layers[j].name
-		# print("==> discriminator", layer_name)
-		result["discriminator"].append((j, layer_name, [[32.3, 3], [4, 5]]))
+		layer_output_raw = intermediate.predict(inpt)
 
-	"""
-	if not self.current_model:
-		logger.warning("Cannot refresh layer visualization without a model.")
-		return
-	
-	try:
-		index_layer = self.get_current_layer_index()
-		layer = self.current_model.layers[index_layer]
-	except (ValueError, IndexError):
-		logger.warning("Invalid layer selected for visualization.")
-		return
-	
-	try:
-		intermediate = tf.keras.Model(inputs = self.current_model.inputs, outputs = layer.output)
-		layer_output = intermediate.predict(self.current_input)
-	except Exception:  # pragma: no cover - defensive log
-		logger.exception("Failed to compute intermediate output for layer %s", layer.name)
-		return
-	
-	if layer_output.ndim == 4:
-		representation = self.get_array_representation(layer_output[0])
-		is_color = representation.ndim == 3 and representation.shape[-1] in {3, 4}
-	elif layer_output.ndim == 2:
-		representation = self.get_rectangle_representation(layer_output[0])
-		is_color = False
+		layer_output = np.round(project_array(layer_output_raw, 254, -1, 1)).tolist()[0]  # todo isolate in a function
+		# layer_output = np.round(project_array(layer_output_raw, 254, -1, 1)).astype(np.float32).tolist()  # todo isolate in a function
+		# could do more work here, to prepare for front end
+		pass
+
+	elif which_model == "discriminator":
+		model = discriminators_list[current_discriminator_index]
+		intermediate = tf.keras.Model(inputs = model.inputs, outputs = model.layers[layer_index].output)
+
+		inpt = np.array([np.array(vector).astype(np.float64)])  # todo isolate in function
+
+		layer_output = intermediate.predict(inpt).tolist()[0]
+
 	else:
-		logger.warning("Unsupported output shape %s for visualization", layer_output.shape)
-		return
-	
-	self.refresh_tk_image(representation, is_color = is_color, tk_image = self.image_inside_data)
-	
-	"""
-	# todo
-	return result
+		raise ValueError("Unknown model type.")
+
+	return layer_output
 
 def get_layers_list(model):
 	list_layers = model.layers
@@ -158,23 +134,41 @@ else:
 			"generator_layers": get_layers_list(generators_list[0]),
 		})
 
-	@app.route("/get-result-generator", methods = ["POST"])
+	def get_output_generator(vector):
+		inpt = np.array([vector]).astype(np.float32)
+		result = generators_list[current_generator_index].predict(inpt)[0, :, :, :]
+		return result
+
+	@app.route("/get-result-generator", methods = ["POST"])  # todo delete this function, can be replace d by get_inside_values with last layer
 	def get_result_from_generator():
 		data = request.get_json()
 		vector = data.get("vector", [])
 
-		inpt = np.array([vector]).astype(np.float32)
+		result = get_output_generator(vector)
 
-		result = generators_list[current_generator_index].predict(inpt)[0, :, :, :]
 		generated = np.round(project_array(result, 254, -1, 1)).astype(np.uint8).tolist()
-
 		generated_resized = np.array([result.astype(np.float64)])
+
 		prediction_discriminator = discriminators_list[current_discriminator_index].predict(generated_resized)[0][0]
 
 		return jsonify({  # todo move all in inside values
 			"generated_image": generated,
-			"inside_values": get_inside_values(generators_list[current_generator_index], discriminators_list[current_generator_index], inpt),
 			"result_discriminator": str(prediction_discriminator)
+		})
+
+	@app.route("/get-inside-values", methods = ["POST"])
+	def get_inside_values():
+		data = request.get_json()
+		vector = data.get("vector", [])
+		layer_name = data.get("layer_name", [])
+		which_model = data.get("which_model", [])
+
+		# blabla
+		# print('====> ins values \n\n', vector, layer_name, which_model)
+		inside_values = get_value_at_given_layer(vector, layer_name, which_model)
+
+		return jsonify({
+			"inside_values": inside_values
 		})
 
 	@app.route("/change-epoch-generator", methods = ["POST"])

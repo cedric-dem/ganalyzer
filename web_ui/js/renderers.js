@@ -1,16 +1,13 @@
 
+
 class ImageGridRenderer {
     initializeImage(elementId, sizeX, sizeY) {
         const divGrid = document.getElementById(elementId);
 
-        const availableWidth = divGrid.clientWidth;
-        const availableHeight = divGrid.clientHeight;
-
-        const pixelSize = Math.floor(Math.min(availableWidth / sizeY, availableHeight / sizeX));
-
+        divGrid.classList.add("image-grid");
         divGrid.style.display = "grid";
-        divGrid.style.gridTemplateColumns = `repeat(${sizeY}, ${pixelSize}px)`;
-        divGrid.style.gridTemplateRows = `repeat(${sizeX}, ${pixelSize}px)`;
+        divGrid.style.gridTemplateColumns = `repeat(${sizeY}, 1fr)`;
+        divGrid.style.gridTemplateRows = `repeat(${sizeX}, 1fr)`;
 
         const locationImage = Array.from({length: sizeX}, () => Array(sizeY).fill(null));
 
@@ -19,8 +16,8 @@ class ImageGridRenderer {
                 const newElement = document.createElement("div");
                 newElement.classList.add("slider_input_representation");
                 divGrid.appendChild(newElement);
-                newElement.style.width = `${pixelSize}px`;
-                newElement.style.height = `${pixelSize}px`;
+                newElement.style.width = "100%";
+                newElement.style.height = "100%";
 
                 locationImage[i][j] = newElement;
             }
@@ -29,11 +26,15 @@ class ImageGridRenderer {
         return locationImage;
     }
 
-    changeImage(newData, location) {
+    changeImage(newData, location) { //todo use this function to color grey input in generator
+        //todo either this function should use data in the renderer class or moved out the class
         for (let i = 0; i < newData.length; i++) {
             for (let j = 0; j < newData[0].length; j++) {
-                const [r, g, b] = newData[i][j];
-                location[i][j].style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                if  (newData[i][j]){
+                    const [r, g, b] = newData[i][j];
+                    location[i][j].style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+
+                }
             }
         }
     }

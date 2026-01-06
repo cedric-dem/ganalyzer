@@ -13,7 +13,7 @@ function bootstrapApp() {
     const apiClient = new ApiClient(CONFIG.apiBaseUrl);
     const imageGridRenderer = new ImageGridRenderer();
     const sliderGridRenderer = new SliderGridRenderer();
-    const discriminatorController = new DiscriminatorController(state, imageGridRenderer);
+    const discriminatorController = new DiscriminatorController(state, apiClient, imageGridRenderer);
     const generatorController = new GeneratorController(
         state,
         apiClient,
@@ -43,7 +43,7 @@ function bootstrapApp() {
             return;
         }
         //todo change list visual to data.discriminator_layers
-        addChoices(discriminatorController, true, "choice_layer_generator", data.generator_layers);
+        addChoices(generatorController, true, "choice_layer_generator", data.generator_layers);
 
         //todo change list visual to data.generator_layers
         addChoices(discriminatorController, false, "choice_layer_discriminator", data.discriminator_layers);
