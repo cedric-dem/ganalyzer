@@ -155,28 +155,30 @@ else:
 			"output_values": output_values
 		})
 
-	@app.route("/change-epoch-generator", methods = ["POST"]) #todo merge both change epoch in one endpoint
+	@app.route("/change-epoch", methods = ["POST"]) #todo merge both change epoch in one endpoint
 	def change_epoch_generator():
 		print("change gen")
 		data = request.get_json()
 
 		epoch_to_look = int(data.get("new_epoch", []))
+		which_model = data.get("which_model", [])
 
-		epoch_found = get_closest_model_loaded_index(epoch_to_look, generators_list)
-		global current_generator_index
-		current_generator_index = epoch_found
-		print('====In epoch :', epoch_to_look, " .. ", epoch_found)
-		return jsonify({"new_epoch_found": epoch_found})
+		if which_model== "generator":
+			epoch_found = get_closest_model_loaded_index(epoch_to_look, generators_list)
+			global current_generator_index
+			current_generator_index = epoch_found
+			print('====In epoch :', epoch_to_look, " .. ", epoch_found)
+			return jsonify({"new_epoch_found": epoch_found})
 
-	@app.route("/change-epoch-discriminator", methods = ["POST"])
-	def change_epoch_discriminator():
-		print("change disc")
-		data = request.get_json()
-		epoch_to_look = int(data.get("new_epoch", []))
-		epoch_found = get_closest_model_loaded_index(epoch_to_look, discriminators_list)
-		global current_discriminator_index
-		current_discriminator_index = epoch_found
-		print('====In epoch :', epoch_to_look, " .. ", epoch_found)
-		return jsonify({"new_epoch_found": epoch_found})
+		elif which_model== "discriminator":
+			epoch_found = get_closest_model_loaded_index(epoch_to_look, discriminators_list)
+			global current_discriminator_index
+			current_discriminator_index = epoch_found
+			print('====In epoch :', epoch_to_look, " .. ", epoch_found)
+			return jsonify({"new_epoch_found": epoch_found})
+
+		else:
+			print("error 403", which_model)
+
 
 	app.run(debug = True)

@@ -47,17 +47,21 @@ class ApiClient {
 
     async changeEpoch(modelType, newEpoch) {
         try {
-            const response = await fetch(`${this.baseUrl}/change-epoch-${modelType}`, {
+            const response = await fetch(`${this.baseUrl}/change-epoch`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({new_epoch: newEpoch}),
+                body: JSON.stringify({
+                    new_epoch: newEpoch,
+                    which_model: modelType
+
+                }),
             });
 
-            const data = await response.json();
+            const response_content = await response.json();
             // todo add error if not changed
-            return data.new_epoch_found;
+            return response_content.new_epoch_found;
         } catch (error) {
             console.error("Error:", error);
         }
