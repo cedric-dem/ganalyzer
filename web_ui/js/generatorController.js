@@ -32,23 +32,27 @@ class GeneratorController {
 
     async refreshGeneratorAndDiscriminator() {
         const latentVectorAsMatrix = this.getInputVectorAsMatrix();
+
         this.imageGridRenderer.changeImage(latentVectorAsMatrix, this.generatorInputPixels);
 
-        const data = await this.apiClient.getResultGenerator(this.state.latentVector);
-        if (!data) {
+        //const data = await this.apiClient.getResultGenerator(this.state.latentVector);
+        const data_generator = await this.apiClient.getModelPrediction(this.state.latentVector, "generator", "23) conv2d");
+        const data_discriminator = await this.apiClient.getModelPrediction(data_generator, "discriminator", "17) dense");
+
+        if (!data_generator || !data_discriminator) {
             return;
         }
 
         //console.log('> new  inside matrix generator shape', "min max ",Math.min(...data.generated_image.flat(2)),Math.max(...data.generated_image.flat(2)))
 
-        this.imageGridRenderer.changeImage(data.generated_image, this.generatorImagePixels);
+        this.imageGridRenderer.changeImage(data_generator, this.generatorImagePixels);
         //console.log('refreshing api')
 
         this.refreshInsideGeneratorNew(document.getElementById("choice_layer_generator").value);
 
         //console.log("===> inside data", resultInside);
 
-        await this.discriminatorController.refreshDiscriminator(data.generated_image, data.result_discriminator);
+        await this.discriminatorController.refreshDiscriminator(data_generator, data_discriminator);
     }
 
     async refreshInsideGeneratorNew(layer_to_visualize) {
@@ -57,7 +61,7 @@ class GeneratorController {
         //api call with the current layer and 'generator'
         this.getInputVectorAsMatrix();
 
-        const inside_values_generator = await this.apiClient.getInsideValues(this.state.latentVector, "generator", layer_to_visualize);
+        const inside_values_generator = await this.apiClient.getModelPrediction(this.state.latentVector, "generator", layer_to_visualize);
 
         //console.log('> new inside matrix generator shape',inside_values_generator.length, inside_values_generator[0].length, inside_values_generator[0][0].length, "min max ",Math.min(...inside_values_generator.flat(2)),Math.max(...inside_values_generator.flat(2)))
         //console.log('> new inside matrix generator',inside_values_generator)

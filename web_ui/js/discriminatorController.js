@@ -23,7 +23,7 @@ class DiscriminatorController {
         //api call with the current layer and 'discriminator'
         const generated_image = this.generatorOutputImage;
 
-        const discriminator_inside_values = await this.apiClient.getInsideValues(generated_image, "discriminator", layer_to_visualize);
+        const discriminator_inside_values = await this.apiClient.getModelPrediction(generated_image, "discriminator", layer_to_visualize);
 
         //console.log('> new inside matrix discriminator shape',discriminator_inside_values.length, discriminator_inside_values[0].length, discriminator_inside_values[0][0].length);
         //console.log('> new inside matrix discriminator shape', discriminator_inside_values);

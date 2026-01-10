@@ -93,6 +93,11 @@ def get_value_at_given_layer(vector, layer_name, which_model):
 
 	return layer_output
 
+def get_output_generator(vector):
+	inpt = np.array([vector]).astype(np.float32)
+	result = generators_list[current_generator_index].predict(inpt)[0, :, :, :]
+	return result
+
 def get_layers_list(model):
 	list_layers = model.layers
 	result = []
@@ -134,48 +139,29 @@ else:
 			"generator_layers": get_layers_list(generators_list[0]),
 		})
 
-	def get_output_generator(vector):
-		inpt = np.array([vector]).astype(np.float32)
-		result = generators_list[current_generator_index].predict(inpt)[0, :, :, :]
-		return result
+	@app.route("/get-model-prediction", methods = ["POST"])
+	def get_model_prediction():
 
-	@app.route("/get-result-generator", methods = ["POST"])  # todo delete this function, can be replace d by get_inside_values with last layer
-	def get_result_from_generator():
 		data = request.get_json()
-		vector = data.get("vector", [])
 
-		result = get_output_generator(vector)
-
-		generated = np.round(project_array(result, 254, -1, 1)).astype(np.uint8).tolist()
-		generated_resized = np.array([result.astype(np.float64)])
-
-		prediction_discriminator = discriminators_list[current_discriminator_index].predict(generated_resized)[0][0]
-
-		return jsonify({  # todo move all in inside values
-			"generated_image": generated,
-			"result_discriminator": str(prediction_discriminator)
-		})
-
-	@app.route("/get-inside-values", methods = ["POST"])
-	def get_inside_values():
-		data = request.get_json()
-		vector = data.get("vector", [])
+		vector = data.get("input_data", [])
 		layer_name = data.get("layer_name", [])
 		which_model = data.get("which_model", [])
 
-		# blabla
-		# print('====> ins values \n\n', vector, layer_name, which_model)
-		inside_values = get_value_at_given_layer(vector, layer_name, which_model)
+
+		output_values = get_value_at_given_layer(vector, layer_name, which_model)
 
 		return jsonify({
-			"inside_values": inside_values
+			"output_values": output_values
 		})
 
-	@app.route("/change-epoch-generator", methods = ["POST"])
+	@app.route("/change-epoch-generator", methods = ["POST"]) #todo merge both change epoch in one endpoint
 	def change_epoch_generator():
 		print("change gen")
 		data = request.get_json()
+
 		epoch_to_look = int(data.get("new_epoch", []))
+
 		epoch_found = get_closest_model_loaded_index(epoch_to_look, generators_list)
 		global current_generator_index
 		current_generator_index = epoch_found
