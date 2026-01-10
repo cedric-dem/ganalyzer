@@ -23,35 +23,21 @@ class ApiClient {
         return null;
     }
 
-    async getResultGenerator(vector) {
+    async getModelPrediction(input_data, which_model, layer_name) {
         try {
-            const response = await fetch(`${this.baseUrl}/get-result-generator`, {
+            const response = await fetch(`${this.baseUrl}/get-model-prediction`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({vector: vector}),
+                body: JSON.stringify({
+                    input_data: input_data,
+                    which_model: which_model,
+                    layer_name: layer_name}),
             });
 
-            return await response.json();
-        } catch (error) {
-            console.error("Error:", error);
-        }
-        return null;
-    }
-
-    async getInsideValues(vector, which_model, layer_name) {
-        try {
-            const response = await fetch(`${this.baseUrl}/get-inside-values`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({vector: vector, which_model: which_model, layer_name: layer_name}),
-            });
-
-            const result = await response.json();
-            return result.inside_values
+            const response_content = await response.json();
+            return response_content.output_values
 
         } catch (error) {
             console.error("Error:", error);
@@ -61,17 +47,21 @@ class ApiClient {
 
     async changeEpoch(modelType, newEpoch) {
         try {
-            const response = await fetch(`${this.baseUrl}/change-epoch-${modelType}`, {
+            const response = await fetch(`${this.baseUrl}/change-epoch`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({new_epoch: newEpoch}),
+                body: JSON.stringify({
+                    new_epoch: newEpoch,
+                    which_model: modelType
+
+                }),
             });
 
-            const data = await response.json();
+            const response_content = await response.json();
             // todo add error if not changed
-            return data.new_epoch_found;
+            return response_content.new_epoch_found;
         } catch (error) {
             console.error("Error:", error);
         }
