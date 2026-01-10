@@ -9,7 +9,7 @@ function addChoices(controller, isGenerator, location, layersList) { //todo coul
     select.addEventListener("change", () => {
         const value = select.value;
 
-        if (isGenerator){ //todo refactor code, both controller should inherit from controler abstract class so no if needed here
+        if (isGenerator) { //todo refactor code, both controller should inherit from controler abstract class so no if needed here
             controller.refreshInsideGeneratorNew(value)
         } else {
             controller.refreshInsideDiscriminatorNew(value)

@@ -33,7 +33,7 @@ function getResultFrom1DCase(content) {
     const min = getOverallMinimum(content);
     const max = getOverallMaximum(content);
 
-    console.log('1D ', content.length, new_dim, min, max)
+    //console.log('1D ', content.length, new_dim, min, max)
 
     const result = getDefaultMatrix(new_dim, new_dim)
 
@@ -66,8 +66,8 @@ function getResultFrom3DCase(content) {
     const min = getOverallMinimum(content);
     const max = getOverallMaximum(content);
 
-    console.log('3D  case ====================', content[0][0].length, "outer ", outer_dimension, "inner ", inner_dimension, min, max)
-    describeMatrixShape(content)
+    //console.log('3D  case ====================', content[0][0].length, "outer ", outer_dimension, "inner ", inner_dimension, min, max)
+    //describeMatrixShape(content)
 
     const result = getDefaultMatrix(outer_dimension * inner_dimension, outer_dimension * inner_dimension);
 

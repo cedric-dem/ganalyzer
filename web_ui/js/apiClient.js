@@ -47,10 +47,10 @@ class ApiClient {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({vector: vector, which_model: which_model,  layer_name: layer_name}),
+                body: JSON.stringify({vector: vector, which_model: which_model, layer_name: layer_name}),
             });
 
-            const result =  await response.json();
+            const result = await response.json();
             return result.inside_values
 
         } catch (error) {
