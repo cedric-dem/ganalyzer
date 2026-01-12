@@ -49,10 +49,10 @@ function bootstrapApp() {
         addChoices(discriminatorController, false, "choice_layer_discriminator", data.discriminator_layers);
 
         const generatorEpochValue = generatorEpochSlider.value;
-        updateGeneratorEpoch(generatorEpochValue, state, apiClient, generatorController);
+        updateGeneratorEpoch(generatorEpochValue, state, apiClient, generatorController, false);
 
         const discriminatorEpochValue = discriminatorEpochSlider.value;
-        updateDiscriminatorEpoch(discriminatorEpochValue, state, apiClient);
+        updateDiscriminatorEpoch(discriminatorController, discriminatorEpochValue, state, apiClient);
 
         generatorController.randomizeInput();
     });
@@ -85,7 +85,7 @@ function bootstrapApp() {
     };
 
     window.handleSliderDiscriminatorEpochValue = (newEpoch) => {
-        updateDiscriminatorEpoch(newEpoch, state, apiClient);
+        updateDiscriminatorEpoch(discriminatorController, newEpoch, state, apiClient);
     };
 }
 
