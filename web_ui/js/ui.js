@@ -17,30 +17,5 @@ function addChoices(controller, isGenerator, location, layersList) { //todo coul
     });
 }
 
-async function updateGeneratorEpoch(newEpoch, state, apiClient, generatorController, shouldRefresh = true) {
-    //send message to python api
-    const foundEpoch = await apiClient.changeEpoch("generator", newEpoch);
 
-    //change text
-    document.getElementById("labelGeneratorEpochValue").textContent =
-        "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + state.availableEpochs;
-    if (shouldRefresh) {
-        generatorController.refreshGeneratorAndDiscriminator();
-    }
-}
-
-async function updateDiscriminatorEpoch(discriminatorController, newEpoch, state, apiClient, shouldRefresh = true) {
-    //send message to python api
-    const foundEpoch = await apiClient.changeEpoch("discriminator", newEpoch);
-
-    //change text
-    document.getElementById("labelDiscriminatorEpochValue").textContent =
-        "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + state.availableEpochs;
-    //get_result_discriminator()
-
-    if (shouldRefresh) {
-        //discriminatorController.refreshDiscriminator(//TODO);
-    }
-}
-
-export {addChoices, updateDiscriminatorEpoch, updateGeneratorEpoch};
+export {addChoices};

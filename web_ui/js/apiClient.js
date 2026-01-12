@@ -25,7 +25,7 @@ class ApiClient {
     }
 
     async getModelPrediction(input_data, which_model, layer_name) {
-        console.log('==> Get Model ',which_model,layer_name,'Prediction')
+        console.log('==> Get Model ', which_model, layer_name, 'Prediction')
         try {
             const response = await fetch(`${this.baseUrl}/get-model-prediction`, {
                 method: "POST",
@@ -35,7 +35,8 @@ class ApiClient {
                 body: JSON.stringify({
                     input_data: input_data,
                     which_model: which_model,
-                    layer_name: layer_name}),
+                    layer_name: layer_name
+                }),
             });
 
             const response_content = await response.json();
@@ -48,7 +49,7 @@ class ApiClient {
     }
 
     async changeEpoch(modelType, newEpoch) {
-        console.log('==> Change Epoch',modelType,newEpoch);
+        console.log('==> Change Epoch', modelType, newEpoch);
         try {
             const response = await fetch(`${this.baseUrl}/change-epoch`, {
                 method: "POST",

@@ -137,6 +137,18 @@ class GeneratorController {
         this.state.latentVector[i * this.state.latentSpaceSizeSqrt + j] = newValue;
         this.refreshGeneratorAndDiscriminator();
     }
+
+    async updateGeneratorEpoch(newEpoch, shouldRefresh = true) {
+        //send message to python api
+        const foundEpoch = await this.apiClient.changeEpoch("generator", newEpoch);
+
+        //change text
+        document.getElementById("labelGeneratorEpochValue").textContent =
+            "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.state.availableEpochs;
+        if (shouldRefresh) {
+            this.refreshGeneratorAndDiscriminator();
+        }
+    }
 }
 
 export default GeneratorController;

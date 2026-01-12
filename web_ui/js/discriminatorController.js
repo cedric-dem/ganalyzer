@@ -59,6 +59,20 @@ class DiscriminatorController {
     toPercentage(value) {
         return (value * 100).toFixed(2) + "%";
     }
+
+    async updateDiscriminatorEpoch(newEpoch, shouldRefresh = true) {
+        //send message to python api
+        const foundEpoch = await this.apiClient.changeEpoch("discriminator", newEpoch);
+
+        //change text
+        document.getElementById("labelDiscriminatorEpochValue").textContent =
+            "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.state.availableEpochs;
+        //get_result_discriminator()
+
+        if (shouldRefresh) {
+            //this.refreshDiscriminator();
+        }
+    }
 }
 
 export default DiscriminatorController;

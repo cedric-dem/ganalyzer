@@ -6,7 +6,7 @@ import CONFIG from "./js/config.js";
 import DiscriminatorController from "./js/discriminatorController.js";
 import GeneratorController from "./js/generatorController.js";
 import {ImageGridRenderer, SliderGridRenderer} from "./js/renderers.js";
-import {addChoices, updateDiscriminatorEpoch, updateGeneratorEpoch} from "./js/ui.js";
+import {addChoices} from "./js/ui.js";
 
 function bootstrapApp() {
     const state = new AppState(CONFIG);
@@ -49,10 +49,10 @@ function bootstrapApp() {
         addChoices(discriminatorController, false, "choice_layer_discriminator", data.discriminator_layers);
 
         const generatorEpochValue = generatorEpochSlider.value;
-        updateGeneratorEpoch(generatorEpochValue, state, apiClient, generatorController, false);
+        generatorController.updateGeneratorEpoch(generatorEpochValue, false);
 
         const discriminatorEpochValue = discriminatorEpochSlider.value;
-        updateDiscriminatorEpoch(discriminatorController, discriminatorEpochValue, state, apiClient);
+        discriminatorController.updateDiscriminatorEpoch(discriminatorEpochValue);
 
         generatorController.randomizeInput();
     });
@@ -81,11 +81,11 @@ function bootstrapApp() {
     };
 
     window.handleSliderGeneratorEpochValue = (newEpoch) => {
-        updateGeneratorEpoch(newEpoch, state, apiClient, generatorController);
+        generatorController.updateGeneratorEpoch(newEpoch);
     };
 
     window.handleSliderDiscriminatorEpochValue = (newEpoch) => {
-        updateDiscriminatorEpoch(discriminatorController, newEpoch, state, apiClient);
+        discriminatorController.updateDiscriminatorEpoch(newEpoch);
     };
 }
 
