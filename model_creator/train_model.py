@@ -54,12 +54,10 @@ def _train_step(images, *, latent_dim, generator, discriminator, generator_optim
 
 def train(current_epoch, dataset, cross_entropy, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
 	epoch = current_epoch
+	pending_statistics = []
 
 	while True:
 		print("==> current epoch : ", epoch)
-
-		if _should_save_models(epoch):
-			_save_models(generator, discriminator, epoch, latent_dim)
 
 		start = time.time()
 		running_totals = defaultdict(float)
@@ -80,8 +78,13 @@ def train(current_epoch, dataset, cross_entropy, latent_dim, generator, discrimi
 
 		averaged_stats = _average_statistics(running_totals, batch_count)
 		averaged_stats["time"] = time_taken
+		pending_statistics.append((epoch, averaged_stats))
 
-		add_statistics_to_file(epoch, averaged_stats)
+		if _should_save_models(epoch):
+			_save_models(generator, discriminator, epoch, latent_dim)
+			add_statistics_entries_to_file(pending_statistics)
+			pending_statistics.clear()
+
 		epoch += 1
 
 def _should_save_models(epoch):
@@ -112,12 +115,15 @@ def _average_statistics(running_totals, batch_count):
 
 	return {key: value / batch_count for key, value in running_totals.items()}
 
-def add_statistics_to_file(epoch, new_stats):
+def add_statistics_entries_to_file(entries):
+	if not entries:
+		return
+
 	statistics_path = Path(statistics_file_path)
 	statistics_path.parent.mkdir(parents = True, exist_ok = True)
 
 	file_exists = statistics_path.exists()
-	headers = list(new_stats.keys())
+	headers = list(entries[0][1].keys())
 
 	with statistics_path.open(mode = "a", newline = "", encoding = "utf-8") as statistics_file:
 		writer = csv.writer(statistics_file)
@@ -125,7 +131,8 @@ def add_statistics_to_file(epoch, new_stats):
 		if not file_exists:
 			writer.writerow(["epoch_id", *headers])
 
-		writer.writerow([str(epoch), *[new_stats[key] for key in headers]])
+		for epoch, new_stats in entries:
+			writer.writerow([str(epoch), *[new_stats[key] for key in headers]])
 
 def generator_loss(fake_output, cross_entropy):
 	return cross_entropy(tf.ones_like(fake_output), fake_output)
