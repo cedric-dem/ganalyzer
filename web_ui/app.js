@@ -25,23 +25,20 @@ function bootstrapApp() {
     generatorController.initialize();
     discriminatorController.initialize();
 
-    const generatorEpochSlider = document.getElementById("sliderGeneratorEpochValue");
-    const discriminatorEpochSlider = document.getElementById("sliderDiscriminatorEpochValue");
-
-    generatorEpochSlider.max = state.availableEpochs;
-    discriminatorEpochSlider.max = state.availableEpochs;
-
-    if (Number(generatorEpochSlider.value) > state.availableEpochs) {
-        generatorEpochSlider.value = state.availableEpochs;
-    }
-    if (Number(discriminatorEpochSlider.value) > state.availableEpochs) {
-        discriminatorEpochSlider.value = state.availableEpochs;
-    }
-
     apiClient.synchronizeServer(state.modelName, state.latentSpaceSize).then((data) => {
         if (!data) {
             return;
         }
+
+        const generatorEpochSlider = document.getElementById("sliderGeneratorEpochValue");
+        const discriminatorEpochSlider = document.getElementById("sliderDiscriminatorEpochValue");
+
+        CONFIG.availableEpochs = data.number_of_models;
+        state.availableEpochs = data.number_of_models;
+
+        generatorEpochSlider.max = CONFIG.availableEpochs;
+        discriminatorEpochSlider.max = CONFIG.availableEpochs;
+
         //todo change list visual to data.discriminator_layers
         addChoices(generatorController, true, "choice_layer_generator", data.generator_layers);
 

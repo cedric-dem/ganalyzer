@@ -117,6 +117,7 @@ class GUIWebPage(object):
 			return jsonify({
 				"discriminator_layers": get_layers_list(self.discriminators_list[0]),
 				"generator_layers": get_layers_list(self.generators_list[0]),
+				"number_of_models": models_quantity,
 			})
 
 		@app.route("/get-model-prediction", methods = ["POST"])
