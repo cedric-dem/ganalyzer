@@ -1,48 +1,58 @@
-import {changeInsideRepresentation} from "./misc.js";
+import {changeInsideRepresentation, toPercentage} from "./misc.js";
 
 class DiscriminatorController {
-    constructor(calling_web_ui, apiClient, imageGridRenderer) {
-        this.callingWebUI = calling_web_ui;
+    constructor(callingWebUI, apiClient, imageGridRenderer) {
+        this.callingWebUI = callingWebUI;
         this.apiClient = apiClient;
+
         this.imageGridRenderer = imageGridRenderer;
+
         this.discriminatorInputImagePixels = null;
-        this.generatorOutputImage = null;
+
+        this.discriminatorInputImage = null;
+
     }
 
     initialize() {
         this.discriminatorInputImagePixels = this.imageGridRenderer.initializeImage("div_visualization_input_discriminator", this.callingWebUI.imageSize, this.callingWebUI.imageSize);
     }
 
-    async refreshInsideDiscriminatorNew(layer_to_visualize) {
+    async refreshInsideDiscriminator(layerToVisualize) {
         //api call with the current layer and 'discriminator'
-        const discriminator_inside_values = await this.apiClient.getModelPrediction(this.generatorOutputImage, "discriminator", layer_to_visualize);
+        const discriminator_inside_values = await this.apiClient.getModelPrediction(this.discriminatorInputImage, "discriminator", layerToVisualize);
 
         //change image
         changeInsideRepresentation(discriminator_inside_values, "div_visualization_inside_discriminator")
     }
 
-    async refreshDiscriminator(newImage, resultDiscriminator) {
-        //change input
-        this.generatorOutputImage = newImage;
-        this.imageGridRenderer.changeImage(newImage, this.discriminatorInputImagePixels);
-
-        // print it
-        let textResult = "";
-
-        if (resultDiscriminator > 0.5) {
-            textResult = "real image";
-        } else {
-            textResult = "fake image";
-        }
-        textResult += " (" + this.toPercentage(resultDiscriminator) + ")";
-
-        document.getElementById("prediction_output_text").textContent = textResult;
-
-        await this.refreshInsideDiscriminatorNew(document.getElementById("choice_layer_discriminator").value)
+    changeInputImage(generatorImage){
+        this.discriminatorInputImage = generatorImage;
     }
 
-    toPercentage(value) {
-        return (value * 100).toFixed(2) + "%";
+    async refreshDiscriminator() {
+        const resultDiscriminator =  await this.apiClient.getModelPrediction(this.discriminatorInputImage , "discriminator", "17) dense");
+
+        //change input
+        this.imageGridRenderer.changeImage(this.discriminatorInputImage , this.discriminatorInputImagePixels);
+
+        //change inside
+        await this.refreshInsideDiscriminator(document.getElementById("choice_layer_discriminator").value)
+
+        // change output
+        document.getElementById("prediction_output_text").textContent = this.getTextPrediction(resultDiscriminator);
+
+    }
+
+    getTextPrediction(resultDiscriminator){
+        let textOutput = "";
+
+        if (resultDiscriminator > 0.5) {
+            textOutput = "real image";
+        } else {
+            textOutput = "fake image";
+        }
+        textOutput += " (" + toPercentage(resultDiscriminator) + ")";
+        return textOutput;
     }
 
     async updateDiscriminatorEpoch(newEpoch, shouldRefresh = true) {
@@ -50,11 +60,10 @@ class DiscriminatorController {
         const foundEpoch = await this.apiClient.changeEpoch("discriminator", newEpoch);
 
         //change text
-        document.getElementById("labelDiscriminatorEpochValue").textContent =
-            "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.callingWebUI.availableEpochs;
+        document.getElementById("labelDiscriminatorEpochValue").textContent = "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.callingWebUI.availableEpochs;
 
         if (shouldRefresh) {
-            //this.refreshDiscriminator(); //todo
+            await this.refreshDiscriminator();
         }
     }
 }

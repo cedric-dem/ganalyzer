@@ -1,14 +1,18 @@
-import {changeInsideRepresentation} from "./misc.js";
+import {changeInsideRepresentation, getInputVectorAsMatrix} from "./misc.js";
 
 class GeneratorController {
-    constructor(calling_web_ui, apiClient, imageGridRenderer, sliderGridRenderer, discriminatorController) {
-        this.callingWebUi = calling_web_ui;
+    constructor(callingWebUI, apiClient, imageGridRenderer, sliderGridRenderer, discriminatorController) {
+        this.callingWebUi = callingWebUI;
         this.apiClient = apiClient;
         this.imageGridRenderer = imageGridRenderer;
+
         this.sliderGridRenderer = sliderGridRenderer;
+
         this.discriminatorController = discriminatorController;
+
         this.generatorInputPixels = null;
         this.generatorImagePixels = null;
+
         this.slidersGrid = null;
     }
 
@@ -31,56 +35,29 @@ class GeneratorController {
     }
 
     async refreshGeneratorAndDiscriminator() {
-        const latentVectorAsMatrix = this.getInputVectorAsMatrix();
-
+        // input
+        const latentVectorAsMatrix = getInputVectorAsMatrix(this.callingWebUi.latentVector, this.callingWebUi.latentSpaceSizeSqrt, this.callingWebUi.maxValueVisualizationInput);
         this.imageGridRenderer.changeImage(latentVectorAsMatrix, this.generatorInputPixels);
 
-        const data_generator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector, "generator", "23) conv2d");
-        const data_discriminator = await this.apiClient.getModelPrediction(data_generator, "discriminator", "17) dense");
+        //inside
+        await this.refreshInsideGenerator(document.getElementById("choice_layer_generator").value);
 
-        if (!data_generator || !data_discriminator) {
-            return;
-        }
+        //output
+        const dataGenerator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector, "generator", "23) conv2d");
+        this.imageGridRenderer.changeImage(dataGenerator, this.generatorImagePixels);
 
-        this.imageGridRenderer.changeImage(data_generator, this.generatorImagePixels);
-
-        this.refreshInsideGeneratorNew(document.getElementById("choice_layer_generator").value);
-
-        await this.discriminatorController.refreshDiscriminator(data_generator, data_discriminator);
+        // update discriminator
+        this.discriminatorController.changeInputImage(dataGenerator);
+        await this.discriminatorController.refreshDiscriminator();
     }
 
-    async refreshInsideGeneratorNew(layer_to_visualize) {
-        //console.log("+++ refreshing generator inside", layer_to_visualize)
+    async refreshInsideGenerator(layer_to_visualize) {
 
         //api call with the current layer and 'generator'
-        this.getInputVectorAsMatrix();
-
-        const inside_values_generator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector, "generator", layer_to_visualize);
+        const insideValuesGenerator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector,"generator", layer_to_visualize);
 
         //change image
-        changeInsideRepresentation(inside_values_generator, "div_visualization_inside_generator")
-    }
-
-    projectTo255(x) {
-        const clamped = Math.min(Math.max(x, -this.callingWebUi.maxValueVisualizationInput), this.callingWebUi.maxValueVisualizationInput);
-        return ((clamped + this.callingWebUi.maxValueVisualizationInput) / (2 * this.callingWebUi.maxValueVisualizationInput)) * 255;
-    }
-
-    getInputVectorAsMatrix() {
-        const latentVectorAsMatrix = Array.from(
-            {length: this.callingWebUi.latentSpaceSizeSqrt},
-            () => Array(this.callingWebUi.latentSpaceSizeSqrt).fill(null),
-        );
-
-        for (let i = 0; i < this.callingWebUi.latentSpaceSizeSqrt; i++) {
-            for (let j = 0; j < this.callingWebUi.latentSpaceSizeSqrt; j++) {
-                const intensity = this.callingWebUi.latentVector[i * this.callingWebUi.latentSpaceSizeSqrt + j];
-                const intensityProjected = this.projectTo255(intensity); //between 0 black and 255 white
-
-                latentVectorAsMatrix[i][j] = [intensityProjected, intensityProjected, intensityProjected];
-            }
-        }
-        return latentVectorAsMatrix;
+        changeInsideRepresentation(insideValuesGenerator, "div_visualization_inside_generator")
     }
 
     randomizeInput() {
@@ -118,10 +95,10 @@ class GeneratorController {
         const foundEpoch = await this.apiClient.changeEpoch("generator", newEpoch);
 
         //change text
-        document.getElementById("labelGeneratorEpochValue").textContent =
-            "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.callingWebUi.availableEpochs;
+        document.getElementById("labelGeneratorEpochValue").textContent = "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.callingWebUi.availableEpochs;
+
         if (shouldRefresh) {
-            this.refreshGeneratorAndDiscriminator();
+            await this.refreshGeneratorAndDiscriminator();
         }
     }
 }

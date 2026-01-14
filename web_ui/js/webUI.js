@@ -8,16 +8,20 @@ class WebUI {
     constructor({modelName, imageSize, latentSpaceSize, maxValueVisualizationInput, apiBaseUrl}) {
 
         this.modelName = modelName;
+
         this.availableEpochs = null;
+
         this.imageSize = imageSize;
+
         this.latentSpaceSize = latentSpaceSize;
         this.latentSpaceSizeSqrt = latentSpaceSize ** 0.5;
+
         this.maxValueVisualizationInput = maxValueVisualizationInput;
+
         this.latentVector = new Array(latentSpaceSize).fill(0);
-        this.inputValuesGenerator = null;
-        this.inputValuesDiscriminator = null;
 
         this.apiClient = new ApiClient(apiBaseUrl);
+
         this.imageGridRenderer = new ImageGridRenderer();
         this.sliderGridRenderer = new SliderGridRenderer();
 
@@ -30,9 +34,6 @@ class WebUI {
         this.discriminatorController.initialize();
 
         this.apiClient.synchronizeServer(this.modelName, this.latentSpaceSize).then((data) => {
-            if (!data) {
-                return;
-            }
 
             const generatorEpochSlider = document.getElementById("sliderGeneratorEpochValue");
             const discriminatorEpochSlider = document.getElementById("sliderDiscriminatorEpochValue");
@@ -52,7 +53,7 @@ class WebUI {
             this.generatorController.updateGeneratorEpoch(generatorEpochValue, false);
 
             const discriminatorEpochValue = discriminatorEpochSlider.value;
-            this.discriminatorController.updateDiscriminatorEpoch(discriminatorEpochValue);
+            this.discriminatorController.updateDiscriminatorEpoch(discriminatorEpochValue, false);
 
             this.generatorController.randomizeInput();
         });
