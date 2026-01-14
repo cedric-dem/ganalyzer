@@ -1,7 +1,7 @@
 class ImageGridRenderer {
     initializeImage(elementId, sizeX, sizeY) {
         const divGrid = document.getElementById(elementId);
-
+        console.log("init ",elementId)
         divGrid.classList.add("image-grid");
         divGrid.style.display = "grid";
         divGrid.style.gridTemplateColumns = `repeat(${sizeY}, 1fr)`;
@@ -78,6 +78,5 @@ class SliderGridRenderer {
         }
     }
 }
-
 
 export {ImageGridRenderer, SliderGridRenderer};

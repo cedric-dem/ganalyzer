@@ -4,7 +4,7 @@ class ApiClient {
     }
 
     async synchronizeServer(modelName, latentSpaceSize) {
-        console.log('==> Sync with server')
+        //console.log('==> Sync with server')
         try {
             const response = await fetch(`${this.baseUrl}/sync-server`, {
                 method: "POST",
@@ -25,7 +25,7 @@ class ApiClient {
     }
 
     async getModelPrediction(input_data, which_model, layer_name) {
-        console.log('==> Get Model ', which_model, layer_name, 'Prediction')
+        //console.log('==> Get Model ', which_model, layer_name, 'Prediction')
         try {
             const response = await fetch(`${this.baseUrl}/get-model-prediction`, {
                 method: "POST",
@@ -49,7 +49,7 @@ class ApiClient {
     }
 
     async changeEpoch(modelType, newEpoch) {
-        console.log('==> Change Epoch', modelType, newEpoch);
+        //console.log('==> Change Epoch', modelType, newEpoch);
         try {
             const response = await fetch(`${this.baseUrl}/change-epoch`, {
                 method: "POST",

@@ -1,6 +1,5 @@
 const CONFIG = {
     modelName: "model_0_small",
-    availableEpochs: null,
     imageSize: 100,
     latentSpaceSize: 49,
     maxValueVisualizationInput: 5,

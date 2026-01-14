@@ -5,16 +5,10 @@ import {ImageGridRenderer, SliderGridRenderer} from "./renderers.js";
 import {addChoices} from "./misc.js";
 
 class WebUI {
-    constructor({
-                    modelName,
-                    availableEpochs,
-                    imageSize,
-                    latentSpaceSize,
-                    maxValueVisualizationInput,
-                    apiBaseUrl,
-                }) {
+    constructor({modelName, imageSize, latentSpaceSize, maxValueVisualizationInput, apiBaseUrl}) {
+
         this.modelName = modelName;
-        this.availableEpochs = availableEpochs;
+        this.availableEpochs = null;
         this.imageSize = imageSize;
         this.latentSpaceSize = latentSpaceSize;
         this.latentSpaceSizeSqrt = latentSpaceSize ** 0.5;
@@ -26,18 +20,9 @@ class WebUI {
         this.apiClient = new ApiClient(apiBaseUrl);
         this.imageGridRenderer = new ImageGridRenderer();
         this.sliderGridRenderer = new SliderGridRenderer();
-        this.discriminatorController = new DiscriminatorController(
-            this,
-            this.apiClient,
-            this.imageGridRenderer,
-        );
-        this.generatorController = new GeneratorController(
-            this,
-            this.apiClient,
-            this.imageGridRenderer,
-            this.sliderGridRenderer,
-            this.discriminatorController,
-        );
+
+        this.discriminatorController = new DiscriminatorController(this, this.apiClient, this.imageGridRenderer);
+        this.generatorController = new GeneratorController(this, this.apiClient, this.imageGridRenderer, this.sliderGridRenderer, this.discriminatorController);
     }
 
     initialize() {
@@ -88,7 +73,7 @@ class WebUI {
         };
 
         window.re_randomize = () => {
-            this.generatorController.reRandomize();
+            this.generatorController.randomizeInput();
         };
 
         window.set_constant_input = () => {

@@ -1,8 +1,8 @@
-import {changeInsideRepresentation, describeMatrixShape} from "./misc.js";
+import {changeInsideRepresentation} from "./misc.js";
 
 class DiscriminatorController {
-    constructor(state, apiClient, imageGridRenderer) {
-        this.state = state;
+    constructor(calling_web_ui, apiClient, imageGridRenderer) {
+        this.callingWebUI = calling_web_ui;
         this.apiClient = apiClient;
         this.imageGridRenderer = imageGridRenderer;
         this.discriminatorInputImagePixels = null;
@@ -10,29 +10,15 @@ class DiscriminatorController {
     }
 
     initialize() {
-        this.discriminatorInputImagePixels = this.imageGridRenderer.initializeImage(
-            "grid_input_discriminator",
-            this.state.imageSize,
-            this.state.imageSize,
-        );
+        this.discriminatorInputImagePixels = this.imageGridRenderer.initializeImage("div_visualization_input_discriminator", this.callingWebUI.imageSize, this.callingWebUI.imageSize);
     }
 
     async refreshInsideDiscriminatorNew(layer_to_visualize) {
-        //console.log("+++ refreshing discriminator inside", layer_to_visualize)
-
         //api call with the current layer and 'discriminator'
-        const generated_image = this.generatorOutputImage;
-
-        const discriminator_inside_values = await this.apiClient.getModelPrediction(generated_image, "discriminator", layer_to_visualize);
-
-        //console.log('> new inside matrix discriminator shape',discriminator_inside_values.length, discriminator_inside_values[0].length, discriminator_inside_values[0][0].length);
-        //console.log('> new inside matrix discriminator shape', discriminator_inside_values);
+        const discriminator_inside_values = await this.apiClient.getModelPrediction(this.generatorOutputImage, "discriminator", layer_to_visualize);
 
         //change image
-        changeInsideRepresentation(discriminator_inside_values, "grid_visual_inside_discriminator")
-        //console.log('>> changing discriminator inside value')
-        //describeMatrixShape(discriminator_inside_values)
-
+        changeInsideRepresentation(discriminator_inside_values, "div_visualization_inside_discriminator")
     }
 
     async refreshDiscriminator(newImage, resultDiscriminator) {
@@ -52,7 +38,6 @@ class DiscriminatorController {
 
         document.getElementById("prediction_output_text").textContent = textResult;
 
-        //this.refreshInsideDiscriminator();
         await this.refreshInsideDiscriminatorNew(document.getElementById("choice_layer_discriminator").value)
     }
 
@@ -66,11 +51,10 @@ class DiscriminatorController {
 
         //change text
         document.getElementById("labelDiscriminatorEpochValue").textContent =
-            "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.state.availableEpochs;
-        //get_result_discriminator()
+            "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.callingWebUI.availableEpochs;
 
         if (shouldRefresh) {
-            //this.refreshDiscriminator();
+            //this.refreshDiscriminator(); //todo
         }
     }
 }

@@ -1,8 +1,8 @@
-import {changeInsideRepresentation, describeMatrixShape} from "./misc.js";
+import {changeInsideRepresentation} from "./misc.js";
 
 class GeneratorController {
-    constructor(state, apiClient, imageGridRenderer, sliderGridRenderer, discriminatorController) {
-        this.state = state;
+    constructor(calling_web_ui, apiClient, imageGridRenderer, sliderGridRenderer, discriminatorController) {
+        this.callingWebUi = calling_web_ui;
         this.apiClient = apiClient;
         this.imageGridRenderer = imageGridRenderer;
         this.sliderGridRenderer = sliderGridRenderer;
@@ -14,18 +14,18 @@ class GeneratorController {
 
     initialize() {
         this.generatorInputPixels = this.imageGridRenderer.initializeImage(
-            "grid_input_generator",
-            this.state.latentSpaceSizeSqrt,
-            this.state.latentSpaceSizeSqrt,
+            "div_visualization_input_generator",
+            this.callingWebUi.latentSpaceSizeSqrt,
+            this.callingWebUi.latentSpaceSizeSqrt,
         );
         this.generatorImagePixels = this.imageGridRenderer.initializeImage(
-            "grid_visual_generator",
-            this.state.imageSize,
-            this.state.imageSize,
+            "div_visualization_output_generator",
+            this.callingWebUi.imageSize,
+            this.callingWebUi.imageSize,
         );
         this.slidersGrid = this.sliderGridRenderer.initializeGeneratorSliders(
             "sliders_grid",
-            this.state.latentSpaceSizeSqrt,
+            this.callingWebUi.latentSpaceSizeSqrt,
             (i, j, newValue) => this.handleSliderValueChange(i, j, newValue),
         );
     }
@@ -35,22 +35,16 @@ class GeneratorController {
 
         this.imageGridRenderer.changeImage(latentVectorAsMatrix, this.generatorInputPixels);
 
-        //const data = await this.apiClient.getResultGenerator(this.state.latentVector);
-        const data_generator = await this.apiClient.getModelPrediction(this.state.latentVector, "generator", "23) conv2d");
+        const data_generator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector, "generator", "23) conv2d");
         const data_discriminator = await this.apiClient.getModelPrediction(data_generator, "discriminator", "17) dense");
 
         if (!data_generator || !data_discriminator) {
             return;
         }
 
-        //console.log('> new  inside matrix generator shape', "min max ",Math.min(...data.generated_image.flat(2)),Math.max(...data.generated_image.flat(2)))
-
         this.imageGridRenderer.changeImage(data_generator, this.generatorImagePixels);
-        //console.log('refreshing api')
 
         this.refreshInsideGeneratorNew(document.getElementById("choice_layer_generator").value);
-
-        //console.log("===> inside data", resultInside);
 
         await this.discriminatorController.refreshDiscriminator(data_generator, data_discriminator);
     }
@@ -61,38 +55,29 @@ class GeneratorController {
         //api call with the current layer and 'generator'
         this.getInputVectorAsMatrix();
 
-        const inside_values_generator = await this.apiClient.getModelPrediction(this.state.latentVector, "generator", layer_to_visualize);
-
-        //console.log('> new inside matrix generator shape',inside_values_generator.length, inside_values_generator[0].length, inside_values_generator[0][0].length, "min max ",Math.min(...inside_values_generator.flat(2)),Math.max(...inside_values_generator.flat(2)))
-        //console.log('> new inside matrix generator',inside_values_generator)
+        const inside_values_generator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector, "generator", layer_to_visualize);
 
         //change image
-        changeInsideRepresentation(inside_values_generator, "grid_visual_inside_generator")
-        //console.log('>> changing generator inside value')
-        //describeMatrixShape(inside_values_generator)
+        changeInsideRepresentation(inside_values_generator, "div_visualization_inside_generator")
     }
 
     projectTo255(x) {
-        const clamped = Math.min(Math.max(x, -this.state.maxValueVisualizationInput), this.state.maxValueVisualizationInput);
-        return ((clamped + this.state.maxValueVisualizationInput)
-            / (2 * this.state.maxValueVisualizationInput)) * 255;
+        const clamped = Math.min(Math.max(x, -this.callingWebUi.maxValueVisualizationInput), this.callingWebUi.maxValueVisualizationInput);
+        return ((clamped + this.callingWebUi.maxValueVisualizationInput) / (2 * this.callingWebUi.maxValueVisualizationInput)) * 255;
     }
 
     getInputVectorAsMatrix() {
         const latentVectorAsMatrix = Array.from(
-            {length: this.state.latentSpaceSizeSqrt},
-            () => Array(this.state.latentSpaceSizeSqrt).fill(null),
+            {length: this.callingWebUi.latentSpaceSizeSqrt},
+            () => Array(this.callingWebUi.latentSpaceSizeSqrt).fill(null),
         );
 
-        for (let i = 0; i < this.state.latentSpaceSizeSqrt; i++) {
-            for (let j = 0; j < this.state.latentSpaceSizeSqrt; j++) {
-                const intensity = this.state.latentVector[i * this.state.latentSpaceSizeSqrt + j];
+        for (let i = 0; i < this.callingWebUi.latentSpaceSizeSqrt; i++) {
+            for (let j = 0; j < this.callingWebUi.latentSpaceSizeSqrt; j++) {
+                const intensity = this.callingWebUi.latentVector[i * this.callingWebUi.latentSpaceSizeSqrt + j];
                 const intensityProjected = this.projectTo255(intensity); //between 0 black and 255 white
-                latentVectorAsMatrix[i][j] = [
-                    intensityProjected,
-                    intensityProjected,
-                    intensityProjected,
-                ];
+
+                latentVectorAsMatrix[i][j] = [intensityProjected, intensityProjected, intensityProjected];
             }
         }
         return latentVectorAsMatrix;
@@ -102,10 +87,9 @@ class GeneratorController {
         const mu = parseFloat(document.getElementById("sliderMuValue").value);
         const sigma = parseFloat(document.getElementById("sliderSigmaValue").value);
 
-        for (let i = 0; i < this.state.latentSpaceSize; i++) {
-            const z = Math.sqrt(-2.0 * Math.log(Math.random()))
-                * Math.cos(2.0 * Math.PI * Math.random());
-            this.state.latentVector[i] = mu + sigma * z;
+        for (let i = 0; i < this.callingWebUi.latentSpaceSize; i++) {
+            const z = Math.sqrt(-2.0 * Math.log(Math.random())) * Math.cos(2.0 * Math.PI * Math.random());
+            this.callingWebUi.latentVector[i] = mu + sigma * z;
         }
         this.refreshSliders();
         this.refreshGeneratorAndDiscriminator();
@@ -113,28 +97,19 @@ class GeneratorController {
 
     setConstantInput() {
         const k = parseFloat(document.getElementById("sliderConstantValue").value);
-        for (let i = 0; i < this.state.latentVector.length; i++) {
-            this.state.latentVector[i] = k;
+        for (let i = 0; i < this.callingWebUi.latentVector.length; i++) {
+            this.callingWebUi.latentVector[i] = k;
         }
         this.refreshSliders();
         this.refreshGeneratorAndDiscriminator();
     }
 
-    reRandomize() {
-        this.randomizeInput();
-        //this.refreshGeneratorAndDiscriminator();
-    }
-
     refreshSliders() {
-        this.sliderGridRenderer.refreshSliders(
-            this.slidersGrid,
-            this.state.latentVector,
-            this.state.latentSpaceSizeSqrt,
-        );
+        this.sliderGridRenderer.refreshSliders(this.slidersGrid, this.callingWebUi.latentVector, this.callingWebUi.latentSpaceSizeSqrt);
     }
 
     handleSliderValueChange(i, j, newValue) {
-        this.state.latentVector[i * this.state.latentSpaceSizeSqrt + j] = newValue;
+        this.callingWebUi.latentVector[i * this.callingWebUi.latentSpaceSizeSqrt + j] = newValue;
         this.refreshGeneratorAndDiscriminator();
     }
 
@@ -144,7 +119,7 @@ class GeneratorController {
 
         //change text
         document.getElementById("labelGeneratorEpochValue").textContent =
-            "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.state.availableEpochs;
+            "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.callingWebUi.availableEpochs;
         if (shouldRefresh) {
             this.refreshGeneratorAndDiscriminator();
         }

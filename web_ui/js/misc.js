@@ -1,6 +1,5 @@
 import {ImageGridRenderer} from "./renderers.js";
 
-
 export function changeInsideRepresentation(content, location) {
     //empty previous content if any
     document.getElementById(location).innerHTML = "";
@@ -20,7 +19,6 @@ function getUpperBoundSqrt(n) {
     return Math.ceil(Math.sqrt(n));
 }
 
-
 function getDefaultMatrix(sizeX, sizeY) {
     return Array.from({length: sizeX}, () =>
         Array.from({length: sizeY}, () => null)
@@ -32,8 +30,6 @@ function getResultFrom1DCase(content) {
 
     const min = getOverallMinimum(content);
     const max = getOverallMaximum(content);
-
-    //console.log('1D ', content.length, new_dim, min, max)
 
     const result = getDefaultMatrix(new_dim, new_dim)
 
@@ -62,12 +58,8 @@ function getResultFrom3DCase(content) {
     const outer_dimension = getUpperBoundSqrt(content[0][0].length)
     const inner_dimension = content.length
 
-
     const min = getOverallMinimum(content);
     const max = getOverallMaximum(content);
-
-    //console.log('3D  case ====================', content[0][0].length, "outer ", outer_dimension, "inner ", inner_dimension, min, max)
-    //describeMatrixShape(content)
 
     const result = getDefaultMatrix(outer_dimension * inner_dimension, outer_dimension * inner_dimension);
 
@@ -99,11 +91,9 @@ export function get_matrix_to_display(content) {
     let result;
 
     if (dims === 1) {
-        //console.log('==> 1D case')
         result = getResultFrom1DCase(content);
 
     } else if (dims === 3) {
-        //console.log('==> 3D case')
         result = getResultFrom3DCase(content);
 
     } else {
