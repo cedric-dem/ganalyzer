@@ -57,10 +57,10 @@ class GeneratorController {
         await this.discriminatorController.refreshDiscriminator();
     }
 
-    async refreshInsideGenerator(layer_to_visualize) {
+    async refreshInsideGenerator(layerToVisualize) {
 
         //api call with the current layer and 'generator'
-        const insideValuesGenerator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector,"generator", layer_to_visualize);
+        const insideValuesGenerator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector,"generator", layerToVisualize);
 
         //change image
         changeInsideRepresentation(insideValuesGenerator, "div_visualization_inside_generator")

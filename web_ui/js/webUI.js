@@ -43,10 +43,7 @@ class WebUI {
             generatorEpochSlider.max = this.availableEpochs;
             discriminatorEpochSlider.max = this.availableEpochs;
 
-            //todo change list visual to data.discriminator_layers
             addChoices(this.generatorController, true, "choice_layer_generator", data.generator_layers);
-
-            //todo change list visual to data.generator_layers
             addChoices(this.discriminatorController, false, "choice_layer_discriminator", data.discriminator_layers);
 
             this.generatorController.initializeLastLayer(data.generator_layers[data.generator_layers.length -1])

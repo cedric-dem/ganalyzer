@@ -1,3 +1,5 @@
+import {getNull2DArray} from "./misc.js";
+
 class ImageGridRenderer {
     initializeImage(elementId, sizeX, sizeY) {
         const divGrid = document.getElementById(elementId);
@@ -45,7 +47,7 @@ class SliderGridRenderer {
         divSliders.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
         divSliders.style.gridTemplateRows = `repeat(${size}, auto)`;
 
-        const slidersGrid = Array.from({length: size}, () => Array(size).fill(null));
+        const slidersGrid = getNull2DArray(size, size)
 
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
@@ -55,7 +57,6 @@ class SliderGridRenderer {
                 newElement.min = -5;
                 newElement.max = 5;
                 newElement.step = 0.01;
-                newElement.value = 0;
                 newElement.classList.add("slider");
 
                 newElement.oninput = function () {

@@ -24,10 +24,10 @@ class DiscriminatorController {
 
     async refreshInsideDiscriminator(layerToVisualize) {
         //api call with the current layer and 'discriminator'
-        const discriminator_inside_values = await this.apiClient.getModelPrediction(this.discriminatorInputImage, "discriminator", layerToVisualize);
+        const discriminatorInsideValue = await this.apiClient.getModelPrediction(this.discriminatorInputImage, "discriminator", layerToVisualize);
 
         //change image
-        changeInsideRepresentation(discriminator_inside_values, "div_visualization_inside_discriminator")
+        changeInsideRepresentation(discriminatorInsideValue, "div_visualization_inside_discriminator")
     }
 
     changeInputImage(generatorImage){

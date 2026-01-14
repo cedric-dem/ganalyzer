@@ -5,37 +5,37 @@ export function changeInsideRepresentation(content, location) {
     document.getElementById(location).innerHTML = "";
 
     // get matrix
-    const matrix_ready_to_display = get_matrix_to_display(content);
+    const matrixReadyToDisplay = getMatrixToDisplay(content);
 
     // create pixels
     const imageGridRenderer = new ImageGridRenderer()
-    const locationImage = imageGridRenderer.initializeImage(location, matrix_ready_to_display.length, matrix_ready_to_display[0].length);
+    const locationImage = imageGridRenderer.initializeImage(location, matrixReadyToDisplay.length, matrixReadyToDisplay[0].length);
 
     // colour pixels
-    imageGridRenderer.changeImage(matrix_ready_to_display, locationImage);
+    imageGridRenderer.changeImage(matrixReadyToDisplay, locationImage);
 }
 
 function getUpperBoundSqrt(n) {
     return Math.ceil(Math.sqrt(n));
 }
 
-function getDefaultMatrix(sizeX, sizeY) {
+export function getNull2DArray(sizeX, sizeY) {
     return Array.from({length: sizeX}, () =>
         Array.from({length: sizeY}, () => null)
     );
 }
 
 function getResultFrom1DCase(content, min, max) {
-    const new_dim = getUpperBoundSqrt(content.length)
+    const newDimension = getUpperBoundSqrt(content.length)
 
-    const result = getDefaultMatrix(new_dim, new_dim)
+    const result = getNull2DArray(newDimension, newDimension)
 
-    let tmp;
-    for (let i = 0; i < new_dim; i++) {
-        for (let j = 0; j < new_dim; j++) {
-            if (i * new_dim + j < content.length) {
-                tmp = mapTo255(min, max, content[i * new_dim + j]);
-                result[i][j] = [tmp, tmp, tmp];
+    let tempValue;
+    for (let i = 0; i < newDimension; i++) {
+        for (let j = 0; j < newDimension; j++) {
+            if (i * newDimension + j < content.length) {
+                tempValue = mapTo255(min, max, content[i * newDimension + j]);
+                result[i][j] = [tempValue, tempValue, tempValue];
             }
         }
     }
@@ -43,26 +43,26 @@ function getResultFrom1DCase(content, min, max) {
     return result;
 }
 
-function getResultFrom3DCase(content, min, max) {
+function getResultFrom3DCase(content, minimum, maximum) {
     //todo maybe use three js here ?
     //or slider to have several 2d pictures and allowed to go trough the frames
-    const outer_dimension = getUpperBoundSqrt(content[0][0].length)
-    const inner_dimension = content.length
+    const outerDimension = getUpperBoundSqrt(content[0][0].length)
+    const innerDimension = content.length
 
-    const result = getDefaultMatrix(outer_dimension * inner_dimension, outer_dimension * inner_dimension);
+    const result = getNull2DArray(outerDimension * innerDimension, outerDimension * innerDimension);
 
-    let tmp;
+    let tempValue;
 
-    for (let outer_x = 0; outer_x < outer_dimension; outer_x++) {
-        for (let outer_y = 0; outer_y < outer_dimension; outer_y++) {
+    for (let outerX = 0; outerX < outerDimension; outerX++) {
+        for (let outerY = 0; outerY < outerDimension; outerY++) {
 
-            for (let inner_x = 0; inner_x < inner_dimension; inner_x++) {
-                for (let inner_y = 0; inner_y < inner_dimension; inner_y++) {
+            for (let innerX = 0; innerX < innerDimension; innerX++) {
+                for (let innerY = 0; innerY < innerDimension; innerY++) {
 
-                    if (outer_x * outer_dimension + outer_y < content[0][0].length) {
+                    if (outerX * outerDimension + outerY < content[0][0].length) {
                         // 255 white --- 0 black
-                        tmp = mapTo255(min, max, content[inner_x][inner_y][outer_x * outer_dimension + outer_y]);
-                        result[outer_x * inner_dimension + inner_x][outer_y * inner_dimension + inner_y] = [tmp, tmp, tmp]
+                        tempValue = mapTo255(minimum, maximum, content[innerX][innerY][outerX * outerDimension + outerY]);
+                        result[outerX * innerDimension + innerX][outerY * innerDimension + innerY] = [tempValue, tempValue, tempValue]
                     }
                 }
             }
@@ -72,20 +72,20 @@ function getResultFrom3DCase(content, min, max) {
     return result;
 }
 
-export function get_matrix_to_display(content) {
+export function getMatrixToDisplay(rawContent) {
 
-    const dims = getArrayDimensions(content);
+    const dimensionsQuantity = getArrayDimensions(rawContent);
 
-    const min = getOverallMinimum(content);
-    const max = getOverallMaximum(content);
+    const minimum = getOverallMinimum(rawContent);
+    const maximum = getOverallMaximum(rawContent);
 
     let result;
 
-    if (dims === 1) {
-        result = getResultFrom1DCase(content, min, max);
+    if (dimensionsQuantity === 1) {
+        result = getResultFrom1DCase(rawContent, minimum, maximum);
 
-    } else if (dims === 3) {
-        result = getResultFrom3DCase(content, min, max);
+    } else if (dimensionsQuantity === 3) {
+        result = getResultFrom3DCase(rawContent, minimum, maximum);
 
     } else {
         console.log('ERROR')
@@ -94,39 +94,39 @@ export function get_matrix_to_display(content) {
     return result
 }
 
-function getArrayDimensions(arr) {
-    let dimensions = 0;
+function getArrayDimensions(array) {
+    let dimensionsQuantity = 0;
 
-    while (Array.isArray(arr)) {
-        dimensions++;
-        arr = arr[0];
+    while (Array.isArray(array)) {
+        dimensionsQuantity++;
+        array = array[0];
     }
 
-    return dimensions;
+    return dimensionsQuantity;
 }
 
-function getOverallMinimum(mat) {
-    let min = Infinity;
-    for (const element of mat) {
+function getOverallMinimum(array) {
+    let minimum = Infinity;
+    for (const element of array) {
         if (Array.isArray(element)) {
-            min = Math.min(min, getOverallMinimum(element));
+            minimum = Math.min(minimum, getOverallMinimum(element));
         } else {
-            min = Math.min(min, element);
+            minimum = Math.min(minimum, element);
         }
     }
-    return min;
+    return minimum;
 }
 
-function getOverallMaximum(mat) {
-    let max = -Infinity;
-    for (const element of mat) {
+function getOverallMaximum(array) {
+    let maximum = -Infinity;
+    for (const element of array) {
         if (Array.isArray(element)) {
-            max = Math.max(max, getOverallMaximum(element));
+            maximum = Math.max(maximum, getOverallMaximum(element));
         } else {
-            max = Math.max(max, element);
+            maximum = Math.max(maximum, element);
         }
     }
-    return max;
+    return maximum;
 }
 
 export function addChoices(controller, isGenerator, location, layersList) { //todo coulr remove boolean isgenerator
@@ -138,12 +138,12 @@ export function addChoices(controller, isGenerator, location, layersList) { //to
     });
 
     select.addEventListener("change", () => {
-        const value = select.value;
+        const newLayerName = select.value;
 
         if (isGenerator) { //todo refactor code, both controller should inherit from controler abstract class so no if needed here
-            controller.refreshInsideGenerator(value)
+            controller.refreshInsideGenerator(newLayerName)
         } else {
-            controller.refreshInsideDiscriminator(value)
+            controller.refreshInsideDiscriminator(newLayerName)
         }
     });
 }
@@ -152,24 +152,23 @@ export function toPercentage(value) {
     return (value * 100).toFixed(2) + "%";
 }
 
-function projectTo255(x, max_visualization_input) { //todo remove the other 255 func
-    const clampedVal = Math.min(Math.max(x, -max_visualization_input), max_visualization_input);
-    return ((clampedVal + max_visualization_input) / (2 * max_visualization_input)) * 255;
+function projectTo255(x, maxVisualizationInput) { //todo remove the other 255 func
+    const clampedVal = Math.min(Math.max(x, -maxVisualizationInput), maxVisualizationInput);
+    return ((clampedVal + maxVisualizationInput) / (2 * maxVisualizationInput)) * 255;
 }
 
-function mapTo255(min_val, max_val, val) {
-    const clampedVal = Math.min(Math.max(val, min_val), max_val);
-    const ratio = (clampedVal - min_val) / (max_val - min_val);
+function mapTo255(minValue, maxValue, value) {
+    const clampedVal = Math.min(Math.max(value, minValue), maxValue);
+    const ratio = (clampedVal - minValue) / (maxValue - minValue);
     return Math.round(ratio * 255);
 }
 
-export function getInputVectorAsMatrix(input_vector, size, max_visualization_input) {
-    const latentVectorAsMatrix = getDefaultMatrix(size, size)
+export function getInputVectorAsMatrix(inputVector, size, maxVisualizationInput) {
+    const latentVectorAsMatrix = getNull2DArray(size, size)
 
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
-            const intensity = input_vector[i * size + j];
-            const intensityProjected = projectTo255(intensity, max_visualization_input); //between 0 black and 255 white
+            const intensityProjected = projectTo255(inputVector[i * size + j], maxVisualizationInput); //between 0 black and 255 white
 
             latentVectorAsMatrix[i][j] = [intensityProjected, intensityProjected, intensityProjected];
         }
