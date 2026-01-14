@@ -49,6 +49,9 @@ class WebUI {
             //todo change list visual to data.generator_layers
             addChoices(this.discriminatorController, false, "choice_layer_discriminator", data.discriminator_layers);
 
+            this.generatorController.initializeLastLayer(data.generator_layers[data.generator_layers.length -1])
+            this.discriminatorController.initializeLastLayer(data.discriminator_layers[data.discriminator_layers.length -1])
+
             const generatorEpochValue = generatorEpochSlider.value;
             this.generatorController.updateGeneratorEpoch(generatorEpochValue, false);
 

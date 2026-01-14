@@ -14,6 +14,8 @@ class GeneratorController {
         this.generatorImagePixels = null;
 
         this.slidersGrid = null;
+
+        this.lastLayerName = null;
     }
 
     initialize() {
@@ -34,6 +36,10 @@ class GeneratorController {
         );
     }
 
+    initializeLastLayer(lastLayerName){
+        this.lastLayerName = lastLayerName
+    }
+
     async refreshGeneratorAndDiscriminator() {
         // input
         const latentVectorAsMatrix = getInputVectorAsMatrix(this.callingWebUi.latentVector, this.callingWebUi.latentSpaceSizeSqrt, this.callingWebUi.maxValueVisualizationInput);
@@ -43,7 +49,7 @@ class GeneratorController {
         await this.refreshInsideGenerator(document.getElementById("choice_layer_generator").value);
 
         //output
-        const dataGenerator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector, "generator", "23) conv2d");
+        const dataGenerator = await this.apiClient.getModelPrediction(this.callingWebUi.latentVector, "generator", this.lastLayerName);
         this.imageGridRenderer.changeImage(dataGenerator, this.generatorImagePixels);
 
         // update discriminator

@@ -11,10 +11,15 @@ class DiscriminatorController {
 
         this.discriminatorInputImage = null;
 
+        this.lastLayerName = null;
     }
 
     initialize() {
         this.discriminatorInputImagePixels = this.imageGridRenderer.initializeImage("div_visualization_input_discriminator", this.callingWebUI.imageSize, this.callingWebUI.imageSize);
+    }
+
+    initializeLastLayer(lastLayerName){
+        this.lastLayerName = lastLayerName
     }
 
     async refreshInsideDiscriminator(layerToVisualize) {
@@ -30,7 +35,7 @@ class DiscriminatorController {
     }
 
     async refreshDiscriminator() {
-        const resultDiscriminator =  await this.apiClient.getModelPrediction(this.discriminatorInputImage , "discriminator", "17) dense");
+        const resultDiscriminator =  await this.apiClient.getModelPrediction(this.discriminatorInputImage , "discriminator", this.lastLayerName);
 
         //change input
         this.imageGridRenderer.changeImage(this.discriminatorInputImage , this.discriminatorInputImagePixels);
