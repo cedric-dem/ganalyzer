@@ -1,9 +1,9 @@
 import ApiClient from "./apiClient.js";
 import DiscriminatorController from "./controller/discriminatorController.js";
 import GeneratorController from "./controller/generatorController.js";
-import {SliderRenderer} from "./renderer/sliderRenderer.js";
+import InputDataController from "./controller/inputDataController.js";
 
-class WebUI {
+export default class WebUI {
     constructor({modelName, imageSize, latentSpaceSize, maxValueVisualizationInput, apiBaseUrl}) {
 
         this.modelName = modelName;
@@ -19,21 +19,13 @@ class WebUI {
 
         this.apiClient = new ApiClient(apiBaseUrl);
 
-        this.sliderGridRenderer = new SliderRenderer("sliders_grid");
+        this.inputDataController = new InputDataController(this, this.latentSpaceSize, this.latentSpaceSizeSqrt);
 
         this.discriminatorController = new DiscriminatorController(this, this.apiClient, "choice_layer_discriminator");
-        this.generatorController = new GeneratorController(this, this.apiClient, this.sliderGridRenderer, latentSpaceSize, "choice_layer_generator");
+        this.generatorController = new GeneratorController(this, this.apiClient, latentSpaceSize, "choice_layer_generator");
 
         this.generatorEpochSlider = document.getElementById("sliderGeneratorEpochValue");
         this.discriminatorEpochSlider = document.getElementById("sliderDiscriminatorEpochValue");
-
-        this.sliderMuTextValue = document.getElementById("sliderMuValueLabel")
-        this.sliderSigmaTextValue = document.getElementById("sliderSigmaValueLabel")
-        this.sliderConstantTextValue = document.getElementById("sliderConstantValueLabel")
-
-        this.sliderMuValue = document.getElementById("sliderMuValue")
-        this.sliderSigmaValue = document.getElementById("sliderSigmaValue")
-        this.sliderConstantValue = document.getElementById("sliderConstantValue")
     }
 
     initialize() {
@@ -53,30 +45,27 @@ class WebUI {
             this.generatorController.updateEpoch(this.generatorEpochSlider.value, false);
             this.discriminatorController.updateEpoch(this.discriminatorEpochSlider.value, false);
 
-            this.generatorController.randomizeInput();
+            this.inputDataController.randomizeInput();
         });
 
         window.handleSliderMuValue = (value) => {
-            this.sliderMuTextValue.textContent = value;
-            this.generatorController.randomizeInput();
+            this.inputDataController.handleSliderMuValue(value)
         };
 
         window.handleSliderSigmaValue = (value) => {
-            this.sliderSigmaTextValue.textContent = value;
-            this.generatorController.randomizeInput();
+            this.inputDataController.handleSliderSigmaValue(value)
         };
 
         window.handleSliderConstantValue = (value) => {
-            this.sliderConstantTextValue.textContent = value;
-            this.generatorController.setConstantInput();
+            this.inputDataController.handleSliderConstantValue(value)
         };
 
         window.re_randomize = () => {
-            this.generatorController.randomizeInput();
+            this.inputDataController.randomizeInput();
         };
 
         window.set_constant_input = () => {
-            this.generatorController.setConstantInput();
+            this.inputDataController.setConstantInput();
         };
 
         window.handleSliderGeneratorEpochValue = (newEpoch) => {
@@ -93,17 +82,11 @@ class WebUI {
         await this.discriminatorController.refreshAll();
     }
 
-    getMuValue(){
-        return parseFloat(this.sliderMuValue.value)
+    getLatentVector() {
+        return this.inputDataController.getLatentVector();
     }
 
-    getSigmaValue(){
-        return parseFloat(this.sliderSigmaValue.value)
-    }
-
-    getKValue(){
-        return parseFloat(this.sliderConstantValue.value);
+    refreshGenerator() {
+        this.generatorController.refreshAll()
     }
 }
-
-export default WebUI;

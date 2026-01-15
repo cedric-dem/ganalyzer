@@ -1,6 +1,6 @@
 import {get2DNullArray} from "../misc.js";
 
-class SliderRenderer {
+export class SliderRenderer {
     constructor(elementId) {
         this.slidersGrid = null;
         this.divSliders = document.getElementById(elementId);
@@ -45,5 +45,3 @@ class SliderRenderer {
         }
     }
 }
-
-export {SliderRenderer};

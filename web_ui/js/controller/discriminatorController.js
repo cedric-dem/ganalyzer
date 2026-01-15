@@ -2,7 +2,7 @@ import {toPercentage} from "../misc.js";
 import {ModelController} from "./modelController.js";
 import {ImageRenderer} from "../renderer/imageRenderer.js";
 
-class DiscriminatorController extends ModelController {
+export default class DiscriminatorController extends ModelController {
     constructor(callingWebUI, apiClient, layer_location) {
         super(callingWebUI, "discriminator", apiClient, "div_visualization_inside_discriminator", "labelDiscriminatorEpochValue", layer_location);
 
@@ -37,7 +37,4 @@ class DiscriminatorController extends ModelController {
         const label = score > 0.5 ? "real" : "fake";
         return `${label} image (${toPercentage(score)})`;
     }
-
 }
-
-export default DiscriminatorController;

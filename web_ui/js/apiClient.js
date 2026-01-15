@@ -1,4 +1,4 @@
-class ApiClient {
+export default class ApiClient {
     constructor(baseUrl) {
         this.baseUrl = baseUrl;
     }
@@ -72,5 +72,3 @@ class ApiClient {
         return null;
     }
 }
-
-export default ApiClient;

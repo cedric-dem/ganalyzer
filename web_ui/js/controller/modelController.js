@@ -17,9 +17,7 @@ export class ModelController {
         this.selectLayerLocation = document.getElementById(layerLocation)
     }
 
-    async refreshAll() {
-
-    }
+    async refreshAll() {}
 
     async refreshInside(layerToVisualize) {
 
@@ -28,7 +26,6 @@ export class ModelController {
 
         //change image
         this.changeInsideRepresentation(newInsideValues)
-
     }
 
     changeInsideRepresentation(content) {
@@ -53,7 +50,7 @@ export class ModelController {
         const foundEpoch = await this.apiClient.changeEpoch(this.modelName, newEpoch);
 
         //change text
-        this.locationEpochLabel.textContent = "Epoch : " + newEpoch + "(" + foundEpoch + ")" + "/" + this.callingWebUI.availableEpochs;
+        this.locationEpochLabel.textContent = `Epoch : ${newEpoch} (${foundEpoch}) / ${this.callingWebUI.availableEpochs}`;
 
         if (shouldRefresh) {
             await this.refreshAll();
@@ -78,5 +75,4 @@ export class ModelController {
         this.addChoices(layersList)
 
     }
-
 }

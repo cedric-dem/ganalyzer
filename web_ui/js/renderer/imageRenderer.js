@@ -1,4 +1,4 @@
-class ImageRenderer {
+export class ImageRenderer {
     constructor(elementId) {
         this.divGrid = document.getElementById(elementId);
     }
@@ -40,6 +40,3 @@ class ImageRenderer {
         }
     }
 }
-
-
-export {ImageRenderer};
