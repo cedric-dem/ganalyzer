@@ -48,8 +48,9 @@ function getResultFrom3DCase(content, minimum, maximum) {
     //or slider to have several 2d pictures and allowed to go trough the frames
     const outerDimension = getUpperBoundSqrt(content[0][0].length)
     const innerDimension = content.length
+    const margin = Math.ceil(10 / outerDimension); //margin depends on the number of "smaller images"
 
-    const result = getNull2DArray(outerDimension * innerDimension, outerDimension * innerDimension);
+    const result = getNull2DArray(outerDimension * (innerDimension + margin), outerDimension * (innerDimension + margin));
 
     let tempValue;
 
@@ -62,7 +63,7 @@ function getResultFrom3DCase(content, minimum, maximum) {
                     if (outerX * outerDimension + outerY < content[0][0].length) {
                         // 255 white --- 0 black
                         tempValue = mapTo255(minimum, maximum, content[innerX][innerY][outerX * outerDimension + outerY]);
-                        result[outerX * innerDimension + innerX][outerY * innerDimension + innerY] = [tempValue, tempValue, tempValue]
+                        result[outerX * (innerDimension + margin) + innerX][outerY * (innerDimension + margin) + innerY] = [tempValue, tempValue, tempValue]
                     }
                 }
             }
