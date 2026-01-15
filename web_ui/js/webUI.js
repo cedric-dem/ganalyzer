@@ -1,7 +1,7 @@
 import ApiClient from "./apiClient.js";
 import DiscriminatorController from "./discriminatorController.js";
 import GeneratorController from "./generatorController.js";
-import {ImageGridRenderer, SliderGridRenderer} from "./renderers.js";
+import {SliderGridRenderer} from "./sliderRenderers.js";
 
 class WebUI {
     constructor({modelName, imageSize, latentSpaceSize, maxValueVisualizationInput, apiBaseUrl}) {
@@ -19,11 +19,10 @@ class WebUI {
 
         this.apiClient = new ApiClient(apiBaseUrl);
 
-        this.imageGridRenderer = new ImageGridRenderer();
-        this.sliderGridRenderer = new SliderGridRenderer();
+        this.sliderGridRenderer = new SliderGridRenderer("sliders_grid");
 
-        this.discriminatorController = new DiscriminatorController(this, this.apiClient, this.imageGridRenderer);
-        this.generatorController = new GeneratorController(this, this.apiClient, this.imageGridRenderer, this.sliderGridRenderer, this.discriminatorController, latentSpaceSize);
+        this.discriminatorController = new DiscriminatorController(this, this.apiClient);
+        this.generatorController = new GeneratorController(this, this.apiClient, this.sliderGridRenderer, this.discriminatorController, latentSpaceSize);
     }
 
     initialize() {

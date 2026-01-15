@@ -1,17 +1,16 @@
 import {toPercentage} from "./misc.js";
 import {ModelController} from "./ModelController.js";
+import {ImageGridRenderer} from "./imageRenderer.js";
 
 class DiscriminatorController extends ModelController {
-    constructor(callingWebUI, apiClient, imageGridRenderer) {
+    constructor(callingWebUI, apiClient) {
         super(callingWebUI, "discriminator", apiClient, "div_visualization_inside_discriminator", "labelDiscriminatorEpochValue");
 
-        this.imageGridRenderer = imageGridRenderer;
-
-        this.discriminatorInputImagePixels = null;
+        this.rendererInput = new ImageGridRenderer("div_visualization_input_discriminator");
     }
 
     initialize() {
-        this.discriminatorInputImagePixels = this.imageGridRenderer.initializeImage("div_visualization_input_discriminator", this.callingWebUI.imageSize, this.callingWebUI.imageSize);
+        this.rendererInput.initializeImage( this.callingWebUI.imageSize, this.callingWebUI.imageSize);
     }
 
     changeInputImage(generatorImage) {
@@ -22,7 +21,7 @@ class DiscriminatorController extends ModelController {
         const resultDiscriminator = await this.apiClient.getModelPrediction(this.inputData, "discriminator", this.lastLayerName);
 
         //change input
-        this.imageGridRenderer.changeImage(this.inputData, this.discriminatorInputImagePixels);
+        this.rendererInput.changeImage(this.inputData);
 
         //change inside
         await this.refreshInside(document.getElementById("choice_layer_discriminator").value)

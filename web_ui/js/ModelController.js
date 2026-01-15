@@ -1,5 +1,5 @@
 import {getMatrixToDisplay} from "./misc.js";
-import {ImageGridRenderer} from "./renderers.js";
+import {ImageGridRenderer} from "./imageRenderer.js";
 
 export class ModelController {
     constructor(callingWebUI, modelName, apiClient, locationInsideVisualization, locationEpochLabel) {
@@ -10,8 +10,9 @@ export class ModelController {
 
         this.inputData = null;
 
-        this.locationInsideVisualization = locationInsideVisualization
         this.locationEpochLabel = document.getElementById(locationEpochLabel)
+
+        this.rendererInside = new ImageGridRenderer(locationInsideVisualization);
 
     }
 
@@ -31,17 +32,16 @@ export class ModelController {
 
     changeInsideRepresentation(content) {
         //empty previous content if any
-        document.getElementById(this.locationInsideVisualization).innerHTML = "";
+        //document.getElementById(this.locationInsideVisualization).innerHTML = "";
 
         // get matrix
         const matrixReadyToDisplay = getMatrixToDisplay(content);
 
         // create pixels
-        const imageGridRenderer = new ImageGridRenderer()
-        const locationImage = imageGridRenderer.initializeImage(this.locationInsideVisualization, matrixReadyToDisplay.length, matrixReadyToDisplay[0].length);
+        this.rendererInside.initializeImage( matrixReadyToDisplay.length, matrixReadyToDisplay[0].length);
 
         // colour pixels
-        imageGridRenderer.changeImage(matrixReadyToDisplay, locationImage);
+        this.rendererInside.changeImage(matrixReadyToDisplay);
     }
 
 
