@@ -1,4 +1,4 @@
-import {changeInsideRepresentation, toPercentage} from "./misc.js";
+import {toPercentage} from "./misc.js";
 import {ModelController} from "./ModelController.js";
 
 class DiscriminatorController extends ModelController {
@@ -14,15 +14,15 @@ class DiscriminatorController extends ModelController {
         this.discriminatorInputImagePixels = this.imageGridRenderer.initializeImage("div_visualization_input_discriminator", this.callingWebUI.imageSize, this.callingWebUI.imageSize);
     }
 
-    changeInputImage(generatorImage){
+    changeInputImage(generatorImage) {
         this.inputData = generatorImage;
     }
 
     async refreshAll() {
-        const resultDiscriminator =  await this.apiClient.getModelPrediction(this.inputData , "discriminator", this.lastLayerName);
+        const resultDiscriminator = await this.apiClient.getModelPrediction(this.inputData, "discriminator", this.lastLayerName);
 
         //change input
-        this.imageGridRenderer.changeImage(this.inputData , this.discriminatorInputImagePixels);
+        this.imageGridRenderer.changeImage(this.inputData, this.discriminatorInputImagePixels);
 
         //change inside
         await this.refreshInside(document.getElementById("choice_layer_discriminator").value)

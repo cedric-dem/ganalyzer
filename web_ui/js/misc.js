@@ -1,20 +1,3 @@
-import {ImageGridRenderer} from "./renderers.js";
-
-export function changeInsideRepresentation(content, location) {
-    //empty previous content if any
-    document.getElementById(location).innerHTML = "";
-
-    // get matrix
-    const matrixReadyToDisplay = getMatrixToDisplay(content);
-
-    // create pixels
-    const imageGridRenderer = new ImageGridRenderer()
-    const locationImage = imageGridRenderer.initializeImage(location, matrixReadyToDisplay.length, matrixReadyToDisplay[0].length);
-
-    // colour pixels
-    imageGridRenderer.changeImage(matrixReadyToDisplay, locationImage);
-}
-
 function getUpperBoundSqrt(n) {
     return Math.ceil(Math.sqrt(n));
 }
@@ -130,21 +113,6 @@ function getOverallMaximum(array) {
     return maximum;
 }
 
-export function addChoices(controller, isGenerator, location, layersList) { //todo coulr remove boolean isgenerator
-    const select = document.getElementById(location);
-
-    layersList.forEach((layer) => {
-        const option = new Option(layer);
-        select.add(option);
-    });
-
-    select.addEventListener("change", () => {
-        const newLayerName = select.value;
-
-        controller.refreshInside(newLayerName)
-    });
-}
-
 export function toPercentage(value) {
     return (value * 100).toFixed(2) + "%";
 }
@@ -173,7 +141,7 @@ export function getInputVectorAsMatrix(inputVector, size, maxVisualizationInput)
     return latentVectorAsMatrix;
 }
 
-export function getRandomNormalFloat(mu, sigma){
+export function getRandomNormalFloat(mu, sigma) {
     const z = Math.sqrt(-2.0 * Math.log(Math.random())) * Math.cos(2.0 * Math.PI * Math.random());
     return mu + sigma * z;
 }

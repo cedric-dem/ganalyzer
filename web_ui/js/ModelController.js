@@ -1,4 +1,5 @@
-import {changeInsideRepresentation} from "./misc.js";
+import {getMatrixToDisplay} from "./misc.js";
+import {ImageGridRenderer} from "./renderers.js";
 
 export class ModelController {
     constructor(callingWebUI, modelName, apiClient, locationInsideVisualization, locationEpochLabel) {
@@ -13,7 +14,8 @@ export class ModelController {
         this.locationEpochLabel = document.getElementById(locationEpochLabel)
 
     }
-    async refreshAll(){
+
+    async refreshAll() {
 
     }
 
@@ -23,9 +25,25 @@ export class ModelController {
         const newInsideValues = await this.apiClient.getModelPrediction(this.inputData, this.modelName, layerToVisualize);
 
         //change image
-        changeInsideRepresentation(newInsideValues, this.locationInsideVisualization)
+        this.changeInsideRepresentation(newInsideValues)
 
     }
+
+    changeInsideRepresentation(content) {
+        //empty previous content if any
+        document.getElementById(this.locationInsideVisualization).innerHTML = "";
+
+        // get matrix
+        const matrixReadyToDisplay = getMatrixToDisplay(content);
+
+        // create pixels
+        const imageGridRenderer = new ImageGridRenderer()
+        const locationImage = imageGridRenderer.initializeImage(this.locationInsideVisualization, matrixReadyToDisplay.length, matrixReadyToDisplay[0].length);
+
+        // colour pixels
+        imageGridRenderer.changeImage(matrixReadyToDisplay, locationImage);
+    }
+
 
     initializeLastLayer(lastLayerName) {
         this.lastLayerName = lastLayerName
@@ -43,4 +61,18 @@ export class ModelController {
             await this.refreshAll();
         }
     }
+
+    addChoices(location, layersList) {
+        const select = document.getElementById(location);
+
+        layersList.forEach((layer) => {
+            const option = new Option(layer);
+            select.add(option);
+        });
+
+        select.addEventListener("change", () => {
+            this.refreshInside(select.value)
+        });
+    }
+
 }

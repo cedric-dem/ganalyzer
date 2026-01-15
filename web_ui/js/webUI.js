@@ -2,7 +2,6 @@ import ApiClient from "./apiClient.js";
 import DiscriminatorController from "./discriminatorController.js";
 import GeneratorController from "./generatorController.js";
 import {ImageGridRenderer, SliderGridRenderer} from "./renderers.js";
-import {addChoices} from "./misc.js";
 
 class WebUI {
     constructor({modelName, imageSize, latentSpaceSize, maxValueVisualizationInput, apiBaseUrl}) {
@@ -41,11 +40,11 @@ class WebUI {
             generatorEpochSlider.max = this.availableEpochs;
             discriminatorEpochSlider.max = this.availableEpochs;
 
-            addChoices(this.generatorController, true, "choice_layer_generator", data.generator_layers);
-            addChoices(this.discriminatorController, false, "choice_layer_discriminator", data.discriminator_layers);
+            this.generatorController.addChoices("choice_layer_generator", data.generator_layers);
+            this.discriminatorController.addChoices("choice_layer_discriminator", data.discriminator_layers);
 
-            this.generatorController.initializeLastLayer(data.generator_layers[data.generator_layers.length -1])
-            this.discriminatorController.initializeLastLayer(data.discriminator_layers[data.discriminator_layers.length -1])
+            this.generatorController.initializeLastLayer(data.generator_layers[data.generator_layers.length - 1])
+            this.discriminatorController.initializeLastLayer(data.discriminator_layers[data.discriminator_layers.length - 1])
 
             const generatorEpochValue = generatorEpochSlider.value;
             this.generatorController.updateEpoch(generatorEpochValue, false);

@@ -1,4 +1,4 @@
-import {changeInsideRepresentation, getInputVectorAsMatrix, getRandomNormalFloat} from "./misc.js";
+import {getInputVectorAsMatrix, getRandomNormalFloat} from "./misc.js";
 import {ModelController} from "./ModelController.js";
 
 class GeneratorController extends ModelController {
