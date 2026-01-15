@@ -141,11 +141,7 @@ export function addChoices(controller, isGenerator, location, layersList) { //to
     select.addEventListener("change", () => {
         const newLayerName = select.value;
 
-        if (isGenerator) { //todo refactor code, both controller should inherit from controler abstract class so no if needed here
-            controller.refreshInsideGenerator(newLayerName)
-        } else {
-            controller.refreshInsideDiscriminator(newLayerName)
-        }
+        controller.refreshInside(newLayerName)
     });
 }
 
@@ -175,4 +171,9 @@ export function getInputVectorAsMatrix(inputVector, size, maxVisualizationInput)
         }
     }
     return latentVectorAsMatrix;
+}
+
+export function getRandomNormalFloat(mu, sigma){
+    const z = Math.sqrt(-2.0 * Math.log(Math.random())) * Math.cos(2.0 * Math.PI * Math.random());
+    return mu + sigma * z;
 }

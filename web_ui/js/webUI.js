@@ -18,15 +18,13 @@ class WebUI {
 
         this.maxValueVisualizationInput = maxValueVisualizationInput;
 
-        this.latentVector = new Array(latentSpaceSize).fill(0);
-
         this.apiClient = new ApiClient(apiBaseUrl);
 
         this.imageGridRenderer = new ImageGridRenderer();
         this.sliderGridRenderer = new SliderGridRenderer();
 
         this.discriminatorController = new DiscriminatorController(this, this.apiClient, this.imageGridRenderer);
-        this.generatorController = new GeneratorController(this, this.apiClient, this.imageGridRenderer, this.sliderGridRenderer, this.discriminatorController);
+        this.generatorController = new GeneratorController(this, this.apiClient, this.imageGridRenderer, this.sliderGridRenderer, this.discriminatorController, latentSpaceSize);
     }
 
     initialize() {
@@ -50,10 +48,10 @@ class WebUI {
             this.discriminatorController.initializeLastLayer(data.discriminator_layers[data.discriminator_layers.length -1])
 
             const generatorEpochValue = generatorEpochSlider.value;
-            this.generatorController.updateGeneratorEpoch(generatorEpochValue, false);
+            this.generatorController.updateEpoch(generatorEpochValue, false);
 
             const discriminatorEpochValue = discriminatorEpochSlider.value;
-            this.discriminatorController.updateDiscriminatorEpoch(discriminatorEpochValue, false);
+            this.discriminatorController.updateEpoch(discriminatorEpochValue, false);
 
             this.generatorController.randomizeInput();
         });
@@ -82,11 +80,11 @@ class WebUI {
         };
 
         window.handleSliderGeneratorEpochValue = (newEpoch) => {
-            this.generatorController.updateGeneratorEpoch(newEpoch);
+            this.generatorController.updateEpoch(newEpoch);
         };
 
         window.handleSliderDiscriminatorEpochValue = (newEpoch) => {
-            this.discriminatorController.updateDiscriminatorEpoch(newEpoch);
+            this.discriminatorController.updateEpoch(newEpoch);
         };
     }
 }
