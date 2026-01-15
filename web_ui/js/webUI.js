@@ -1,7 +1,7 @@
 import ApiClient from "./apiClient.js";
-import DiscriminatorController from "./discriminatorController.js";
-import GeneratorController from "./generatorController.js";
-import {SliderGridRenderer} from "./sliderRenderers.js";
+import DiscriminatorController from "./controller/discriminatorController.js";
+import GeneratorController from "./controller/generatorController.js";
+import {SliderRenderer} from "./renderer/sliderRenderer.js";
 
 class WebUI {
     constructor({modelName, imageSize, latentSpaceSize, maxValueVisualizationInput, apiBaseUrl}) {
@@ -19,10 +19,21 @@ class WebUI {
 
         this.apiClient = new ApiClient(apiBaseUrl);
 
-        this.sliderGridRenderer = new SliderGridRenderer("sliders_grid");
+        this.sliderGridRenderer = new SliderRenderer("sliders_grid");
 
-        this.discriminatorController = new DiscriminatorController(this, this.apiClient);
-        this.generatorController = new GeneratorController(this, this.apiClient, this.sliderGridRenderer, this.discriminatorController, latentSpaceSize);
+        this.discriminatorController = new DiscriminatorController(this, this.apiClient, "choice_layer_discriminator");
+        this.generatorController = new GeneratorController(this, this.apiClient, this.sliderGridRenderer, latentSpaceSize, "choice_layer_generator");
+
+        this.generatorEpochSlider = document.getElementById("sliderGeneratorEpochValue");
+        this.discriminatorEpochSlider = document.getElementById("sliderDiscriminatorEpochValue");
+
+        this.sliderMuTextValue = document.getElementById("sliderMuValueLabel")
+        this.sliderSigmaTextValue = document.getElementById("sliderSigmaValueLabel")
+        this.sliderConstantTextValue = document.getElementById("sliderConstantValueLabel")
+
+        this.sliderMuValue = document.getElementById("sliderMuValue")
+        this.sliderSigmaValue = document.getElementById("sliderSigmaValue")
+        this.sliderConstantValue = document.getElementById("sliderConstantValue")
     }
 
     initialize() {
@@ -31,41 +42,32 @@ class WebUI {
 
         this.apiClient.synchronizeServer(this.modelName, this.latentSpaceSize).then((data) => {
 
-            const generatorEpochSlider = document.getElementById("sliderGeneratorEpochValue");
-            const discriminatorEpochSlider = document.getElementById("sliderDiscriminatorEpochValue");
-
             this.availableEpochs = data.number_of_models;
 
-            generatorEpochSlider.max = this.availableEpochs;
-            discriminatorEpochSlider.max = this.availableEpochs;
+            this.generatorEpochSlider.max = this.availableEpochs;
+            this.discriminatorEpochSlider.max = this.availableEpochs;
 
-            this.generatorController.addChoices("choice_layer_generator", data.generator_layers);
-            this.discriminatorController.addChoices("choice_layer_discriminator", data.discriminator_layers);
+            this.generatorController.setLayers(data.generator_layers)
+            this.discriminatorController.setLayers(data.discriminator_layers)
 
-            this.generatorController.initializeLastLayer(data.generator_layers[data.generator_layers.length - 1])
-            this.discriminatorController.initializeLastLayer(data.discriminator_layers[data.discriminator_layers.length - 1])
-
-            const generatorEpochValue = generatorEpochSlider.value;
-            this.generatorController.updateEpoch(generatorEpochValue, false);
-
-            const discriminatorEpochValue = discriminatorEpochSlider.value;
-            this.discriminatorController.updateEpoch(discriminatorEpochValue, false);
+            this.generatorController.updateEpoch(this.generatorEpochSlider.value, false);
+            this.discriminatorController.updateEpoch(this.discriminatorEpochSlider.value, false);
 
             this.generatorController.randomizeInput();
         });
 
         window.handleSliderMuValue = (value) => {
-            document.getElementById("sliderMuValueLabel").textContent = value;
+            this.sliderMuTextValue.textContent = value;
             this.generatorController.randomizeInput();
         };
 
         window.handleSliderSigmaValue = (value) => {
-            document.getElementById("sliderSigmaValueLabel").textContent = value;
+            this.sliderSigmaTextValue.textContent = value;
             this.generatorController.randomizeInput();
         };
 
         window.handleSliderConstantValue = (value) => {
-            document.getElementById("sliderConstantValueLabel").textContent = value;
+            this.sliderConstantTextValue.textContent = value;
             this.generatorController.setConstantInput();
         };
 
@@ -84,6 +86,23 @@ class WebUI {
         window.handleSliderDiscriminatorEpochValue = (newEpoch) => {
             this.discriminatorController.updateEpoch(newEpoch);
         };
+    }
+
+    async updateDiscriminator(dataGenerator) {
+        this.discriminatorController.changeInputImage(dataGenerator);
+        await this.discriminatorController.refreshAll();
+    }
+
+    getMuValue(){
+        return parseFloat(this.sliderMuValue.value)
+    }
+
+    getSigmaValue(){
+        return parseFloat(this.sliderSigmaValue.value)
+    }
+
+    getKValue(){
+        return parseFloat(this.sliderConstantValue.value);
     }
 }
 

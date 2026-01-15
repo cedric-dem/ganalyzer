@@ -2,16 +2,20 @@ function getUpperBoundSqrt(n) {
     return Math.ceil(Math.sqrt(n));
 }
 
-export function getNull2DArray(sizeX, sizeY) {
+export function get2DNullArray(sizeX, sizeY) {
     return Array.from({length: sizeX}, () =>
         Array.from({length: sizeY}, () => null)
     );
 }
 
+export function get1DNullArray(size){
+    return Array(size).fill(0)
+}
+
 function getResultFrom1DCase(content, min, max) {
     const newDimension = getUpperBoundSqrt(content.length)
 
-    const result = getNull2DArray(newDimension, newDimension)
+    const result = get2DNullArray(newDimension, newDimension)
 
     let tempValue;
     for (let i = 0; i < newDimension; i++) {
@@ -33,7 +37,7 @@ function getResultFrom3DCase(content, minimum, maximum) {
     const innerDimension = content.length
     const margin = Math.ceil(10 / outerDimension); //margin depends on the number of "smaller images"
 
-    const result = getNull2DArray(outerDimension * (innerDimension + margin), outerDimension * (innerDimension + margin));
+    const result = get2DNullArray(outerDimension * (innerDimension + margin), outerDimension * (innerDimension + margin));
 
     let tempValue;
 
@@ -129,7 +133,7 @@ function mapTo255(minValue, maxValue, value) {
 }
 
 export function getInputVectorAsMatrix(inputVector, size, maxVisualizationInput) {
-    const latentVectorAsMatrix = getNull2DArray(size, size)
+    const latentVectorAsMatrix = get2DNullArray(size, size)
 
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {

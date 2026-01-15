@@ -1,6 +1,6 @@
-import {getNull2DArray} from "./misc.js";
+import {get2DNullArray} from "../misc.js";
 
-class SliderGridRenderer {
+class SliderRenderer {
     constructor(elementId) {
         this.slidersGrid = null;
         this.divSliders = document.getElementById(elementId);
@@ -14,7 +14,7 @@ class SliderGridRenderer {
         this.divSliders.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
         this.divSliders.style.gridTemplateRows = `repeat(${size}, auto)`;
 
-        this.slidersGrid = getNull2DArray(size, size)
+        this.slidersGrid = get2DNullArray(size, size)
 
         let newElement = null;
         for (let i = 0; i < size; i++) {
@@ -46,4 +46,4 @@ class SliderGridRenderer {
     }
 }
 
-export {SliderGridRenderer};
+export {SliderRenderer};

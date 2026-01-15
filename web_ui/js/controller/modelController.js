@@ -1,8 +1,8 @@
-import {getMatrixToDisplay} from "./misc.js";
-import {ImageGridRenderer} from "./imageRenderer.js";
+import {getMatrixToDisplay} from "../misc.js";
+import {ImageRenderer} from "../renderer/imageRenderer.js";
 
 export class ModelController {
-    constructor(callingWebUI, modelName, apiClient, locationInsideVisualization, locationEpochLabel) {
+    constructor(callingWebUI, modelName, apiClient, locationInsideVisualization, locationEpochLabel, layerLocation) {
 
         this.callingWebUI = callingWebUI;
         this.modelName = modelName;
@@ -12,8 +12,9 @@ export class ModelController {
 
         this.locationEpochLabel = document.getElementById(locationEpochLabel)
 
-        this.rendererInside = new ImageGridRenderer(locationInsideVisualization);
+        this.rendererInside = new ImageRenderer(locationInsideVisualization);
 
+        this.selectLayerLocation = document.getElementById(layerLocation)
     }
 
     async refreshAll() {
@@ -31,14 +32,11 @@ export class ModelController {
     }
 
     changeInsideRepresentation(content) {
-        //empty previous content if any
-        //document.getElementById(this.locationInsideVisualization).innerHTML = "";
-
         // get matrix
         const matrixReadyToDisplay = getMatrixToDisplay(content);
 
         // create pixels
-        this.rendererInside.initializeImage( matrixReadyToDisplay.length, matrixReadyToDisplay[0].length);
+        this.rendererInside.initializeImage(matrixReadyToDisplay.length, matrixReadyToDisplay[0].length);
 
         // colour pixels
         this.rendererInside.changeImage(matrixReadyToDisplay);
@@ -62,17 +60,23 @@ export class ModelController {
         }
     }
 
-    addChoices(location, layersList) {
-        const select = document.getElementById(location);
+    addChoices(layersList) {
 
         layersList.forEach((layer) => {
             const option = new Option(layer);
-            select.add(option);
+            this.selectLayerLocation.add(option);
         });
 
-        select.addEventListener("change", () => {
-            this.refreshInside(select.value)
+        this.selectLayerLocation.addEventListener("change", () => {
+            this.refreshInside(this.selectLayerLocation.value)
         });
+    }
+
+    setLayers(layersList){
+        this.initializeLastLayer(layersList[layersList.length - 1])
+
+        this.addChoices(layersList)
+
     }
 
 }

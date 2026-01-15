@@ -1,25 +1,25 @@
-import {getInputVectorAsMatrix, getRandomNormalFloat} from "./misc.js";
-import {ModelController} from "./ModelController.js";
-import {ImageGridRenderer} from "./imageRenderer.js";
+import {get1DNullArray, getInputVectorAsMatrix, getRandomNormalFloat} from "../misc.js";
+import {ModelController} from "./modelController.js";
+import {ImageRenderer} from "../renderer/imageRenderer.js";
 
 class GeneratorController extends ModelController {
-    constructor(callingWebUI, apiClient, sliderGridRenderer, discriminatorController, latentSpaceSize) {
-        super(callingWebUI, "generator", apiClient, "div_visualization_inside_generator", "labelGeneratorEpochValue");
+    constructor(callingWebUI, apiClient, sliderGridRenderer, latentSpaceSize, layer_location) {
+        super(callingWebUI, "generator", apiClient, "div_visualization_inside_generator", "labelGeneratorEpochValue", layer_location);
 
-        this.inputData = new Array(latentSpaceSize).fill(0);
+        this.inputData = get1DNullArray(latentSpaceSize);
 
         this.sliderGridRenderer = sliderGridRenderer;
 
-        this.discriminatorController = discriminatorController;
-
         this.slidersGrid = null;
 
-        this.rendererInput = new ImageGridRenderer("div_visualization_input_generator");
-        this.rendererOutput = new ImageGridRenderer("div_visualization_output_generator");
+        this.rendererInput = new ImageRenderer("div_visualization_input_generator");
+        this.rendererOutput = new ImageRenderer("div_visualization_output_generator");
+
+        this.choiceLayerGenerator = document.getElementById("choice_layer_generator")
     }
 
     initialize() {
-        this.rendererInput.initializeImage( this.callingWebUI.latentSpaceSizeSqrt, this.callingWebUI.latentSpaceSizeSqrt);
+        this.rendererInput.initializeImage(this.callingWebUI.latentSpaceSizeSqrt, this.callingWebUI.latentSpaceSizeSqrt);
         this.rendererOutput.initializeImage(this.callingWebUI.imageSize, this.callingWebUI.imageSize);
         this.sliderGridRenderer.initializeGeneratorSliders(this.callingWebUI.latentSpaceSizeSqrt, (i, j, newValue) => this.handleSliderValueChange(i, j, newValue));
     }
@@ -30,20 +30,19 @@ class GeneratorController extends ModelController {
         this.rendererInput.changeImage(latentVectorAsMatrix);
 
         //inside
-        await this.refreshInside(document.getElementById("choice_layer_generator").value);
+        await this.refreshInside(this.choiceLayerGenerator.value);
 
         //output
         const dataGenerator = await this.apiClient.getModelPrediction(this.inputData, "generator", this.lastLayerName);
         this.rendererOutput.changeImage(dataGenerator);
 
         // update discriminator
-        this.discriminatorController.changeInputImage(dataGenerator);
-        await this.discriminatorController.refreshAll();
+        await this.callingWebUI.updateDiscriminator(dataGenerator);
     }
 
     randomizeInput() {
-        const mu = parseFloat(document.getElementById("sliderMuValue").value);
-        const sigma = parseFloat(document.getElementById("sliderSigmaValue").value);
+        const mu = this.callingWebUI.getMuValue();
+        const sigma = this.callingWebUI.getSigmaValue();
 
         for (let i = 0; i < this.callingWebUI.latentSpaceSize; i++) {
             this.inputData[i] = getRandomNormalFloat(mu, sigma);
@@ -53,7 +52,7 @@ class GeneratorController extends ModelController {
     }
 
     setConstantInput() {
-        const k = parseFloat(document.getElementById("sliderConstantValue").value);
+        const k = this.callingWebUI.getKValue();
         for (let i = 0; i < this.inputData.length; i++) {
             this.inputData[i] = k;
         }
