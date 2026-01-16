@@ -1,9 +1,18 @@
+type RGB = [number, number, number];
+
 export class ImageRenderer {
-    constructor(elementId) {
-        this.divGrid = document.getElementById(elementId);
+    private divGrid: HTMLDivElement;
+    private locationImage: HTMLDivElement[][] = [];
+
+    constructor(elementId: string) {
+        const divGrid = document.getElementById(elementId);
+        if (!divGrid) {
+            throw new Error(`ImageRenderer element not found: ${elementId}`);
+        }
+        this.divGrid = divGrid as HTMLDivElement;
     }
 
-    initializeImage(sizeX, sizeY) {
+    initializeImage(sizeX: number, sizeY: number): void {
         //maybe not ?
         this.divGrid.innerHTML = "";
 
@@ -12,9 +21,9 @@ export class ImageRenderer {
         this.divGrid.style.gridTemplateColumns = `repeat(${sizeY}, 1fr)`;
         this.divGrid.style.gridTemplateRows = `repeat(${sizeX}, 1fr)`;
 
-        this.locationImage = Array.from({length: sizeX}, () => Array(sizeY).fill(null));
+        this.locationImage = Array.from({length: sizeX}, () => Array(sizeY).fill(null)) as HTMLDivElement[][];
 
-        let newElement = null;
+        let newElement: HTMLDivElement | null = null;
         for (let i = 0; i < sizeX; i++) {
             for (let j = 0; j < sizeY; j++) {
                 newElement = document.createElement("div");
@@ -28,12 +37,12 @@ export class ImageRenderer {
         }
     }
 
-    changeImage(newData) { //todo use this function to color grey input in generator
+    changeImage(newData: Array<Array<RGB | null>>): void { //todo use this function to color grey input in generator
         //todo either this function should use data in the renderer class or moved out the class
         for (let i = 0; i < newData.length; i++) {
             for (let j = 0; j < newData[0].length; j++) {
                 if (newData[i][j]) {
-                    const [r, g, b] = newData[i][j];
+                    const [r, g, b] = newData[i][j] as RGB;
                     this.locationImage[i][j].style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
                 }
             }

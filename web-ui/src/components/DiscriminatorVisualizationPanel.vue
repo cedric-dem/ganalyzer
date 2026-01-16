@@ -63,11 +63,8 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  handleSliderDiscriminatorEpochValue: {
-    type: Function,
-    required: true,
-  },
-});
+<script setup lang="ts">
+defineProps<{
+  handleSliderDiscriminatorEpochValue: (value: string) => void;
+}>();
 </script>

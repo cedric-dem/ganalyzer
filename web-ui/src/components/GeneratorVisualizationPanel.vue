@@ -62,11 +62,8 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  handleSliderGeneratorEpochValue: {
-    type: Function,
-    required: true,
-  },
-});
+<script setup lang="ts">
+defineProps<{
+  handleSliderGeneratorEpochValue: (value: string) => void;
+}>();
 </script>

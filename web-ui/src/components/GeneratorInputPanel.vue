@@ -65,27 +65,12 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  handleSliderMuValue: {
-    type: Function,
-    required: true,
-  },
-  handleSliderSigmaValue: {
-    type: Function,
-    required: true,
-  },
-  handleSliderConstantValue: {
-    type: Function,
-    required: true,
-  },
-  reRandomize: {
-    type: Function,
-    required: true,
-  },
-  setConstantInput: {
-    type: Function,
-    required: true,
-  },
-});
+<script setup lang="ts">
+defineProps<{
+  handleSliderMuValue: (value: string) => void;
+  handleSliderSigmaValue: (value: string) => void;
+  handleSliderConstantValue: (value: string) => void;
+  reRandomize: () => void;
+  setConstantInput: () => void;
+}>();
 </script>

@@ -1,9 +1,23 @@
+type SyncServerResponse = Record<string, unknown>;
+
+import type { ModelPredictionContent } from "./misc";
+
+type ModelPredictionResponse = {
+    output_values: ModelPredictionContent;
+};
+
+type ChangeEpochResponse = {
+    new_epoch_found: boolean;
+};
+
 export default class ApiClient {
-    constructor(baseUrl) {
+    baseUrl: string;
+
+    constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
     }
 
-    async synchronizeServer(modelName, latentSpaceSize) {
+    async synchronizeServer(modelName: string, latentSpaceSize: number): Promise<SyncServerResponse | null> {
         //console.log('==> Sync with server')
         try {
             const response = await fetch(`${this.baseUrl}/sync-server`, {
@@ -17,14 +31,18 @@ export default class ApiClient {
                 }),
             });
 
-            return await response.json();
+            return (await response.json()) as SyncServerResponse;
         } catch (error) {
             console.error("Error:", error);
         }
         return null;
     }
 
-    async getModelPrediction(input_data, which_model, layer_name) {
+    async getModelPrediction(
+        input_data: unknown,
+        which_model: string,
+        layer_name: string
+    ): Promise<ModelPredictionContent | null> {
         //console.log('==> Get Model ', which_model, layer_name, 'Prediction')
         try {
             const response = await fetch(`${this.baseUrl}/get-model-prediction`, {
@@ -35,20 +53,19 @@ export default class ApiClient {
                 body: JSON.stringify({
                     input_data: input_data,
                     which_model: which_model,
-                    layer_name: layer_name
+                    layer_name: layer_name,
                 }),
             });
 
-            const response_content = await response.json();
-            return response_content.output_values
-
+            const response_content = (await response.json()) as ModelPredictionResponse;
+            return response_content.output_values;
         } catch (error) {
             console.error("Error:", error);
         }
         return null;
     }
 
-    async changeEpoch(modelType, newEpoch) {
+    async changeEpoch(modelType: string, newEpoch: number): Promise<boolean | null> {
         //console.log('==> Change Epoch', modelType, newEpoch);
         try {
             const response = await fetch(`${this.baseUrl}/change-epoch`, {
@@ -58,12 +75,11 @@ export default class ApiClient {
                 },
                 body: JSON.stringify({
                     new_epoch: newEpoch,
-                    which_model: modelType
-
+                    which_model: modelType,
                 }),
             });
 
-            const response_content = await response.json();
+            const response_content = (await response.json()) as ChangeEpochResponse;
             // todo add error if not changed
             return response_content.new_epoch_found;
         } catch (error) {
