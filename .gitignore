@@ -345,3 +345,31 @@ app/release/output.json
 *.tflite
 
 *.csv
+
+
+# web-ui
+# Logs
+web-ui/logs
+web-ui/*.log
+web-ui/npm-debug.log*
+web-ui/yarn-debug.log*
+web-ui/yarn-error.log*
+web-ui/pnpm-debug.log*
+web-ui/lerna-debug.log*
+
+web-ui/node_modules
+web-ui/dist
+web-ui/dist-ssr
+web-ui/*.local
+
+# Editor directories and files
+web-ui/.vscode/*
+web-ui/!.vscode/extensions.json
+web-ui/.idea
+web-ui/.DS_Store
+web-ui/*.suo
+web-ui/*.ntvs*
+web-ui/*.njsproj
+web-ui/*.sln
+web-ui/*.sw?
+
