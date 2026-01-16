@@ -1,7 +1,7 @@
-import ApiClient from "./apiClient.js";
-import DiscriminatorController from "./controller/discriminatorController.js";
-import GeneratorController from "./controller/generatorController.js";
-import InputDataController from "./controller/inputDataController.js";
+import ApiClient from "./apiClient";
+import DiscriminatorController from "./controller/discriminatorController";
+import GeneratorController from "./controller/generatorController";
+import InputDataController from "./controller/inputDataController";
 
 type WebUIConfig = {
     modelName: string;
@@ -11,11 +11,6 @@ type WebUIConfig = {
     apiBaseUrl: string;
 };
 
-type SyncServerResponse = {
-    number_of_models: number;
-    generator_layers: string[];
-    discriminator_layers: string[];
-};
 
 declare global {
     interface Window {
@@ -34,7 +29,7 @@ export default class WebUI {
     availableEpochs: number | null;
     imageSize: number;
     latentSpaceSize: number;
-    latentSpaceSizeSqrt: number;
+    public latentSpaceSizeSqrt: number;
     maxValueVisualizationInput: number;
     apiClient: ApiClient;
     inputDataController: InputDataController;
@@ -74,7 +69,7 @@ export default class WebUI {
         this.generatorController.initialize();
         this.discriminatorController.initialize();
 
-        this.apiClient.synchronizeServer(this.modelName, this.latentSpaceSize).then((data: SyncServerResponse | null) => {
+        this.apiClient.synchronizeServer(this.modelName, this.latentSpaceSize).then((data: any) => {
             if (!data) {
                 return;
             }

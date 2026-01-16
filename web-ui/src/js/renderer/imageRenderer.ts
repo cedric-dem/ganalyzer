@@ -37,7 +37,7 @@ export class ImageRenderer {
         }
     }
 
-    changeImage(newData: Array<Array<RGB | null>>): void { //todo use this function to color grey input in generator
+    changeImage(newData: any): void { //todo use this function to color grey input in generator
         //todo either this function should use data in the renderer class or moved out the class
         for (let i = 0; i < newData.length; i++) {
             for (let j = 0; j < newData[0].length; j++) {

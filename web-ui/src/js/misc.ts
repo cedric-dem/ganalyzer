@@ -64,7 +64,7 @@ function getResultFrom3DCase(content: any, minimum: number, maximum: number): Ma
     return result;
 }
 
-export function getMatrixToDisplay(rawContent: number[] | number[][][]): Matrix2D | undefined {
+export function getMatrixToDisplay(rawContent: any): Matrix2D | undefined {
 
     const dimensionsQuantity = getArrayDimensions(rawContent);
 

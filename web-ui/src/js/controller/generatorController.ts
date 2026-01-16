@@ -1,14 +1,8 @@
-import { getInputVectorAsMatrix } from "../misc.js";
-import { ApiClient, ModelController, WebUICallingContext } from "./modelController.ts";
-import { ImageRenderer } from "../renderer/imageRenderer.js";
-
-type GeneratorWebUIContext = WebUICallingContext & {
-    imageSize: number;
-    latentSpaceSizeSqrt: number;
-    maxValueVisualizationInput: number;
-    getLatentVector: () => number[];
-    updateDiscriminator: (dataGenerator: number[][]) => Promise<void>;
-};
+import { getInputVectorAsMatrix } from "../misc";
+import { ModelController} from "./modelController";
+import ApiClient from "../apiClient";
+import { ImageRenderer } from "../renderer/imageRenderer";
+import WebUI from "../webUI";
 
 export default class GeneratorController extends ModelController {
     private rendererInput: ImageRenderer;
@@ -16,7 +10,7 @@ export default class GeneratorController extends ModelController {
     private choiceLayerGenerator: HTMLSelectElement;
 
     constructor(
-        callingWebUI: GeneratorWebUIContext,
+        callingWebUI: WebUI,
         apiClient: ApiClient,
         latentSpaceSize: number,
         layerLocation: string,

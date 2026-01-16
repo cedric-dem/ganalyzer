@@ -1,9 +1,8 @@
 type SyncServerResponse = Record<string, unknown>;
 
-import type { ModelPredictionContent } from "./misc";
 
 type ModelPredictionResponse = {
-    output_values: ModelPredictionContent;
+    output_values: any;
 };
 
 type ChangeEpochResponse = {
@@ -42,7 +41,7 @@ export default class ApiClient {
         input_data: unknown,
         which_model: string,
         layer_name: string
-    ): Promise<ModelPredictionContent | null> {
+    ): Promise<any | null> {
         //console.log('==> Get Model ', which_model, layer_name, 'Prediction')
         try {
             const response = await fetch(`${this.baseUrl}/get-model-prediction`, {

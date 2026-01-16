@@ -1,11 +1,10 @@
-import {get2DNullArray} from "../misc.js";
+import {get2DNullArray} from "../misc";
 
 type SliderInputHandler = (row: number, column: number, value: string) => void;
 
-type SliderGrid = Array<Array<HTMLInputElement | null>>;
 
 export class SliderRenderer {
-    private slidersGrid: SliderGrid = [];
+    private slidersGrid: any = [];
     private divSliders: HTMLElement;
 
     constructor(elementId: string) {
@@ -24,7 +23,7 @@ export class SliderRenderer {
         this.divSliders.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
         this.divSliders.style.gridTemplateRows = `repeat(${size}, auto)`;
 
-        this.slidersGrid = get2DNullArray(size, size) as SliderGrid;
+        this.slidersGrid = get2DNullArray(size, size);
 
         let newElement: HTMLInputElement | null = null;
         for (let i = 0; i < size; i++) {

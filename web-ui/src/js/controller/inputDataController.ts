@@ -1,13 +1,11 @@
 import { get1DNullArray, getRandomNormalFloat } from "../misc";
 import { SliderRenderer } from "../renderer/sliderRenderer";
+import WebUI from "../webUI";
 
-type WebUIRef = {
-    refreshGenerator: () => void;
-};
 
 export default class InputDataController {
     private currentLatentVector: number[];
-    private callingWebUI: WebUIRef;
+    private callingWebUI: WebUI;
     private latentSpaceSize: number;
     private latentSpaceSizeSqrt: number;
     private sliderMuTextValue: HTMLElement;
@@ -18,7 +16,7 @@ export default class InputDataController {
     private sliderConstantValue: HTMLInputElement;
     private sliderGridRenderer: SliderRenderer;
 
-    constructor(callingWebUI: WebUIRef, latentSpaceSize: number, latentSpaceSizeSqrt: number) {
+    constructor(callingWebUI: WebUI, latentSpaceSize: number, latentSpaceSizeSqrt: number) {
         this.currentLatentVector = get1DNullArray(latentSpaceSize);
 
         this.callingWebUI = callingWebUI;

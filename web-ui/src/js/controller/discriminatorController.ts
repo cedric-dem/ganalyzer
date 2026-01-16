@@ -1,10 +1,8 @@
 import {toPercentage} from "../misc.js";
-import {ApiClient, ModelController, WebUICallingContext} from "./modelController.ts";
-import {ImageRenderer} from "../renderer/imageRenderer.js";
-
-type DiscriminatorWebUIContext = WebUICallingContext & {
-    imageSize: number;
-};
+import {ModelController} from "./modelController";
+import ApiClient from "../apiClient";
+import {ImageRenderer} from "../renderer/imageRenderer";
+import WebUI from "../webUI";
 
 export default class DiscriminatorController extends ModelController {
     private rendererInput: ImageRenderer;
@@ -12,7 +10,7 @@ export default class DiscriminatorController extends ModelController {
     private predictionOutputText: HTMLElement;
 
     constructor(
-        callingWebUI: DiscriminatorWebUIContext,
+        callingWebUI: WebUI,
         apiClient: ApiClient,
         layerLocation: string,
     ) {
@@ -37,7 +35,7 @@ export default class DiscriminatorController extends ModelController {
         this.rendererInput.initializeImage(this.callingWebUI.imageSize, this.callingWebUI.imageSize);
     }
 
-    changeInputImage(generatorImage: number[][]): void {
+    changeInputImage(generatorImage: any): void {
         this.inputData = generatorImage;
     }
 

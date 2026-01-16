@@ -1,21 +1,11 @@
-import { getMatrixToDisplay } from "../misc.js";
-import { ImageRenderer } from "../renderer/imageRenderer.js";
+import { getMatrixToDisplay } from "../misc";
+import { ImageRenderer } from "../renderer/imageRenderer";
+import WebUI from "../webUI";
+import ApiClient from "../apiClient";
 
-export type ApiClient = {
-    getModelPrediction: (
-        inputData: unknown,
-        modelName: string,
-        layerToVisualize: string,
-    ) => Promise<unknown | null>;
-    changeEpoch: (modelType: string, newEpoch: number | string) => Promise<number | null>;
-};
-
-export type WebUICallingContext = {
-    availableEpochs: number | null;
-};
 
 export class ModelController {
-    protected callingWebUI: WebUICallingContext;
+    protected callingWebUI: WebUI;
     protected modelName: string;
     protected apiClient: ApiClient;
     protected inputData: unknown = null;
@@ -25,7 +15,7 @@ export class ModelController {
     protected lastLayerName: string | null = null;
 
     constructor(
-        callingWebUI: WebUICallingContext,
+        callingWebUI: WebUI,
         modelName: string,
         apiClient: ApiClient,
         locationInsideVisualization: string,
