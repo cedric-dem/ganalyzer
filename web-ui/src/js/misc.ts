@@ -1,31 +1,29 @@
-type MatrixCell = [number, number, number];
-type Matrix2D = Array<Array<MatrixCell | null>>;
-type NestedNumberArray = number | NestedNumberArray[];
+import {RGB2DImage, numberVector, number3DMatrix, undefinedDimensionNumberArray} from "./types/types";
 
 function getUpperBoundSqrt(n: number): number {
     return Math.ceil(Math.sqrt(n));
 }
 
-export function get2DNullArray(sizeX: number, sizeY: number): Matrix2D {
+export function getEmptyRGB2DImage(sizeX: number, sizeY: number): RGB2DImage {
     return Array.from({length: sizeX}, () =>
         Array.from({length: sizeY}, () => null)
     );
 }
 
-export function get1DNullArray(size: number): number[] {
+export function getDefaultLatentVector(size: number): numberVector {
     return Array(size).fill(0);
 }
 
-function getResultFrom1DCase(content: any, min: number, max: number): Matrix2D {
-    const newDimension = getUpperBoundSqrt(content.length);
+function getRGB2DImageFromVector(inputVector: numberVector, min: number, max: number): RGB2DImage {
+    const newDimension = getUpperBoundSqrt(inputVector.length);
 
-    const result = get2DNullArray(newDimension, newDimension);
+    const result = getEmptyRGB2DImage(newDimension, newDimension);
 
     let tempValue: number;
     for (let i = 0; i < newDimension; i++) {
         for (let j = 0; j < newDimension; j++) {
-            if (i * newDimension + j < content.length) {
-                tempValue = mapTo255(min, max, content[i * newDimension + j]);
+            if (i * newDimension + j < inputVector.length) {
+                tempValue = mapTo255(min, max, inputVector[i * newDimension + j]);
                 result[i][j] = [tempValue, tempValue, tempValue];
             }
         }
@@ -34,14 +32,14 @@ function getResultFrom1DCase(content: any, min: number, max: number): Matrix2D {
     return result;
 }
 
-function getResultFrom3DCase(content: any, minimum: number, maximum: number): Matrix2D {
+function getResultFrom3DCase(content: number3DMatrix, minimum: number, maximum: number): RGB2DImage {
     //todo maybe use three js here ?
     //or slider to have several 2d pictures and allowed to go trough the frames
     const outerDimension = getUpperBoundSqrt(content[0][0].length);
     const innerDimension = content.length;
     const margin = Math.ceil(10 / outerDimension); //margin depends on the number of "smaller images"
 
-    const result = get2DNullArray(outerDimension * (innerDimension + margin), outerDimension * (innerDimension + margin));
+    const result = getEmptyRGB2DImage(outerDimension * (innerDimension + margin), outerDimension * (innerDimension + margin));
 
     let tempValue: number;
 
@@ -64,20 +62,20 @@ function getResultFrom3DCase(content: any, minimum: number, maximum: number): Ma
     return result;
 }
 
-export function getMatrixToDisplay(rawContent: any): Matrix2D | undefined {
+export function getRGB2DImageFromRawContent(rawContent: undefinedDimensionNumberArray): RGB2DImage {
 
     const dimensionsQuantity = getArrayDimensions(rawContent);
 
     const minimum = getOverallMinimum(rawContent);
     const maximum = getOverallMaximum(rawContent);
 
-    let result: Matrix2D | undefined;
+    let result: RGB2DImage;
 
     if (dimensionsQuantity === 1) {
-        result = getResultFrom1DCase(rawContent, minimum, maximum);
+        result = getRGB2DImageFromVector(rawContent as numberVector, minimum, maximum);
 
     } else if (dimensionsQuantity === 3) {
-        result = getResultFrom3DCase(rawContent, minimum, maximum);
+        result = getResultFrom3DCase(rawContent as number3DMatrix, minimum, maximum);
 
     } else {
         console.log('ERROR');
@@ -86,9 +84,9 @@ export function getMatrixToDisplay(rawContent: any): Matrix2D | undefined {
     return result;
 }
 
-function getArrayDimensions(array: unknown): number {
+function getArrayDimensions(array: undefinedDimensionNumberArray): number {
     let dimensionsQuantity = 0;
-    let cursor = array;
+    let cursor: any = array;
 
     while (Array.isArray(cursor)) {
         dimensionsQuantity++;
@@ -98,7 +96,7 @@ function getArrayDimensions(array: unknown): number {
     return dimensionsQuantity;
 }
 
-function getOverallMinimum(array: NestedNumberArray[]): number {
+function getOverallMinimum(array: undefinedDimensionNumberArray): number {//todo maybe split for the two dimensions possible ?
     let minimum = Infinity;
     for (const element of array) {
         if (Array.isArray(element)) {
@@ -110,7 +108,7 @@ function getOverallMinimum(array: NestedNumberArray[]): number {
     return minimum;
 }
 
-function getOverallMaximum(array: NestedNumberArray[]): number {
+function getOverallMaximum(array: undefinedDimensionNumberArray): number {
     let maximum = -Infinity;
     for (const element of array) {
         if (Array.isArray(element)) {
@@ -122,7 +120,7 @@ function getOverallMaximum(array: NestedNumberArray[]): number {
     return maximum;
 }
 
-export function toPercentage(value: number): string {
+export function convertNumberToStringPercentage(value: number): string {
     return (value * 100).toFixed(2) + "%";
 }
 
@@ -137,12 +135,12 @@ function mapTo255(minValue: number, maxValue: number, value: number): number {
     return Math.round(ratio * 255);
 }
 
-export function getInputVectorAsMatrix(inputVector: number[], size: number, maxVisualizationInput: number): Matrix2D {
-    const latentVectorAsMatrix = get2DNullArray(size, size);
+export function getInputVectorAsRGB2DImage(inputVector: numberVector, size: number, maxVisualizationInput: number): RGB2DImage {
+    const latentVectorAsMatrix: RGB2DImage = getEmptyRGB2DImage(size, size);
 
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
-            const intensityProjected = projectTo255(inputVector[i * size + j], maxVisualizationInput); //between 0 black and 255 white
+            const intensityProjected: number = projectTo255(inputVector[i * size + j], maxVisualizationInput); //between 0 black and 255 white
 
             latentVectorAsMatrix[i][j] = [intensityProjected, intensityProjected, intensityProjected];
         }

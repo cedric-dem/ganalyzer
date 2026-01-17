@@ -1,4 +1,3 @@
-type RGB = [number, number, number];
 
 export class ImageRenderer {
     private divGrid: HTMLDivElement;
@@ -42,7 +41,7 @@ export class ImageRenderer {
         for (let i = 0; i < newData.length; i++) {
             for (let j = 0; j < newData[0].length; j++) {
                 if (newData[i][j]) {
-                    const [r, g, b] = newData[i][j] as RGB;
+                    const [r, g, b] = newData[i][j];
                     this.locationImage[i][j].style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
                 }
             }

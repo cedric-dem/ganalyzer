@@ -1,4 +1,5 @@
-import {get2DNullArray} from "../misc";
+import {getEmptyRGB2DImage} from "../misc";
+import {numberVector} from "../types/types";
 
 type SliderInputHandler = (row: number, column: number, value: string) => void;
 
@@ -23,7 +24,7 @@ export class SliderRenderer {
         this.divSliders.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
         this.divSliders.style.gridTemplateRows = `repeat(${size}, auto)`;
 
-        this.slidersGrid = get2DNullArray(size, size);
+        this.slidersGrid = getEmptyRGB2DImage(size, size);
 
         let newElement: HTMLInputElement | null = null;
         for (let i = 0; i < size; i++) {
@@ -46,7 +47,7 @@ export class SliderRenderer {
         }
     }
 
-    refreshSliders(latentVector: Array<number | string>, size: number): void {
+    refreshSliders(latentVector: numberVector, size: number): void {
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
                 const slider = this.slidersGrid[i][j];

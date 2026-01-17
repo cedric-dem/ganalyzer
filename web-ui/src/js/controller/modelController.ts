@@ -1,18 +1,19 @@
-import { getMatrixToDisplay } from "../misc";
+import { getRGB2DImageFromRawContent } from "../misc";
 import { ImageRenderer } from "../renderer/imageRenderer";
 import WebUI from "../webUI";
 import ApiClient from "../apiClient";
+import {undefinedDimensionNumberArray} from "../types/types";
 
 
 export class ModelController {
     protected callingWebUI: WebUI;
     protected modelName: string;
     protected apiClient: ApiClient;
-    protected inputData: unknown = null;
+    protected inputData: any;
     protected locationEpochLabel: HTMLElement;
     protected rendererInside: ImageRenderer;
     protected selectLayerLocation: HTMLSelectElement;
-    protected lastLayerName: string | null = null;
+    protected lastLayerName: string;
 
     constructor(
         callingWebUI: WebUI,
@@ -45,8 +46,8 @@ export class ModelController {
         this.changeInsideRepresentation(newInsideValues);
     }
 
-    changeInsideRepresentation(content: unknown): void {
-        const matrixReadyToDisplay = getMatrixToDisplay(content);
+    changeInsideRepresentation(content: undefinedDimensionNumberArray): void {
+        const matrixReadyToDisplay = getRGB2DImageFromRawContent(content);
 
         this.rendererInside.initializeImage(
             matrixReadyToDisplay.length,

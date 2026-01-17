@@ -1,8 +1,9 @@
-import {toPercentage} from "../misc.js";
+import {convertNumberToStringPercentage} from "../misc";
 import {ModelController} from "./modelController";
 import ApiClient from "../apiClient";
 import {ImageRenderer} from "../renderer/imageRenderer";
 import WebUI from "../webUI";
+import {RGB2DImage} from "../types/types";
 
 export default class DiscriminatorController extends ModelController {
     private rendererInput: ImageRenderer;
@@ -43,10 +44,10 @@ export default class DiscriminatorController extends ModelController {
         const resultDiscriminator = (await this.apiClient.getModelPrediction(
             this.inputData,
             "discriminator",
-            this.lastLayerName ?? "",
+            this.lastLayerName,
         )) as number;
 
-        this.rendererInput.changeImage(this.inputData as number[][]);
+        this.rendererInput.changeImage(this.inputData as RGB2DImage);
 
         await this.refreshInside(this.layerChoiceInsideVisualization.value);
 
@@ -55,6 +56,6 @@ export default class DiscriminatorController extends ModelController {
 
     private getTextPrediction(score: number): string {
         const label = score > 0.5 ? "real" : "fake";
-        return `${label} image (${toPercentage(score)})`;
+        return `${label} image (${convertNumberToStringPercentage(score)})`;
     }
 }

@@ -1,6 +1,5 @@
 type SyncServerResponse = Record<string, unknown>;
 
-
 type ModelPredictionResponse = {
     output_values: any;
 };
@@ -38,7 +37,7 @@ export default class ApiClient {
     }
 
     async getModelPrediction(
-        input_data: unknown,
+        input_data: any,
         which_model: string,
         layer_name: string
     ): Promise<any | null> {

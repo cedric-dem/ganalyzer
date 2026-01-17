@@ -1,4 +1,4 @@
-import { getInputVectorAsMatrix } from "../misc";
+import { getInputVectorAsRGB2DImage } from "../misc";
 import { ModelController} from "./modelController";
 import ApiClient from "../apiClient";
 import { ImageRenderer } from "../renderer/imageRenderer";
@@ -39,12 +39,12 @@ export default class GeneratorController extends ModelController {
     }
 
     async refreshAll(): Promise<void> {
-        const latentVectorAsMatrix = getInputVectorAsMatrix(
+        const latentVectorAsRGB2DImage = getInputVectorAsRGB2DImage(
             this.callingWebUI.getLatentVector(),
             this.callingWebUI.latentSpaceSizeSqrt,
             this.callingWebUI.maxValueVisualizationInput,
         );
-        this.rendererInput.changeImage(latentVectorAsMatrix);
+        this.rendererInput.changeImage(latentVectorAsRGB2DImage);
 
         this.inputData = this.callingWebUI.getLatentVector();
         await this.refreshInside(this.choiceLayerGenerator.value);
@@ -52,7 +52,7 @@ export default class GeneratorController extends ModelController {
         const dataGenerator = (await this.apiClient.getModelPrediction(
             this.callingWebUI.getLatentVector(),
             "generator",
-            this.lastLayerName ?? "",
+            this.lastLayerName,
         )) as number[][];
         this.rendererOutput.changeImage(dataGenerator);
 
