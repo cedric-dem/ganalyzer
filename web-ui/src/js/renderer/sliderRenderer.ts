@@ -1,7 +1,7 @@
 import {getEmptyRGB2DImage} from "../misc";
 import {numberVector} from "../types/types";
 
-type SliderInputHandler = (row: number, column: number, value: string) => void;
+type SliderInputHandler = (row: number, column: number, value: number) => void;
 
 
 export class SliderRenderer {
@@ -38,7 +38,7 @@ export class SliderRenderer {
                 newElement.classList.add("slider");
 
                 newElement.oninput = function () {
-                    onInput(i, j, newElement.value);
+                    onInput(i, j, parseFloat(newElement.value));
                 };
 
                 this.divSliders.appendChild(newElement);

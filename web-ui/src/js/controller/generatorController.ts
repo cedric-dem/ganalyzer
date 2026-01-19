@@ -3,6 +3,7 @@ import { ModelController} from "./modelController";
 import ApiClient from "../apiClient";
 import { ImageRenderer } from "../renderer/imageRenderer";
 import WebUI from "../webUI";
+import {number3DMatrix, RGB2DImage} from "../types/types";
 
 export default class GeneratorController extends ModelController {
     private rendererInput: ImageRenderer;
@@ -12,7 +13,6 @@ export default class GeneratorController extends ModelController {
     constructor(
         callingWebUI: WebUI,
         apiClient: ApiClient,
-        latentSpaceSize: number,
         layerLocation: string,
     ) {
         super(
@@ -46,15 +46,16 @@ export default class GeneratorController extends ModelController {
         );
         this.rendererInput.changeImage(latentVectorAsRGB2DImage);
 
-        this.inputData = this.callingWebUI.getLatentVector();
+        this.inputData = [[this.callingWebUI.getLatentVector()]];
+         // why call it twice todo fix getLatentVector()
         await this.refreshInside(this.choiceLayerGenerator.value);
 
-        const dataGenerator = (await this.apiClient.getModelPrediction(
-            this.callingWebUI.getLatentVector(),
+        const dataGenerator: number3DMatrix = (await this.apiClient.getModelPrediction(
+            this.inputData,
             "generator",
             this.lastLayerName,
-        )) as number[][];
-        this.rendererOutput.changeImage(dataGenerator);
+        )) ;
+        this.rendererOutput.changeImage(dataGenerator as RGB2DImage);
 
         await this.callingWebUI.updateDiscriminator(dataGenerator);
     }

@@ -1,15 +1,15 @@
-import { getRGB2DImageFromRawContent } from "../misc";
-import { ImageRenderer } from "../renderer/imageRenderer";
+import {getRGB2DImageFromRawContent} from "../misc";
+import {ImageRenderer} from "../renderer/imageRenderer";
 import WebUI from "../webUI";
 import ApiClient from "../apiClient";
-import {undefinedDimensionNumberArray} from "../types/types";
+import {number3DMatrix, RGB2DImage} from "../types/types";
 
 
 export class ModelController {
     protected callingWebUI: WebUI;
     protected modelName: string;
     protected apiClient: ApiClient;
-    protected inputData: any;
+    protected inputData: number3DMatrix;
     protected locationEpochLabel: HTMLElement;
     protected rendererInside: ImageRenderer;
     protected selectLayerLocation: HTMLSelectElement;
@@ -27,17 +27,18 @@ export class ModelController {
         this.modelName = modelName;
         this.apiClient = apiClient;
 
-        this.locationEpochLabel = document.getElementById(locationEpochLabel) as HTMLElement;
+        this.locationEpochLabel = document.getElementById(locationEpochLabel);
 
         this.rendererInside = new ImageRenderer(locationInsideVisualization);
 
         this.selectLayerLocation = document.getElementById(layerLocation) as HTMLSelectElement;
     }
 
-    async refreshAll(): Promise<void> {}
+    async refreshAll(): Promise<void> {
+    }
 
     async refreshInside(layerToVisualize: string): Promise<void> {
-        const newInsideValues = await this.apiClient.getModelPrediction(
+        const newInsideValues: number3DMatrix = await this.apiClient.getModelPrediction(
             this.inputData,
             this.modelName,
             layerToVisualize,
@@ -46,8 +47,8 @@ export class ModelController {
         this.changeInsideRepresentation(newInsideValues);
     }
 
-    changeInsideRepresentation(content: undefinedDimensionNumberArray): void {
-        const matrixReadyToDisplay = getRGB2DImageFromRawContent(content);
+    changeInsideRepresentation(content: number3DMatrix): void {
+        const matrixReadyToDisplay: RGB2DImage = getRGB2DImageFromRawContent(content);
 
         this.rendererInside.initializeImage(
             matrixReadyToDisplay.length,
@@ -61,8 +62,8 @@ export class ModelController {
         this.lastLayerName = lastLayerName;
     }
 
-    async updateEpoch(newEpoch: number | string, shouldRefresh = true): Promise<void> {
-        const foundEpoch = await this.apiClient.changeEpoch(this.modelName, Number(newEpoch));
+    async updateEpoch(newEpoch: number, shouldRefresh = true): Promise<void> {
+        const foundEpoch: number = await this.apiClient.changeEpoch(this.modelName, newEpoch);
 
         this.locationEpochLabel.textContent = `Epoch : ${newEpoch} (${foundEpoch}) / ${this.callingWebUI.availableEpochs}`;
 
@@ -73,7 +74,7 @@ export class ModelController {
 
     addChoices(layersList: string[]): void {
         layersList.forEach((layer) => {
-            const option = new Option(layer);
+            const option: HTMLOptionElement = new Option(layer);
             this.selectLayerLocation.add(option);
         });
 

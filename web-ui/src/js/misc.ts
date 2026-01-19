@@ -1,4 +1,4 @@
-import {RGB2DImage, numberVector, number3DMatrix, undefinedDimensionNumberArray} from "./types/types";
+import {RGB2DImage, numberVector, number3DMatrix} from "./types/types";
 
 function getUpperBoundSqrt(n: number): number {
     return Math.ceil(Math.sqrt(n));
@@ -62,62 +62,59 @@ function getResultFrom3DCase(content: number3DMatrix, minimum: number, maximum: 
     return result;
 }
 
-export function getRGB2DImageFromRawContent(rawContent: undefinedDimensionNumberArray): RGB2DImage {
-
-    const dimensionsQuantity = getArrayDimensions(rawContent);
+export function getRGB2DImageFromRawContent(rawContent: number3DMatrix): RGB2DImage {
 
     const minimum = getOverallMinimum(rawContent);
     const maximum = getOverallMaximum(rawContent);
 
     let result: RGB2DImage;
 
-    if (dimensionsQuantity === 1) {
-        result = getRGB2DImageFromVector(rawContent as numberVector, minimum, maximum);
+    if (rawContent.length == 1 && rawContent[0].length == 1 && rawContent[0][0].length == 1) {
+        //only one digit
+        //result = getRGB2DImageFromVector(rawContent[0][0], minimum, maximum);
 
-    } else if (dimensionsQuantity === 3) {
-        result = getResultFrom3DCase(rawContent as number3DMatrix, minimum, maximum);
+    } else if (rawContent.length == 1 && rawContent[0].length == 1) {
+        // 2d array
+        result = getRGB2DImageFromVector(rawContent[0][0], minimum, maximum);
+
+    } else if (rawContent.length == 1) {
+        //nothing ?
 
     } else {
-        console.log('ERROR');
+        result = getResultFrom3DCase(rawContent, minimum, maximum);
     }
 
     return result;
 }
 
-function getArrayDimensions(array: undefinedDimensionNumberArray): number {
-    let dimensionsQuantity = 0;
-    let cursor: any = array;
+function getOverallMinimum(arr: number3DMatrix): number { //todo maybe merge with  maxfunction ?
+    let min = Infinity;
 
-    while (Array.isArray(cursor)) {
-        dimensionsQuantity++;
-        cursor = cursor[0];
-    }
-
-    return dimensionsQuantity;
-}
-
-function getOverallMinimum(array: undefinedDimensionNumberArray): number {//todo maybe split for the two dimensions possible ?
-    let minimum = Infinity;
-    for (const element of array) {
-        if (Array.isArray(element)) {
-            minimum = Math.min(minimum, getOverallMinimum(element));
-        } else {
-            minimum = Math.min(minimum, element);
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr[i].length; j++) {
+            for (let k = 0; k < arr[i][j].length; k++) {
+                if (arr[i][j][k] < min) {
+                    min = arr[i][j][k];
+                }
+            }
         }
     }
-    return minimum;
+    return min;
 }
 
-function getOverallMaximum(array: undefinedDimensionNumberArray): number {
-    let maximum = -Infinity;
-    for (const element of array) {
-        if (Array.isArray(element)) {
-            maximum = Math.max(maximum, getOverallMaximum(element));
-        } else {
-            maximum = Math.max(maximum, element);
+function getOverallMaximum(arr: number3DMatrix): number {
+    let max = -Infinity;
+
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr[i].length; j++) {
+            for (let k = 0; k < arr[i][j].length; k++) {
+                if (arr[i][j][k] > max) {
+                    max = arr[i][j][k];
+                }
+            }
         }
     }
-    return maximum;
+    return max;
 }
 
 export function convertNumberToStringPercentage(value: number): string {
@@ -151,4 +148,10 @@ export function getInputVectorAsRGB2DImage(inputVector: numberVector, size: numb
 export function getRandomNormalFloat(mu: number, sigma: number): number {
     const z = Math.sqrt(-2.0 * Math.log(Math.random())) * Math.cos(2.0 * Math.PI * Math.random());
     return mu + sigma * z;
+}
+
+export function shape(mat) {
+    if (!Array.isArray(mat)) return [];
+    if (mat.length === 0) return [0];
+    return [mat.length, ...shape(mat[0])];
 }

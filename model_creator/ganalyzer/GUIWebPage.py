@@ -61,7 +61,7 @@ def get_value_at_given_layer(generators_list, discriminators_list, current_gener
 		model = generators_list[current_generator_index]
 		intermediate = tf.keras.Model(inputs = model.inputs, outputs = model.layers[layer_index].output)
 
-		inpt = np.array([vector]).astype(np.float32)  # todo isolate in a function
+		inpt = np.array([vector[0][0]]).astype(np.float32)  # todo isolate in a function
 
 		layer_output = np.round(project_array(intermediate.predict(inpt), 254, -1, 1)).tolist()[0]
 
@@ -76,7 +76,21 @@ def get_value_at_given_layer(generators_list, discriminators_list, current_gener
 	else:
 		raise ValueError("Unknown model type.")
 
+	ndim = len(shape(layer_output))
+	if ndim == 1:
+		layer_output = [[layer_output]]
+	elif ndim == 2:
+		layer_output = [layer_output]
+	elif ndim == 3:
+		pass
+	else:
+		raise ValueError("number dim unknown")
 	return layer_output
+
+def shape(mat):
+	if not isinstance(mat, list):
+		return ()
+	return (len(mat),) + shape(mat[0]) if mat else (0,)
 
 def get_layers_list(model):
 	list_layers = model.layers
@@ -131,6 +145,7 @@ class GUIWebPage(object):
 
 			output_values = get_value_at_given_layer(self.generators_list, self.discriminators_list, self.current_generator_index, self.current_discriminator_index, vector, layer_name, which_model)
 
+			print('*********\n\n shape input',which_model, shape(vector), "shape output", shape(output_values))
 			return jsonify({"output_values": output_values})
 
 		@app.route("/change-epoch", methods = ["POST"])  # todo merge both change epoch in one endpoint

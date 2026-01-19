@@ -2,6 +2,7 @@ import ApiClient from "./apiClient";
 import DiscriminatorController from "./controller/discriminatorController";
 import GeneratorController from "./controller/generatorController";
 import InputDataController from "./controller/inputDataController";
+import {number3DMatrix} from "./types/types";
 
 type WebUIConfig = {
     modelName: string;
@@ -55,7 +56,7 @@ export default class WebUI {
         this.inputDataController = new InputDataController(this, this.latentSpaceSize, this.latentSpaceSizeSqrt);
 
         this.discriminatorController = new DiscriminatorController(this, this.apiClient, "choice_layer_discriminator");
-        this.generatorController = new GeneratorController(this, this.apiClient, latentSpaceSize, "choice_layer_generator");
+        this.generatorController = new GeneratorController(this, this.apiClient, "choice_layer_generator");
 
         this.generatorEpochSlider = document.getElementById("sliderGeneratorEpochValue") as HTMLInputElement | null;
         this.discriminatorEpochSlider = document.getElementById("sliderDiscriminatorEpochValue") as HTMLInputElement | null;
@@ -82,8 +83,8 @@ export default class WebUI {
             this.generatorController.setLayers(data.generator_layers);
             this.discriminatorController.setLayers(data.discriminator_layers);
 
-            this.generatorController.updateEpoch(this.generatorEpochSlider.value, false);
-            this.discriminatorController.updateEpoch(this.discriminatorEpochSlider.value, false);
+            this.generatorController.updateEpoch(parseFloat(this.generatorEpochSlider.value), false);
+            this.discriminatorController.updateEpoch(parseFloat(this.discriminatorEpochSlider.value), false);
 
             this.inputDataController.randomizeInput();
         });
@@ -109,16 +110,16 @@ export default class WebUI {
         };
 
         window.handleSliderGeneratorEpochValue = (newEpoch) => {
-            this.generatorController.updateEpoch(newEpoch);
+            this.generatorController.updateEpoch(parseFloat(newEpoch));
         };
 
         window.handleSliderDiscriminatorEpochValue = (newEpoch) => {
-            this.discriminatorController.updateEpoch(newEpoch);
+            this.discriminatorController.updateEpoch(parseFloat(newEpoch));
         };
     }
 
-    async updateDiscriminator(dataGenerator: unknown) {
-        this.discriminatorController.changeInputImage(dataGenerator);
+    async updateDiscriminator(dataGenerator: number3DMatrix) {
+        this.discriminatorController.changeInputImage(dataGenerator );
         await this.discriminatorController.refreshAll();
     }
 

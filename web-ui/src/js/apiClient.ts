@@ -1,3 +1,5 @@
+import {number3DMatrix} from "./types/types";
+
 type SyncServerResponse = Record<string, unknown>;
 
 type ModelPredictionResponse = {
@@ -5,7 +7,7 @@ type ModelPredictionResponse = {
 };
 
 type ChangeEpochResponse = {
-    new_epoch_found: boolean;
+    new_epoch_found: number;
 };
 
 export default class ApiClient {
@@ -37,12 +39,13 @@ export default class ApiClient {
     }
 
     async getModelPrediction(
-        input_data: any,
+        input_data: number3DMatrix,
         which_model: string,
         layer_name: string
     ): Promise<any | null> {
         //console.log('==> Get Model ', which_model, layer_name, 'Prediction')
         try {
+            //console.log(shape(input_data))
             const response = await fetch(`${this.baseUrl}/get-model-prediction`, {
                 method: "POST",
                 headers: {
@@ -56,6 +59,8 @@ export default class ApiClient {
             });
 
             const response_content = (await response.json()) as ModelPredictionResponse;
+
+            //console.log(shape(response_content.output_values))
             return response_content.output_values;
         } catch (error) {
             console.error("Error:", error);
@@ -63,7 +68,7 @@ export default class ApiClient {
         return null;
     }
 
-    async changeEpoch(modelType: string, newEpoch: number): Promise<boolean | null> {
+    async changeEpoch(modelType: string, newEpoch: number): Promise<number | null> {
         //console.log('==> Change Epoch', modelType, newEpoch);
         try {
             const response = await fetch(`${this.baseUrl}/change-epoch`, {

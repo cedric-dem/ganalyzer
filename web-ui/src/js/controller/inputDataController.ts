@@ -1,13 +1,14 @@
 import { getDefaultLatentVector, getRandomNormalFloat } from "../misc";
 import { SliderRenderer } from "../renderer/sliderRenderer";
 import WebUI from "../webUI";
+import {numberVector} from "../types/types";
 
 
 export default class InputDataController {
-    private currentLatentVector: number[];
+    private currentLatentVector: numberVector;
     private callingWebUI: WebUI;
-    private latentSpaceSize: number;
-    private latentSpaceSizeSqrt: number;
+    private readonly latentSpaceSize: number;
+    private readonly latentSpaceSizeSqrt: number;
     private sliderMuTextValue: HTMLElement;
     private sliderSigmaTextValue: HTMLElement;
     private sliderConstantTextValue: HTMLElement;
@@ -39,21 +40,21 @@ export default class InputDataController {
         );
     }
 
-    getLatentVector(): number[] {
+    getLatentVector(): numberVector {
         return this.currentLatentVector;
     }
 
-    handleSliderMuValue(value: string | number): void {
-        this.sliderMuTextValue.textContent = String(value);
+    handleSliderMuValue(value: string): void {
+        this.sliderMuTextValue.textContent = value;
         this.randomizeInput();
     }
 
-    handleSliderSigmaValue(value: string | number): void {
+    handleSliderSigmaValue(value: string): void {
         this.sliderSigmaTextValue.textContent = String(value);
         this.randomizeInput();
     }
 
-    handleSliderConstantValue(value: string | number): void {
+    handleSliderConstantValue(value: string): void {
         this.sliderConstantTextValue.textContent = String(value);
         this.setConstantInput();
     }
@@ -71,8 +72,8 @@ export default class InputDataController {
     }
 
     randomizeInput(): void {
-        const mu = this.getMuValue();
-        const sigma = this.getSigmaValue();
+        const mu: number = this.getMuValue();
+        const sigma: number = this.getSigmaValue();
 
         for (let i = 0; i < this.latentSpaceSize; i++) {
             this.currentLatentVector[i] = getRandomNormalFloat(mu, sigma);
@@ -81,26 +82,25 @@ export default class InputDataController {
         this.refreshGenerator();
     }
 
-        setConstantInput(): void {
-            const k = this.getKValue();
-            for (let i = 0; i < this.currentLatentVector.length; i++) {
+    setConstantInput(): void {
+        const k: number = this.getKValue();
+        for (let i = 0; i < this.currentLatentVector.length; i++) {
             this.currentLatentVector[i] = k;
         }
         this.refreshSliders();
         this.refreshGenerator();
     }
 
-        refreshSliders(): void {
-            this.sliderGridRenderer.refreshSliders(this.currentLatentVector, this.latentSpaceSizeSqrt);
-        }
-
-        handleSliderValueChange(i: number, j: number, newValue: number | string): void {
-            const parsedValue = typeof newValue === "number" ? newValue : parseFloat(newValue);
-            this.currentLatentVector[i * this.latentSpaceSizeSqrt + j] = parsedValue;
-            this.refreshGenerator();
-        }
-
-        refreshGenerator(): void {
-            this.callingWebUI.refreshGenerator();
-        }
+    refreshSliders(): void {
+        this.sliderGridRenderer.refreshSliders(this.currentLatentVector, this.latentSpaceSizeSqrt);
     }
+
+    handleSliderValueChange(i: number, j: number, newValue: number): void {
+        this.currentLatentVector[i * this.latentSpaceSizeSqrt + j] = newValue;
+        this.refreshGenerator();
+    }
+
+    refreshGenerator(): void {
+        this.callingWebUI.refreshGenerator();
+    }
+}
