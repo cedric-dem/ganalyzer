@@ -41,15 +41,19 @@ export default class DiscriminatorController extends ModelController {
     }
 
     async refreshAll(): Promise<void> {
+        console.log('===> Refreshing Input Discriminator')
+        this.rendererInput.changeImage(this.inputData as RGB2DImage);
+
+        console.log('===> Refreshing Inside Discriminator')
+        await this.refreshInside(this.layerChoiceInsideVisualization.value);
+
+
+        console.log('===> Refreshing Output Discriminator')
         const resultDiscriminator: number3DMatrix = (await this.apiClient.getModelPrediction(
             this.inputData,
             "discriminator",
             this.lastLayerName,
-        )) ;
-
-        this.rendererInput.changeImage(this.inputData as RGB2DImage);
-
-        await this.refreshInside(this.layerChoiceInsideVisualization.value);
+        ));
 
         this.predictionOutputText.textContent = this.getTextPrediction(resultDiscriminator[0][0][0]);
     }

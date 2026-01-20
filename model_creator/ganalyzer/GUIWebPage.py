@@ -145,7 +145,7 @@ class GUIWebPage(object):
 
 			output_values = get_value_at_given_layer(self.generators_list, self.discriminators_list, self.current_generator_index, self.current_discriminator_index, vector, layer_name, which_model)
 
-			print('*********\n\n shape input',which_model, shape(vector), "shape output", shape(output_values))
+			#print('*********\n\n shape input',which_model, shape(vector), "shape output", shape(output_values))
 			return jsonify({"output_values": output_values})
 
 		@app.route("/change-epoch", methods = ["POST"])  # todo merge both change epoch in one endpoint

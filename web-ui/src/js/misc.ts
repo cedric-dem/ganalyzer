@@ -15,6 +15,7 @@ export function getDefaultLatentVector(size: number): numberVector {
 }
 
 function getRGB2DImageFromVector(inputVector: numberVector, min: number, max: number): RGB2DImage {
+    //console.log("1D case")
     const newDimension = getUpperBoundSqrt(inputVector.length);
 
     const result = getEmptyRGB2DImage(newDimension, newDimension);
@@ -33,6 +34,7 @@ function getRGB2DImageFromVector(inputVector: numberVector, min: number, max: nu
 }
 
 function getResultFrom3DCase(content: number3DMatrix, minimum: number, maximum: number): RGB2DImage {
+    //console.log("3D Case")
     //todo maybe use three js here ?
     //or slider to have several 2d pictures and allowed to go trough the frames
     const outerDimension = getUpperBoundSqrt(content[0][0].length);
@@ -63,9 +65,10 @@ function getResultFrom3DCase(content: number3DMatrix, minimum: number, maximum: 
 }
 
 export function getRGB2DImageFromRawContent(rawContent: number3DMatrix): RGB2DImage {
+    let minimum = null
+    let maximum = null;
 
-    const minimum = getOverallMinimum(rawContent);
-    const maximum = getOverallMaximum(rawContent);
+    [minimum, maximum] = getOverallMinimumAndMaximum(rawContent);
 
     let result: RGB2DImage;
 
@@ -83,38 +86,28 @@ export function getRGB2DImageFromRawContent(rawContent: number3DMatrix): RGB2DIm
     } else {
         result = getResultFrom3DCase(rawContent, minimum, maximum);
     }
-
     return result;
 }
 
-function getOverallMinimum(arr: number3DMatrix): number { //todo maybe merge with  maxfunction ?
-    let min = Infinity;
-
-    for (let i = 0; i < arr.length; i++) {
-        for (let j = 0; j < arr[i].length; j++) {
-            for (let k = 0; k < arr[i][j].length; k++) {
-                if (arr[i][j][k] < min) {
-                    min = arr[i][j][k];
-                }
-            }
-        }
-    }
-    return min;
-}
-
-function getOverallMaximum(arr: number3DMatrix): number {
+export function getOverallMinimumAndMaximum(arr: number3DMatrix): [number, number] { //todo maybe merge with  maxfunction ?
     let max = -Infinity;
-
+    let min = Infinity;
     for (let i = 0; i < arr.length; i++) {
         for (let j = 0; j < arr[i].length; j++) {
-            for (let k = 0; k < arr[i][j].length; k++) {
-                if (arr[i][j][k] > max) {
-                    max = arr[i][j][k];
+            if (arr[i][j]) {
+                //console.log("length : ", arr[i][j].length);
+                for (let k = 0; k < arr[i][j].length; k++) {
+                    if (arr[i][j][k] < min) {
+                        min = arr[i][j][k];
+                    }
+                    if (arr[i][j][k] > max) {
+                        max = arr[i][j][k];
+                    }
                 }
             }
         }
     }
-    return max;
+    return [min, max];
 }
 
 export function convertNumberToStringPercentage(value: number): string {
@@ -122,8 +115,7 @@ export function convertNumberToStringPercentage(value: number): string {
 }
 
 function projectTo255(x: number, maxVisualizationInput: number): number { //todo remove the other 255 func
-    const clampedVal = Math.min(Math.max(x, -maxVisualizationInput), maxVisualizationInput);
-    return ((clampedVal + maxVisualizationInput) / (2 * maxVisualizationInput)) * 255;
+    return ((x + maxVisualizationInput) / (2 * maxVisualizationInput)) * 255;
 }
 
 function mapTo255(minValue: number, maxValue: number, value: number): number {

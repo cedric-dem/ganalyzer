@@ -41,6 +41,7 @@ export default class InputDataController {
     }
 
     getLatentVector(): numberVector {
+        //console.log('Latent  vector : ',this.currentLatentVector);
         return this.currentLatentVector;
     }
 

@@ -39,6 +39,7 @@ export default class GeneratorController extends ModelController {
     }
 
     async refreshAll(): Promise<void> {
+        console.log('===> Refreshing Input Generator')
         const latentVectorAsRGB2DImage = getInputVectorAsRGB2DImage(
             this.callingWebUI.getLatentVector(),
             this.callingWebUI.latentSpaceSizeSqrt,
@@ -48,8 +49,10 @@ export default class GeneratorController extends ModelController {
 
         this.inputData = [[this.callingWebUI.getLatentVector()]];
          // why call it twice todo fix getLatentVector()
+        console.log('===> Refreshing Inside Generator')
         await this.refreshInside(this.choiceLayerGenerator.value);
 
+        console.log('===> Refreshing Output Generator')
         const dataGenerator: number3DMatrix = (await this.apiClient.getModelPrediction(
             this.inputData,
             "generator",

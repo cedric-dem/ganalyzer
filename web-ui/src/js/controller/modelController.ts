@@ -1,4 +1,4 @@
-import {getRGB2DImageFromRawContent} from "../misc";
+import {getOverallMinimumAndMaximum, getRGB2DImageFromRawContent} from "../misc";
 import {ImageRenderer} from "../renderer/imageRenderer";
 import WebUI from "../webUI";
 import ApiClient from "../apiClient";
@@ -38,6 +38,7 @@ export class ModelController {
     }
 
     async refreshInside(layerToVisualize: string): Promise<void> {
+
         const newInsideValues: number3DMatrix = await this.apiClient.getModelPrediction(
             this.inputData,
             this.modelName,
@@ -50,10 +51,7 @@ export class ModelController {
     changeInsideRepresentation(content: number3DMatrix): void {
         const matrixReadyToDisplay: RGB2DImage = getRGB2DImageFromRawContent(content);
 
-        this.rendererInside.initializeImage(
-            matrixReadyToDisplay.length,
-            matrixReadyToDisplay[0].length,
-        );
+        this.rendererInside.initializeImage(matrixReadyToDisplay.length, matrixReadyToDisplay[0].length);
 
         this.rendererInside.changeImage(matrixReadyToDisplay);
     }
