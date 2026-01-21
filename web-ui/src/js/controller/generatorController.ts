@@ -1,7 +1,7 @@
-import { getInputVectorAsRGB2DImage } from "../misc";
-import { ModelController} from "./modelController";
+import {getInputVectorAsRGB2DImage} from "../misc";
+import {ModelController} from "./modelController";
 import ApiClient from "../apiClient";
-import { ImageRenderer } from "../renderer/imageRenderer";
+import {ImageRenderer} from "../renderer/imageRenderer";
 import WebUI from "../webUI";
 import {number3DMatrix, RGB2DImage} from "../types/types";
 
@@ -48,7 +48,7 @@ export default class GeneratorController extends ModelController {
         this.rendererInput.changeImage(latentVectorAsRGB2DImage);
 
         this.inputData = [[this.callingWebUI.getLatentVector()]];
-         // why call it twice todo fix getLatentVector()
+        // why call it twice todo fix getLatentVector()
         console.log('===> Refreshing Inside Generator')
         await this.refreshInside(this.choiceLayerGenerator.value);
 
@@ -57,7 +57,7 @@ export default class GeneratorController extends ModelController {
             this.inputData,
             "generator",
             this.lastLayerName,
-        )) ;
+        ));
         this.rendererOutput.changeImage(dataGenerator as RGB2DImage);
 
         await this.callingWebUI.updateDiscriminator(dataGenerator);

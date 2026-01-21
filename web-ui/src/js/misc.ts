@@ -24,7 +24,11 @@ function getRGB2DImageFromVector(inputVector: numberVector, min: number, max: nu
     for (let i = 0; i < newDimension; i++) {
         for (let j = 0; j < newDimension; j++) {
             if (i * newDimension + j < inputVector.length) {
-                tempValue = mapTo255(min, max, inputVector[i * newDimension + j]);
+                if (min === max) {
+                    tempValue = 127;
+                } else {
+                    tempValue = mapTo255(min, max, inputVector[i * newDimension + j]);
+                }
                 result[i][j] = [tempValue, tempValue, tempValue];
             }
         }
@@ -119,17 +123,16 @@ function projectTo255(x: number, maxVisualizationInput: number): number { //todo
 }
 
 function mapTo255(minValue: number, maxValue: number, value: number): number {
-    const clampedVal = Math.min(Math.max(value, minValue), maxValue);
-    const ratio = (clampedVal - minValue) / (maxValue - minValue);
-    return Math.round(ratio * 255);
+    return Math.round((value - minValue) / (maxValue - minValue) * 255);
 }
 
 export function getInputVectorAsRGB2DImage(inputVector: numberVector, size: number, maxVisualizationInput: number): RGB2DImage {
     const latentVectorAsMatrix: RGB2DImage = getEmptyRGB2DImage(size, size);
 
+    let intensityProjected: number;
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
-            const intensityProjected: number = projectTo255(inputVector[i * size + j], maxVisualizationInput); //between 0 black and 255 white
+            intensityProjected = projectTo255(inputVector[i * size + j], maxVisualizationInput); //between 0 black and 255 white
 
             latentVectorAsMatrix[i][j] = [intensityProjected, intensityProjected, intensityProjected];
         }
@@ -140,10 +143,4 @@ export function getInputVectorAsRGB2DImage(inputVector: numberVector, size: numb
 export function getRandomNormalFloat(mu: number, sigma: number): number {
     const z = Math.sqrt(-2.0 * Math.log(Math.random())) * Math.cos(2.0 * Math.PI * Math.random());
     return mu + sigma * z;
-}
-
-export function shape(mat) {
-    if (!Array.isArray(mat)) return [];
-    if (mat.length === 0) return [0];
-    return [mat.length, ...shape(mat[0])];
 }

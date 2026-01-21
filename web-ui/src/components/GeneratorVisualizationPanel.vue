@@ -18,7 +18,7 @@
                 max="200"
                 value="95"
                 step="1"
-                @input="handleSliderGeneratorEpochValue($event.target.value)"
+                @change="handleSliderGeneratorEpochValue($event.target.value)"
             />
           </div>
         </div>

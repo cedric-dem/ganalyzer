@@ -1,5 +1,8 @@
-import { getDefaultLatentVector, getRandomNormalFloat } from "../misc";
-import { SliderRenderer } from "../renderer/sliderRenderer";
+import {
+    getDefaultLatentVector,
+    getRandomNormalFloat
+} from "../misc";
+import {SliderRenderer} from "../renderer/sliderRenderer";
 import WebUI from "../webUI";
 import {numberVector} from "../types/types";
 
@@ -34,8 +37,19 @@ export default class InputDataController {
         this.sliderConstantValue = document.getElementById("sliderConstantValue") as HTMLInputElement;
 
         this.sliderGridRenderer = new SliderRenderer("sliders_grid");
+        const maxValueVisualizationInput = this.callingWebUI.maxValueVisualizationInput;
+        const minValueVisualizationInput = -maxValueVisualizationInput;
+
+        this.sliderMuValue.min = String(minValueVisualizationInput);
+        this.sliderMuValue.max = String(maxValueVisualizationInput);
+        this.sliderSigmaValue.min = "0";
+        this.sliderSigmaValue.max = String(maxValueVisualizationInput);
+        this.sliderConstantValue.min = String(minValueVisualizationInput);
+        this.sliderConstantValue.max = String(maxValueVisualizationInput);
+
         this.sliderGridRenderer.initializeGeneratorSliders(
             latentSpaceSizeSqrt,
+            maxValueVisualizationInput,
             (i, j, newValue) => this.handleSliderValueChange(i, j, newValue),
         );
     }

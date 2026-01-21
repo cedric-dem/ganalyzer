@@ -3,20 +3,19 @@ import {numberVector} from "../types/types";
 
 type SliderInputHandler = (row: number, column: number, value: number) => void;
 
-
 export class SliderRenderer {
     private slidersGrid: any = [];
     private divSliders: HTMLElement;
 
     constructor(elementId: string) {
-        const element = document.getElementById(elementId);
-        if (!element) {
-            throw new Error(`SliderRenderer: element with id "${elementId}" not found`);
-        }
-        this.divSliders = element;
+        this.divSliders = document.getElementById(elementId);
     }
 
-    initializeGeneratorSliders(size: number, onInput: SliderInputHandler): void {
+    initializeGeneratorSliders(
+        size: number,
+        maxValueVisualizationInput: number,
+        onInput: SliderInputHandler,
+    ): void {
 
         //maybe not ?
         this.divSliders.innerHTML = "";
@@ -26,19 +25,19 @@ export class SliderRenderer {
 
         this.slidersGrid = getEmptyRGB2DImage(size, size);
 
-        let newElement: HTMLInputElement | null = null;
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
-                newElement = document.createElement("input");
+                const newElement = document.createElement("input");
 
                 newElement.type = "range";
-                newElement.min = "-5";
-                newElement.max = "5";
+                newElement.min = String(-maxValueVisualizationInput);
+                newElement.max = String(maxValueVisualizationInput);
                 newElement.step = "0.01";
                 newElement.classList.add("slider");
 
-                newElement.oninput = function () {
-                    onInput(i, j, parseFloat(newElement.value));
+                newElement.onchange = (event) => {
+                    const target = event.currentTarget as HTMLInputElement;
+                    onInput(i, j, parseFloat(target.value));
                 };
 
                 this.divSliders.appendChild(newElement);
@@ -46,6 +45,7 @@ export class SliderRenderer {
             }
         }
     }
+
 
     refreshSliders(latentVector: numberVector, size: number): void {
         for (let i = 0; i < size; i++) {

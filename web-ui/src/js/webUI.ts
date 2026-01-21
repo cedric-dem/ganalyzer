@@ -63,28 +63,26 @@ export default class WebUI {
     }
 
     initialize() {
-        if (!this.generatorEpochSlider || !this.discriminatorEpochSlider) {
-            throw new Error("Epoch slider elements are missing from the DOM.");
-        }
 
         this.generatorController.initialize();
         this.discriminatorController.initialize();
 
         this.apiClient.synchronizeServer(this.modelName, this.latentSpaceSize).then((data: any) => {
-            if (!data) {
-                return;
-            }
 
             this.availableEpochs = data.number_of_models;
 
-            this.generatorEpochSlider.max = String(this.availableEpochs);
-            this.discriminatorEpochSlider.max = String(this.availableEpochs);
+            const maxEpochs = String(this.availableEpochs);
+            this.generatorEpochSlider.max = maxEpochs;
+            this.discriminatorEpochSlider.max = maxEpochs;
+
+            this.generatorEpochSlider.value = maxEpochs;
+            this.discriminatorEpochSlider.value = maxEpochs;
 
             this.generatorController.setLayers(data.generator_layers);
             this.discriminatorController.setLayers(data.discriminator_layers);
 
-            this.generatorController.updateEpoch(parseFloat(this.generatorEpochSlider.value), false);
-            this.discriminatorController.updateEpoch(parseFloat(this.discriminatorEpochSlider.value), false);
+            this.generatorController.updateEpoch(this.availableEpochs, false);
+            this.discriminatorController.updateEpoch(this.availableEpochs, false);
 
             this.inputDataController.randomizeInput();
         });
@@ -119,7 +117,7 @@ export default class WebUI {
     }
 
     async updateDiscriminator(dataGenerator: number3DMatrix) {
-        this.discriminatorController.changeInputImage(dataGenerator );
+        this.discriminatorController.changeInputImage(dataGenerator);
         await this.discriminatorController.refreshAll();
     }
 

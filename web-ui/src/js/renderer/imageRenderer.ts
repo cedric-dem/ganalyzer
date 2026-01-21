@@ -1,16 +1,11 @@
 import {RGB2DImage} from "../types/types";
-import {getOverallMinimumAndMaximum} from "../misc";
 
 export class ImageRenderer {
     private divGrid: HTMLDivElement;
     private locationImage: HTMLDivElement[][] = [];
 
     constructor(elementId: string) {
-        const divGrid = document.getElementById(elementId);
-        if (!divGrid) {
-            throw new Error(`ImageRenderer element not found: ${elementId}`);
-        }
-        this.divGrid = divGrid as HTMLDivElement;
+        this.divGrid = document.getElementById(elementId) as HTMLDivElement;
     }
 
     initializeImage(sizeX: number, sizeY: number): void {

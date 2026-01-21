@@ -19,7 +19,7 @@
                 max="200"
                 value="95"
                 step="1"
-                @input="handleSliderDiscriminatorEpochValue($event.target.value)"
+                @change="handleSliderDiscriminatorEpochValue($event.target.value)"
             />
           </div>
         </div>

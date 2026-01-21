@@ -15,7 +15,7 @@
                 max="10"
                 value="0"
                 step="0.01"
-                @input="handleSliderMuValue($event.target.value)"
+                @change="handleSliderMuValue($event.target.value)"
             />
             <p class="value-label">mu = <span id="sliderMuValueLabel">0</span></p>
           </div>
@@ -28,7 +28,7 @@
                 max="5"
                 value="1"
                 step="0.01"
-                @input="handleSliderSigmaValue($event.target.value)"
+                @change="handleSliderSigmaValue($event.target.value)"
             />
             <p class="value-label">sigma = <span id="sliderSigmaValueLabel">1</span></p>
           </div>
@@ -48,7 +48,7 @@
                 max="5"
                 value="0"
                 step="0.01"
-                @input="handleSliderConstantValue($event.target.value)"
+                @change="handleSliderConstantValue($event.target.value)"
             />
             <p class="value-label">k = <span id="sliderConstantValueLabel">0</span></p>
           </div>

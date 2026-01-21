@@ -1,4 +1,4 @@
-import {getOverallMinimumAndMaximum, getRGB2DImageFromRawContent} from "../misc";
+import {getRGB2DImageFromRawContent} from "../misc";
 import {ImageRenderer} from "../renderer/imageRenderer";
 import WebUI from "../webUI";
 import ApiClient from "../apiClient";
