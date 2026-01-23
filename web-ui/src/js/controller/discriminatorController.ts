@@ -47,7 +47,6 @@ export default class DiscriminatorController extends ModelController {
         console.log('===> Refreshing Inside Discriminator')
         await this.refreshInside(this.layerChoiceInsideVisualization.value);
 
-
         console.log('===> Refreshing Output Discriminator')
         const resultDiscriminator: number3DMatrix = (await this.apiClient.getModelPrediction(
             this.inputData,
