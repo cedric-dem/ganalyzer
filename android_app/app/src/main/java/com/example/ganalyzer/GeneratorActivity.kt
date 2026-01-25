@@ -46,6 +46,18 @@ class GeneratorActivity : AppCompatActivity() {
         val generatedPreview = findViewById<ImageView>(R.id.image_generated_preview)
         val imagePreview = findViewById<ImageView>(R.id.image_generator_output)
 
+        generatedPreview.setOnTouchListener { view, event ->
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                val cellWidth = view.width.toFloat() / PREVIEW_GRID_SIZE
+                val cellHeight = view.height.toFloat() / PREVIEW_GRID_SIZE
+                val column = (event.x / cellWidth).toInt().coerceIn(0, PREVIEW_GRID_SIZE - 1)
+                val row = (event.y / cellHeight).toInt().coerceIn(0, PREVIEW_GRID_SIZE - 1)
+                Log.d(TAG, "Generator input pressed at row=$row, column=$column")
+                changeGivenValueButton(row, column)
+            }
+            true
+        }
+
         generateButton.setOnClickListener {
             val expectedSize = generatorApplicator?.expectedInputSize() ?: ModelConfig.LATENT_SPACE_SIZE
 
@@ -66,6 +78,39 @@ class GeneratorActivity : AppCompatActivity() {
         change10ValueButton.setOnClickListener {
             changeGeneratedValues(generatedPreview, imagePreview, 10)
         }
+    }
+
+    private fun changeGivenValueButton(row: Int, column: Int) {
+        val values = generatedValues
+        if (values == null) {
+            Log.w(TAG, "changeGivenValueButton called before values were generated")
+            Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (values.isEmpty()) {
+            Log.w(TAG, "changeGivenValueButton called but values array is empty")
+            Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val indexToChange = row * PREVIEW_GRID_SIZE + column
+        if (indexToChange !in values.indices) {
+            Log.w(TAG, "changeGivenValueButton index out of range: $indexToChange")
+            Toast.makeText(this, R.string.generator_generate_first, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val random = java.util.Random()
+        val newValue = random.nextGaussian().toFloat()
+        values[indexToChange] = newValue
+        Log.d(TAG, "Updated value at row=$row column=$column (index=$indexToChange)")
+
+        val generatedPreview = findViewById<ImageView>(R.id.image_generated_preview)
+        val imagePreview = findViewById<ImageView>(R.id.image_generator_output)
+        renderGeneratedPreview(generatedPreview, values)
+        generatedValues = values
+        applyGeneratedValues(imagePreview)
     }
 
     private fun changeGeneratedValues(
@@ -161,26 +206,31 @@ class GeneratorActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "GeneratorActivity"
         private const val PREVIEW_GRID_SIZE = 11
+        private const val PREVIEW_SCALE = 10
+    }
+
+    private fun getColorFrom(value: Float, min: Float, max: Float): Int {
+        val result = (((value - min) / (max - min)) * 254f).toInt()
+        return Color.rgb(result, result, result)
     }
 
     private fun renderGeneratedPreview(previewView: ImageView, values: FloatArray) {
         val pixelCount = PREVIEW_GRID_SIZE * PREVIEW_GRID_SIZE
         val bitmap = Bitmap.createBitmap(PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE, Bitmap.Config.ARGB_8888)
         val pixels = IntArray(pixelCount) { Color.BLACK }
-        val limit = min(pixelCount, values.size)
-        for (index in 0 until limit) {
-            if (values[index] > 0.68f) {
-                pixels[index] = Color.WHITE
-            } else if (values[index] > 0.0f) {
-                pixels[index] = Color.GRAY
-            } else if (values[index] > -0.68f) {
-                pixels[index] = Color.DKGRAY
-            } else {
-                pixels[index] =  Color.BLACK
-            }
+
+        val min = values.minOrNull()!!
+        val max = values.maxOrNull()!!
+
+        for (index in values.indices) {
+            pixels[index] = getColorFrom(values[index], min, max)
         }
+
         bitmap.setPixels(pixels, 0, PREVIEW_GRID_SIZE, 0, 0, PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE)
-        previewView.setImageBitmap(bitmap)
+        val targetWidth = if (previewView.width > 0) previewView.width else PREVIEW_GRID_SIZE * PREVIEW_SCALE
+        val targetHeight = if (previewView.height > 0) previewView.height else PREVIEW_GRID_SIZE * PREVIEW_SCALE
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false)
+        previewView.setImageBitmap(scaledBitmap)
     }
 
     private fun initializeGeneratorApplicator() {

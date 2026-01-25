@@ -14,10 +14,6 @@
         tools:targetApi="31">
         <activity
             android:name=".GeneratorActivity"
-            android:exported="false"
-            android:label="@string/navigation_discriminator" />
-        <activity
-            android:name=".DiscriminatorActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Ganalyzer">
@@ -27,6 +23,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".DiscriminatorActivity"
+            android:exported="false"
+            android:label="@string/navigation_discriminator" />
     </application>
 
 </manifest>
