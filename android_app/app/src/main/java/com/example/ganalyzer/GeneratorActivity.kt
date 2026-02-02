@@ -20,6 +20,8 @@ import kotlin.math.min
 
 class GeneratorActivity : AppCompatActivity() {
 
+    private var imagePreview: ImageView? = null
+    private var generatedPreview: ImageView? = null
     private var generatedValues: FloatArray? = null
     private var generatorApplicator: GeneratorApplicator? = null
 
@@ -31,6 +33,7 @@ class GeneratorActivity : AppCompatActivity() {
         initializeGeneratorApplicator()
         setupBottomNavigation()
         setupButtons()
+        reGenerate()
     }
 
     override fun onDestroy() {
@@ -43,10 +46,10 @@ class GeneratorActivity : AppCompatActivity() {
         val generateButton = findViewById<Button>(R.id.button_generate_array)
         val change1ValueButton = findViewById<Button>(R.id.change_1_value)
         val change10ValueButton = findViewById<Button>(R.id.change_10_value)
-        val generatedPreview = findViewById<ImageView>(R.id.image_generated_preview)
-        val imagePreview = findViewById<ImageView>(R.id.image_generator_output)
+        this.generatedPreview = findViewById<ImageView>(R.id.image_generated_preview)
+        this.imagePreview = findViewById<ImageView>(R.id.image_generator_output)
 
-        generatedPreview.setOnTouchListener { view, event ->
+        this.generatedPreview!!.setOnTouchListener { view, event ->
             if (event.action == android.view.MotionEvent.ACTION_DOWN) {
                 val cellWidth = view.width.toFloat() / PREVIEW_GRID_SIZE
                 val cellHeight = view.height.toFloat() / PREVIEW_GRID_SIZE
@@ -59,25 +62,29 @@ class GeneratorActivity : AppCompatActivity() {
         }
 
         generateButton.setOnClickListener {
-            val expectedSize = generatorApplicator?.expectedInputSize() ?: ModelConfig.LATENT_SPACE_SIZE
-
-            val random = java.util.Random()
-            val values = FloatArray(expectedSize) { random.nextGaussian().toFloat() }
-
-            Log.d(TAG, "Generated new values: ${values.joinToString(limit = 5, truncated = "...")}")
-
-            generatedValues = values
-            renderGeneratedPreview(generatedPreview, values)
-            applyGeneratedValues(imagePreview)
+            reGenerate()
         }
 
         change1ValueButton.setOnClickListener {
-            changeGeneratedValues(generatedPreview, imagePreview, 1)
+            changeGeneratedValues(previewView = this.generatedPreview!!, imagePreview = imagePreview!!, requestedChanges = 1)
         }
 
         change10ValueButton.setOnClickListener {
-            changeGeneratedValues(generatedPreview, imagePreview, 10)
+            changeGeneratedValues(this.generatedPreview!!, imagePreview!!, 10)
         }
+    }
+
+    private fun reGenerate(){
+        val expectedSize = generatorApplicator?.expectedInputSize() ?: ModelConfig.LATENT_SPACE_SIZE
+
+        val random = java.util.Random()
+        val values = FloatArray(expectedSize) { random.nextGaussian().toFloat() }
+
+        Log.d(TAG, "Generated new values: ${values.joinToString(limit = 5, truncated = "...")}")
+
+        generatedValues = values
+        renderGeneratedPreview(this.generatedPreview!!, values)
+        applyGeneratedValues(this.imagePreview!!)
     }
 
     private fun changeGivenValueButton(row: Int, column: Int) {
