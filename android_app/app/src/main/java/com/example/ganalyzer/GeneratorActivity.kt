@@ -17,11 +17,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.min
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 
 class GeneratorActivity : AppCompatActivity() {
 
-    private var imagePreview: ImageView? = null
-    private var generatedPreview: ImageView? = null
+    private var generatorOutputPreview: ImageView? = null
+    private var generatorInputPreview: ImageView? = null
     private var generatedValues: FloatArray? = null
     private var generatorApplicator: GeneratorApplicator? = null
 
@@ -46,10 +48,10 @@ class GeneratorActivity : AppCompatActivity() {
         val generateButton = findViewById<Button>(R.id.button_generate_array)
         val change1ValueButton = findViewById<Button>(R.id.change_1_value)
         val change10ValueButton = findViewById<Button>(R.id.change_10_value)
-        this.generatedPreview = findViewById<ImageView>(R.id.image_generated_preview)
-        this.imagePreview = findViewById<ImageView>(R.id.image_generator_output)
+        this.generatorInputPreview = findViewById(R.id.image_generator_input)
+        this.generatorOutputPreview = findViewById(R.id.image_generator_output)
 
-        this.generatedPreview!!.setOnTouchListener { view, event ->
+        this.generatorInputPreview!!.setOnTouchListener { view, event ->
             if (event.action == android.view.MotionEvent.ACTION_DOWN) {
                 val cellWidth = view.width.toFloat() / PREVIEW_GRID_SIZE
                 val cellHeight = view.height.toFloat() / PREVIEW_GRID_SIZE
@@ -66,11 +68,11 @@ class GeneratorActivity : AppCompatActivity() {
         }
 
         change1ValueButton.setOnClickListener {
-            changeGeneratedValues(previewView = this.generatedPreview!!, imagePreview = imagePreview!!, requestedChanges = 1)
+            changeGeneratedValues(previewView = this.generatorInputPreview!!, imagePreview = generatorOutputPreview!!, requestedChanges = 1)
         }
 
         change10ValueButton.setOnClickListener {
-            changeGeneratedValues(this.generatedPreview!!, imagePreview!!, 10)
+            changeGeneratedValues(this.generatorInputPreview!!, generatorOutputPreview!!, 10)
         }
     }
 
@@ -83,8 +85,8 @@ class GeneratorActivity : AppCompatActivity() {
         Log.d(TAG, "Generated new values: ${values.joinToString(limit = 5, truncated = "...")}")
 
         generatedValues = values
-        renderGeneratedPreview(this.generatedPreview!!, values)
-        applyGeneratedValues(this.imagePreview!!)
+        renderGeneratedPreview(this.generatorInputPreview!!, values)
+        applyGeneratedValues(this.generatorOutputPreview!!)
     }
 
     private fun changeGivenValueButton(row: Int, column: Int) {
@@ -113,9 +115,8 @@ class GeneratorActivity : AppCompatActivity() {
         values[indexToChange] = newValue
         Log.d(TAG, "Updated value at row=$row column=$column (index=$indexToChange)")
 
-        val generatedPreview = findViewById<ImageView>(R.id.image_generated_preview)
         val imagePreview = findViewById<ImageView>(R.id.image_generator_output)
-        renderGeneratedPreview(generatedPreview, values)
+        renderGeneratedPreview(this.generatorInputPreview!!, values)
         generatedValues = values
         applyGeneratedValues(imagePreview)
     }
@@ -223,7 +224,7 @@ class GeneratorActivity : AppCompatActivity() {
 
     private fun renderGeneratedPreview(previewView: ImageView, values: FloatArray) {
         val pixelCount = PREVIEW_GRID_SIZE * PREVIEW_GRID_SIZE
-        val bitmap = Bitmap.createBitmap(PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE)
         val pixels = IntArray(pixelCount) { Color.BLACK }
 
         val min = values.minOrNull()!!
@@ -236,7 +237,7 @@ class GeneratorActivity : AppCompatActivity() {
         bitmap.setPixels(pixels, 0, PREVIEW_GRID_SIZE, 0, 0, PREVIEW_GRID_SIZE, PREVIEW_GRID_SIZE)
         val targetWidth = if (previewView.width > 0) previewView.width else PREVIEW_GRID_SIZE * PREVIEW_SCALE
         val targetHeight = if (previewView.height > 0) previewView.height else PREVIEW_GRID_SIZE * PREVIEW_SCALE
-        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false)
+        val scaledBitmap = bitmap.scale(targetWidth, targetHeight, false)
         previewView.setImageBitmap(scaledBitmap)
     }
 
