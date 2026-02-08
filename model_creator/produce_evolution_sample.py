@@ -1,21 +1,22 @@
+from ganalyzer.misc import get_last_epoch_available
 from save_stats_plot import MODELS_ROOT_PATH, RESULTS_ROOT_PATH
 import keras
 import numpy as np
 import cv2
 from keras.preprocessing.image import img_to_array
-from config import rgb_images
+from config import latent_dimension_generator, model_name, rgb_images
 
 def get_fake_images_sample(generator_name, length_evolution, nb_changes):
-	gen_epoch = 300
+	models_dir = MODELS_ROOT_PATH / generator_name / "models"
+	gen_epoch = get_last_epoch_available("generator", str(models_dir))
 	print('Generating fake images using ', generator_name, gen_epoch)
-	epoch_number = int(str(gen_epoch).replace("epoch_", ""))
 
-	generator_path = MODELS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
+	generator_path = models_dir / f"generator_epoch_{gen_epoch:06d}.keras"
 	output_dir = RESULTS_ROOT_PATH / "evolution_sample"
 	output_dir.mkdir(parents = True, exist_ok = True)
 
 	generator = keras.models.load_model(generator_path)
-	ls_size = int(generator_name.split("_")[-1])
+	ls_size = latent_dimension_generator
 
 	latent_vector = np.random.normal(0.0, 1.0, size = (1, ls_size))
 
@@ -48,4 +49,5 @@ def get_fake_images_sample(generator_name, length_evolution, nb_changes):
 
 length_evolution = 100
 nb_changes = 10
-get_fake_images_sample("model_1_small_with_h-ls_0121", length_evolution, nb_changes)
+generator_name = f"{model_name}-ls_{latent_dimension_generator:04d}"
+get_fake_images_sample(generator_name, length_evolution, nb_changes)

@@ -1,9 +1,11 @@
-from config import rgb_images
+from config import latent_dimension_generator, model_name, rgb_images
 from save_stats_plot import MODELS_ROOT_PATH, RESULTS_ROOT_PATH
 import keras
 import numpy as np
 import random
 import cv2
+import copy
+from ganalyzer.misc import get_last_epoch_available
 from keras.preprocessing.image import img_to_array
 
 def apply_model(generator, latent_vector):
@@ -47,7 +49,7 @@ def search_random(generator, goal, ls_size, quantity_initial_random):  # returns
 		# print("dif", this_difference)
 		if current_best_difference is None or current_best_difference > this_difference:
 			print("==> new best difference : ", this_difference)
-			current_best_vector = new_vector[::]
+			current_best_vector = copy.deepcopy(new_vector)
 			current_best_difference = this_difference
 		else:
 			# print("no improvement difference : ", this_difference, "best is ", current_best_difference)
@@ -59,7 +61,7 @@ def get_rnd_elem():
 	return round(random.gauss(0, 1), 2)
 
 def mutate_vector(current_vector, nb_diff):
-	new_vector = current_vector[::]
+	new_vector = copy.deepcopy(current_vector) #could be optimized, deepcopy only when found new
 
 	for _ in range(nb_diff):
 		ix = random.randint(0, len(current_vector) - 1)
@@ -69,7 +71,7 @@ def mutate_vector(current_vector, nb_diff):
 
 def search_genetic_algorithm(generator, initial_latent_vector, goal, quantity_genetic_evolution, nb_diff):  # returns best latent vector
 
-	current_best_vector = initial_latent_vector[:]
+	current_best_vector = copy.deepcopy(initial_latent_vector)
 	current_best_difference = get_difference_with_original(generator, current_best_vector, goal)
 
 	for current_genetic_generation in range(quantity_genetic_evolution):
@@ -81,7 +83,7 @@ def search_genetic_algorithm(generator, initial_latent_vector, goal, quantity_ge
 		# print("dif", this_difference)
 		if current_best_difference > this_difference:
 			print("==> new best difference : ", this_difference)
-			current_best_vector = new_vector[::]
+			current_best_vector = copy.deepcopy(new_vector)
 			current_best_difference = this_difference
 		else:
 			# print("no improvement difference : ", this_difference, "best is ", current_best_difference)
@@ -94,19 +96,21 @@ def save_produced_result(generator, latent_vector, output_path):
 
 	cv2.imwrite(str(output_path), result)
 
-def main_search(generator_name, quantity_initial_random, quantity_genetic_evolution, nb_difference_genetic_algo):
+def main_search(generator_name, quantity_initial_random, quantity_genetic_evolution, nb_difference_genetic_algo, nb_retries_avg):
 	# open generator
-	gen_epoch = 300
-	epoch_number = int(str(gen_epoch).replace("epoch_", ""))
-	generator_path = MODELS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
+	models_dir = MODELS_ROOT_PATH / generator_name / "models"
+	gen_epoch = get_last_epoch_available("generator", str(models_dir))
+	generator_path = models_dir / f"generator_epoch_{gen_epoch:06d}.keras"
+
 	output_dir = RESULTS_ROOT_PATH / "imitation"
 	generator = keras.models.load_model(generator_path)
-	ls_size = int(generator_name.split("_")[-1])
+	ls_size = latent_dimension_generator
 
 	# open goal image
 	goal_image_path = output_dir / "goal_image.png"
 	goal = keras.utils.img_to_array(keras.utils.load_img(goal_image_path))
 
+	#for current_avg in range (nb_retries_avg):
 	best_latent_vector = search_random(generator, goal, ls_size, quantity_initial_random)
 
 	best_latent_vector = search_genetic_algorithm(generator, best_latent_vector, goal, quantity_genetic_evolution, nb_difference_genetic_algo)
@@ -117,4 +121,5 @@ def main_search(generator_name, quantity_initial_random, quantity_genetic_evolut
 	print('==> Result : ', best_latent_vector)
 	print("==> Total diff : ", get_difference_with_original(generator, best_latent_vector, goal))
 
-main_search("model_1_small_with_h-ls_0121", 1000, 1000, 3)
+generator_name = f"{model_name}-ls_{latent_dimension_generator:04d}"
+main_search(generator_name, 10, 10, 1, 10)

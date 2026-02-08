@@ -102,3 +102,17 @@ def get_current_epoch(models_dir: Optional[str] = None):
 	if not keras_models:
 		return 0
 	return int(keras_models[-1].split("_")[-1].split(".")[0])
+
+
+def get_last_epoch_available(model_type: str, models_dir: Optional[str] = None) -> int:
+	models_list = get_list_of_keras_models(models_dir)
+	candidates = [
+		int(model.split("_")[-1].split(".")[0])
+		for model in models_list
+		if model.startswith(f"{model_type}_")
+	]
+
+	if not candidates:
+		raise ValueError(f"No {model_type} models available in {models_dir or models_directory}.")
+
+	return max(candidates)
