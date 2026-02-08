@@ -1,4 +1,4 @@
-from save_stats_plot import RESULTS_ROOT_PATH
+from save_stats_plot import MODELS_ROOT_PATH, RESULTS_ROOT_PATH
 import keras
 import numpy as np
 import cv2
@@ -6,12 +6,12 @@ from keras.preprocessing.image import img_to_array
 from config import rgb_images
 
 def get_fake_images_sample(generator_name, length_evolution, nb_changes):
-	gen_epoch = 200
+	gen_epoch = 300
 	print('Generating fake images using ', generator_name, gen_epoch)
 	epoch_number = int(str(gen_epoch).replace("epoch_", ""))
 
-	generator_path = RESULTS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
-	output_dir = RESULTS_ROOT_PATH.parent / "evolution_sample"
+	generator_path = MODELS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
+	output_dir = RESULTS_ROOT_PATH / "evolution_sample"
 	output_dir.mkdir(parents = True, exist_ok = True)
 
 	generator = keras.models.load_model(generator_path)
@@ -43,9 +43,9 @@ def get_fake_images_sample(generator_name, length_evolution, nb_changes):
 
 		output_image = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)  ##temp fix 3
 
-		output_path = output_dir / f"evo_{i + 1:04d}.jpg"
+		output_path = output_dir / f"evo_{i + 1:04d}.png"
 		cv2.imwrite(str(output_path), output_image)
 
 length_evolution = 100
 nb_changes = 10
-get_fake_images_sample("model_0_small-ls_0225", length_evolution, nb_changes)
+get_fake_images_sample("model_1_small_with_h-ls_0121", length_evolution, nb_changes)

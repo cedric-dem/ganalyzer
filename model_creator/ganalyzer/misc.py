@@ -6,7 +6,7 @@ from typing import List, Optional
 import keras
 import numpy as np
 
-from config import load_quantity_gui, models_directory, results_root_path
+from config import load_quantity_gui, models_directory, models_root_path
 
 def get_generator_model_path_at_given_epoch(epoch):
 	return get_model_path_at_given_epoch("generator", epoch)
@@ -16,7 +16,7 @@ def get_discriminator_model_path_at_given_epoch(epoch):
 
 def _model_directory_for(model_name: str, latent_space_size: int) -> str:
 	return os.path.join(
-		results_root_path,
+		models_root_path,
 		f"{model_name}-ls_{latent_space_size:04d}",
 		"models",
 	)

@@ -20,14 +20,14 @@ def _clone_configs(configs):
 	return {name: dict(cfg) for name, cfg in configs.items()}
 
 MODEL_CONFIGS_64 = {
-	"model_0_tiny": _make_config(
+	"model_0_small": _make_config(
 		gen_base = [256, 128, 64, 32, 16, 8],
 		gen_min = 8,
 		disc_seq = [32, 64, 128, 256, 256, 256],
 		disc_fc = lambda image_size: [],
 		gen_ch0 = 256,
 	),
-	"model_0_with_add": _make_config(
+	"model_1_small_with_h": _make_config(
 		gen_base = [256, 128, 64, 32, 16, 8],
 		gen_min = 8,
 		disc_seq = [32, 64, 128, 256, 256, 256],
@@ -35,7 +35,7 @@ MODEL_CONFIGS_64 = {
 		gen_ch0 = 256,
 		gen_pre_dense = [additional_dense_units] * 3,
 	),
-	"model_1_small": _make_config(
+	"model_2_medium": _make_config(
 		gen_base = [336, 168, 84, 42, 21, 10],
 		gen_min = 10,
 		disc_seq = [42, 84, 168, 336, 336, 336],
@@ -44,7 +44,7 @@ MODEL_CONFIGS_64 = {
 		gen_pre_dense = [320],
 		extra_conv = True,
 	),
-	"model_2_medium": _make_config(
+	"model_3_large": _make_config(
 		gen_base = [416, 208, 104, 52, 26, 13],
 		gen_min = 13,
 		disc_seq = [52, 104, 208, 416, 416, 416],
@@ -56,14 +56,14 @@ MODEL_CONFIGS_64 = {
 }
 
 MODEL_CONFIGS_80 = {
-	"model_0_tiny": _make_config(
+	"model_0_small": _make_config(
 		gen_base = [288, 144, 72, 36, 18, 9],
 		gen_min = 9,
 		disc_seq = [36, 72, 144, 288, 288, 288],
 		disc_fc = lambda image_size: [],
 		gen_ch0 = 288,
 	),
-	"model_0_with_add": _make_config(
+	"model_1_small_with_h": _make_config(
 		gen_base = [288, 144, 72, 36, 18, 9],
 		gen_min = 9,
 		disc_seq = [36, 72, 144, 288, 288, 288],
@@ -71,7 +71,7 @@ MODEL_CONFIGS_80 = {
 		gen_ch0 = 288,
 		gen_pre_dense = [additional_dense_units] * 3,
 	),
-	"model_1_small": _make_config(
+	"model_2_medium": _make_config(
 		gen_base = [384, 192, 96, 48, 24, 12],
 		gen_min = 12,
 		disc_seq = [48, 96, 192, 384, 384, 384],
@@ -80,7 +80,7 @@ MODEL_CONFIGS_80 = {
 		gen_pre_dense = [352],
 		extra_conv = True,
 	),
-	"model_2_medium": _make_config(
+	"model_3_large": _make_config(
 		gen_base = [480, 240, 120, 60, 30, 15],
 		gen_min = 15,
 		disc_seq = [60, 120, 240, 480, 480, 480],
@@ -92,14 +92,14 @@ MODEL_CONFIGS_80 = {
 }
 
 MODEL_CONFIGS_100 = {
-	"model_0_tiny": _make_config(
+	"model_0_small": _make_config(
 		gen_base = [320, 160, 80, 40, 20, 10],
 		gen_min = 10,
 		disc_seq = [40, 80, 160, 320, 320, 320],
 		disc_fc = lambda image_size: [],
 		gen_ch0 = 320,
 	),
-	"model_0_with_add": _make_config(
+	"model_1_small_with_h": _make_config(
 		gen_base = [320, 160, 80, 40, 20, 10],
 		gen_min = 10,
 		disc_seq = [40, 80, 160, 320, 320, 320],
@@ -107,7 +107,7 @@ MODEL_CONFIGS_100 = {
 		gen_ch0 = 320,
 		gen_pre_dense = [additional_dense_units] * 3,
 	),
-	"model_1_small": _make_config(
+	"model_2_medium": _make_config(
 		gen_base = [424, 212, 106, 53, 26, 14],
 		gen_min = 13,
 		disc_seq = [53, 106, 212, 424, 424, 424],
@@ -116,7 +116,7 @@ MODEL_CONFIGS_100 = {
 		gen_pre_dense = [448],
 		extra_conv = True,
 	),
-	"model_2_medium": _make_config(
+	"model_3_large": _make_config(
 		gen_base = [528, 264, 132, 66, 33, 17],
 		gen_min = 17,
 		disc_seq = [66, 132, 264, 528, 528, 528],
@@ -128,14 +128,14 @@ MODEL_CONFIGS_100 = {
 }
 
 MODEL_CONFIGS_114 = {
-	"model_0_tiny": _make_config(
+	"model_0_small": _make_config(
 		gen_base = [352, 176, 88, 44, 22, 11, 11],
 		gen_min = 11,
 		disc_seq = [44, 88, 176, 352, 352, 352, 352],
 		disc_fc = lambda image_size: [],
 		gen_ch0 = 352,
 	),
-	"model_0_with_add": _make_config(
+	"model_1_small_with_h": _make_config(
 		gen_base = [352, 176, 88, 44, 22, 11, 11],
 		gen_min = 11,
 		disc_seq = [44, 88, 176, 352, 352, 352, 352],
@@ -143,7 +143,7 @@ MODEL_CONFIGS_114 = {
 		gen_ch0 = 352,
 		gen_pre_dense = [additional_dense_units] * 3,
 	),
-	"model_1_small": _make_config(
+	"model_2_medium": _make_config(
 		gen_base = [472, 236, 118, 59, 30, 15, 15],
 		gen_min = 15,
 		disc_seq = [59, 118, 236, 472, 472, 472, 472],
@@ -152,7 +152,7 @@ MODEL_CONFIGS_114 = {
 		gen_pre_dense = [320],
 		extra_conv = True,
 	),
-	"model_2_medium": _make_config(
+	"model_3_large": _make_config(
 		gen_base = [592, 296, 148, 74, 37, 19, 19],
 		gen_min = 19,
 		disc_seq = [74, 148, 296, 592, 592, 592, 592],
@@ -164,14 +164,14 @@ MODEL_CONFIGS_114 = {
 }
 
 MODEL_CONFIGS_120 = {
-	"model_0_tiny": _make_config(
+	"model_0_small": _make_config(
 		gen_base = [384, 192, 96, 48, 24, 12, 12],
 		gen_min = 12,
 		disc_seq = [48, 96, 192, 384, 384, 384, 384],
 		disc_fc = lambda image_size: [],
 		gen_ch0 = 384,
 	),
-	"model_0_with_add": _make_config(
+	"model_1_small_with_h": _make_config(
 		gen_base = [384, 192, 96, 48, 24, 12, 12],
 		gen_min = 12,
 		disc_seq = [48, 96, 192, 384, 384, 384, 384],
@@ -179,7 +179,7 @@ MODEL_CONFIGS_120 = {
 		gen_ch0 = 384,
 		gen_pre_dense = [additional_dense_units] * 3,
 	),
-	"model_1_small": _make_config(
+	"model_2_medium": _make_config(
 		gen_base = [512, 256, 128, 64, 32, 16, 16],
 		gen_min = 16,
 		disc_seq = [64, 128, 256, 512, 512, 512, 512],
@@ -188,7 +188,7 @@ MODEL_CONFIGS_120 = {
 		gen_pre_dense = [384],
 		extra_conv = True,
 	),
-	"model_2_medium": _make_config(
+	"model_3_large": _make_config(
 		gen_base = [640, 320, 160, 80, 40, 20, 20],
 		gen_min = 20,
 		disc_seq = [80, 160, 320, 640, 640, 640, 640],
@@ -200,14 +200,14 @@ MODEL_CONFIGS_120 = {
 }
 
 MODEL_CONFIGS_128 = {
-	"model_0_tiny": _make_config(
+	"model_0_small": _make_config(
 		gen_base = [416, 208, 104, 52, 26, 13, 13],
 		gen_min = 13,
 		disc_seq = [52, 104, 208, 416, 416, 416, 416],
 		disc_fc = lambda image_size: [],
 		gen_ch0 = 416,
 	),
-	"model_0_with_add": _make_config(
+	"model_1_small_with_h": _make_config(
 		gen_base = [416, 208, 104, 52, 26, 13, 13],
 		gen_min = 13,
 		disc_seq = [52, 104, 208, 416, 416, 416, 416],
@@ -215,7 +215,7 @@ MODEL_CONFIGS_128 = {
 		gen_ch0 = 416,
 		gen_pre_dense = [additional_dense_units] * 3,
 	),
-	"model_1_small": _make_config(
+	"model_2_medium": _make_config(
 		gen_base = [560, 280, 140, 70, 35, 18, 18],
 		gen_min = 18,
 		disc_seq = [70, 140, 280, 560, 560, 560, 560],
@@ -224,7 +224,7 @@ MODEL_CONFIGS_128 = {
 		gen_pre_dense = [448],
 		extra_conv = True,
 	),
-	"model_2_medium": _make_config(
+	"model_3_large": _make_config(
 		gen_base = [704, 352, 176, 88, 44, 22, 22],
 		gen_min = 22,
 		disc_seq = [88, 176, 352, 704, 704, 704, 704],
@@ -236,7 +236,7 @@ MODEL_CONFIGS_128 = {
 }
 
 MODEL_CONFIGS_240 = {
-	"model_0_tiny": _make_config(
+	"model_0_small": _make_config(
 		gen_base = [256, 192, 128, 96, 64, 32],
 		gen_min = 32,
 		disc_seq = [64, 96, 128, 192, 256, 256],
@@ -244,7 +244,7 @@ MODEL_CONFIGS_240 = {
 		gen_ch0 = 512,
 		extra_conv = True,
 	),
-	"model_0_with_add": _make_config(
+	"model_1_small_with_h": _make_config(
 		gen_base = [256, 192, 128, 96, 64, 32],
 		gen_min = 32,
 		disc_seq = [64, 96, 128, 192, 256, 256],
@@ -253,7 +253,7 @@ MODEL_CONFIGS_240 = {
 		gen_pre_dense = [additional_dense_units] * 3,
 		extra_conv = True,
 	),
-	"model_1_small": _make_config(
+	"model_2_medium": _make_config(
 		gen_base = [408, 292, 204, 144, 104, 60],
 		gen_min = 60,
 		disc_seq = [84, 144, 204, 292, 408, 408],
@@ -262,7 +262,7 @@ MODEL_CONFIGS_240 = {
 		gen_pre_dense = [800],
 		extra_conv = True,
 	),
-	"model_2_medium": _make_config(
+	"model_3_large": _make_config(
 		gen_base = [560, 392, 280, 192, 144, 88],
 		gen_min = 88,
 		disc_seq = [104, 192, 280, 392, 560, 560],

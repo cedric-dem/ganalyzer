@@ -12,7 +12,7 @@ def _configure_model_paths(model_name, latent_space_size):
 	config.model_name = model_name
 	config.latent_dimension_generator = latent_space_size
 	config.model_path = os.path.join(
-		config.results_root_path,
+		config.models_root_path,
 		f"{model_name}-ls_{latent_space_size:04d}",
 	)
 	config.models_directory = os.path.join(config.model_path, "models")

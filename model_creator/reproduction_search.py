@@ -1,5 +1,5 @@
 from config import rgb_images
-from save_stats_plot import RESULTS_ROOT_PATH
+from save_stats_plot import MODELS_ROOT_PATH, RESULTS_ROOT_PATH
 import keras
 import numpy as np
 import random
@@ -96,15 +96,15 @@ def save_produced_result(generator, latent_vector, output_path):
 
 def main_search(generator_name, quantity_initial_random, quantity_genetic_evolution, nb_difference_genetic_algo):
 	# open generator
-	gen_epoch = 200
+	gen_epoch = 300
 	epoch_number = int(str(gen_epoch).replace("epoch_", ""))
-	generator_path = RESULTS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
-	output_dir = RESULTS_ROOT_PATH.parent / "imitation"
+	generator_path = MODELS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
+	output_dir = RESULTS_ROOT_PATH / "imitation"
 	generator = keras.models.load_model(generator_path)
 	ls_size = int(generator_name.split("_")[-1])
 
 	# open goal image
-	goal_image_path = output_dir / "goal_image.jpg"
+	goal_image_path = output_dir / "goal_image.png"
 	goal = keras.utils.img_to_array(keras.utils.load_img(goal_image_path))
 
 	best_latent_vector = search_random(generator, goal, ls_size, quantity_initial_random)
@@ -112,9 +112,9 @@ def main_search(generator_name, quantity_initial_random, quantity_genetic_evolut
 	best_latent_vector = search_genetic_algorithm(generator, best_latent_vector, goal, quantity_genetic_evolution, nb_difference_genetic_algo)
 
 	# produce best image and save it
-	save_produced_result(generator, best_latent_vector, output_dir / "reproduced_image.jpg")
+	save_produced_result(generator, best_latent_vector, output_dir / "reproduced_image.png")
 
 	print('==> Result : ', best_latent_vector)
 	print("==> Total diff : ", get_difference_with_original(generator, best_latent_vector, goal))
 
-main_search("model_0_small-ls_0049", 10000, 10000, 3)
+main_search("model_1_small_with_h-ls_0121", 1000, 1000, 3)

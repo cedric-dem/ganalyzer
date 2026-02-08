@@ -17,13 +17,14 @@ from tensorflow.keras.models import load_model
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator, latent_dimension_generator_available, models_directory, nb_epoch_taken_comparison, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
+from config import PLOTS_ROOT_DIRECTORY, every_models_statistics_path, results_root_path, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator, latent_dimension_generator_available, models_directory, models_root_path, nb_epoch_taken_comparison, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
 	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, RESULTS_DIRECTORY, PATH_LOSS_PLOTS, PATH_LOSS_BY_LS_PLOTS, PATH_LOSS_BY_MODEL_PLOTS, PLOTS_NUMBER_PARAMETERS_DIRECTORY
 from ganalyzer.model_config import all_models
 
 STATISTICS_FILENAME = "statistics.csv"
 PLOTS_ROOT_DIRECTORY_PATH = Path(PLOTS_ROOT_DIRECTORY)
 RESULTS_ROOT_PATH = Path(results_root_path)
+MODELS_ROOT_PATH = Path(models_root_path)
 DATASET_PATH = Path(dataset_path)
 PLOTS_NUMBER_PARAMETERS_PATH = Path(PLOTS_NUMBER_PARAMETERS_DIRECTORY)
 PLOTS_HEATMAP_EPOCHS_PATH = Path(PLOTS_HEATMAP_EPOCHS_DIRECTORY)
@@ -169,7 +170,7 @@ def _plot_combined_losses(color_list, stats_by_model):
 		_plot_loss_series(color_list, this_discriminator_series, PATH_LOSS_PLOTS_BY_LS_PATH / str(current_plot_ls_size + "_discriminator_loss.jpg"), "Discriminator Loss Over Epochs for " + current_plot_ls_size)
 
 def get_number_parameters(model_name, model_type = "discriminator"):
-	model_path = RESULTS_ROOT_PATH / model_name / "models"
+	model_path = MODELS_ROOT_PATH / model_name / "models"
 	complete_models_list = sorted([path for path in model_path.iterdir() if path.is_file()])
 
 	if not complete_models_list:
@@ -333,7 +334,7 @@ def get_fake_images_sample(generator_name, generator_epoch):
 	print('Generating fake images using ', generator_name, generator_epoch)
 	epoch_number = int(str(generator_epoch).replace("epoch_", ""))
 
-	generator_path = RESULTS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
+	generator_path = MODELS_ROOT_PATH / generator_name / "models" / f"generator_epoch_{epoch_number:06d}.keras"
 
 	generator = keras.models.load_model(generator_path)
 	ls_size = int(generator_name.split("_")[-1])
@@ -360,7 +361,7 @@ def get_accuracy_on_images(model_name, model_epoch, images_set, is_real_images):
 
 	epoch_number = int(str(model_epoch).replace("epoch_", ""))
 
-	model_path = RESULTS_ROOT_PATH / model_name / "models" / f"discriminator_epoch_{epoch_number:06d}.keras"
+	model_path = MODELS_ROOT_PATH / model_name / "models" / f"discriminator_epoch_{epoch_number:06d}.keras"
 
 	discriminator = keras.models.load_model(model_path)
 	images_array = np.asarray(images_set, dtype = np.float32)
@@ -405,7 +406,7 @@ def save_all_comparisons_models():
 	produce_heatmap_latent_space()
 
 def get_number_epoch_in_given_setting(setting):
-	setting_models_directory = RESULTS_ROOT_PATH / setting / "models"
+	setting_models_directory = MODELS_ROOT_PATH / setting / "models"
 
 	if not setting_models_directory.exists():
 		return 0
@@ -429,7 +430,7 @@ def get_number_epoch_in_given_setting(setting):
 	return max_epoch
 
 def produce_heatmap_epoch():
-	available_settings = [entry.name for entry in RESULTS_ROOT_PATH.iterdir() if entry.is_dir()]
+	available_settings = [entry.name for entry in MODELS_ROOT_PATH.iterdir() if entry.is_dir()]
 	if PLOTS_ROOT_DIRECTORY_PATH.name in available_settings:
 		available_settings.remove(PLOTS_ROOT_DIRECTORY_PATH.name)
 
