@@ -61,7 +61,7 @@ def get_rnd_elem():
 	return round(random.gauss(0, 1), 2)
 
 def mutate_vector(current_vector, nb_diff):
-	new_vector = copy.deepcopy(current_vector) #could be optimized, deepcopy only when found new
+	new_vector = copy.deepcopy(current_vector)  # could be optimized, deepcopy only when found new
 
 	for _ in range(nb_diff):
 		ix = random.randint(0, len(current_vector) - 1)
@@ -110,16 +110,38 @@ def main_search(generator_name, quantity_initial_random, quantity_genetic_evolut
 	goal_image_path = output_dir / "goal_image.png"
 	goal = keras.utils.img_to_array(keras.utils.load_img(goal_image_path))
 
-	#for current_avg in range (nb_retries_avg):
-	best_latent_vector = search_random(generator, goal, ls_size, quantity_initial_random)
+	all_best_latent_vectors = []
 
-	best_latent_vector = search_genetic_algorithm(generator, best_latent_vector, goal, quantity_genetic_evolution, nb_difference_genetic_algo)
+	for current_avg in range(nb_retries_avg):
+		print("========> NEW ,", current_avg)
+		best_latent_vector = search_random(generator, goal, ls_size, quantity_initial_random)
 
-	# produce best image and save it
-	save_produced_result(generator, best_latent_vector, output_dir / "reproduced_image.png")
+		best_latent_vector = search_genetic_algorithm(generator, best_latent_vector, goal, quantity_genetic_evolution, nb_difference_genetic_algo)
 
-	print('==> Result : ', best_latent_vector)
-	print("==> Total diff : ", get_difference_with_original(generator, best_latent_vector, goal))
+		# produce best image and save it
+		save_produced_result(generator, best_latent_vector, output_dir / str("zz_reproduced_image_" + str(current_avg) + ".png"))
+
+		all_best_latent_vectors.append(best_latent_vector)
+		print('==> finihed, this Result : ', best_latent_vector)
+
+	overall_avg_latent_vector = get_avg_latent_vector(all_best_latent_vectors)
+
+	save_produced_result(generator, overall_avg_latent_vector, output_dir / "reproduced_image.png")
+
+	print('==> Result : ', overall_avg_latent_vector)
+	print("==> Total diff : ", get_difference_with_original(generator, overall_avg_latent_vector, goal))
+
+def get_avg_latent_vector(all_best_latent_vectors):
+	total = [0 for _ in range(len(all_best_latent_vectors[0]))]
+
+	for current_b in all_best_latent_vectors:
+		for i in range(len(current_b)):
+			total[i] += current_b[i]
+
+	for i in range(len(total)):
+		total[i] /= len(all_best_latent_vectors)
+
+	return total
 
 generator_name = f"{model_name}-ls_{latent_dimension_generator:04d}"
 main_search(generator_name, 10, 10, 1, 10)
