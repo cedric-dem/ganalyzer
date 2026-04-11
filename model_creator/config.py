@@ -5,7 +5,7 @@ from ganalyzer.model_config import *
 # common
 additional_dense_units = 500
 
-latent_dimension_generator_available = [49, 121, 225, 400]  # maybe 49, 100, 196, 400
+latent_dimension_generator_available = [49, 100, 196]  # maybe 49, 100, 196, 400
 latent_dimension_generator = latent_dimension_generator_available[0]
 
 dataset_name = "humans_fifa"  # "cars_2"
