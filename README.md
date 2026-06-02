@@ -1,17 +1,126 @@
-# ganalyzer
+# GANalyzer
 
-For now, the models are set up for 64x64x3 (RGB) images, but size will be a setting in the future
+GANalyzer, GAN analyzer, is an experiment-first GAN workspace whose main goal is to **visualize a neural network live while it runs**.
 
-## GUI to experiment with GAN
+Instead of treating a generator and discriminator as black boxes, GANalyzer lets you move through saved training epochs, change the generator input, and inspect intermediate layer activations in real time. The project is built around the idea that watching a GAN think is often more useful than only looking at final generated images.
 
-## train.py
-The train.py file launch the training procedure, save the discriminator and generator models at every epochs in .keras file, in the model folder. 
-It continue the training process based on the latest models in the model folders
-also adds lots of statistics about the training process in a csv file
+## What this project is for
 
-## displayGUI.py
-play around with the GUI and impact, in real time, both models
-(will) contain demo model to avoid training 
+GANalyzer helps you explore questions such as:
 
-## displayStats.py
-plot content of .csv statistics saved during the train process
+- How does the generator output change as the latent vector changes?
+- What do intermediate generator layers look like for the same input?
+- How does the discriminator react to generated images across training epochs?
+- Where does the network become more confident, unstable, or visually interesting?
+- How does a GAN evolve over time when checkpoints are saved during training?
+
+The focus is live inspection: train or load a model, open the UI, adjust inputs and epochs, and immediately see what the network produces internally and externally.
+
+## Main features
+
+- **Live generator visualization**: randomize or control the latent input and see generated image outputs update.
+- **Live discriminator visualization**: feed generated images through the discriminator and inspect its response.
+- **Layer-by-layer inspection**: choose network layers and visualize intermediate activations rather than only final outputs.
+- **Epoch navigation**: move between saved generator and discriminator checkpoints to watch the model evolve during training.
+- **Training statistics**: save losses and discriminator scores during training for later plotting and comparison.
+- **Multiple interfaces**: a Vue web UI is the default interface, with a legacy Tkinter UI still available through configuration.
+- **Android model path**: trained models can be converted toward TensorFlow Lite usage for the included Android app experiment.
+
+## Repository layout
+
+```text
+.
+├── model_creator/          # GAN model definitions, training scripts, Flask visualization API, plotting utilities
+├── web-ui/                 # Vue/Vite frontend for live model visualization
+├── android_app/            # Android experiment for applying exported models
+└── README.md
+```
+
+Important entry points:
+
+- `model_creator/train_model.py` trains the GAN, saves generator/discriminator checkpoints, writes statistics, and exports sample outputs.
+- `model_creator/run_UI_server.py` starts the Python visualization backend.
+- `model_creator/ganalyzer/GUIWebPage.py` exposes the Flask API used by the web UI.
+- `web-ui/src/App.vue` mounts the generator input panel plus generator and discriminator visualization panels.
+- `web-ui/src/js/webUI.ts` coordinates frontend state, API calls, selected epochs, and layer visualization updates.
+
+## How the live visualization works
+
+1. The training script saves generator and discriminator models at regular epoch intervals.
+2. The Flask backend loads the available checkpoints for the configured model name and latent-space size.
+3. The Vue frontend synchronizes with the backend and receives the available layer lists and checkpoint count.
+4. When you move sliders or choose a layer, the frontend sends the current input, target model, layer name, and epoch selection to the backend.
+5. The backend runs the selected model up to that layer and returns the activation values.
+6. The frontend renders those values as images or grids so you can watch the network change live.
+
+## Quick start
+
+### 1. Configure the model and dataset
+
+Edit `model_creator/config.py` to choose the dataset, latent-space size, output size, checkpoint interval, and UI mode.
+
+The current defaults expect image data under a path similar to:
+
+```text
+model_creator/datasets/<dataset_name>/<image_size>/
+```
+
+The project currently targets RGB image generation, with model configuration centralized in `model_creator/ganalyzer/model_config.py` and `model_creator/config.py`.
+
+### 2. Train or resume a model
+
+From `model_creator/`, run:
+
+```bash
+python train_model.py
+```
+
+Training resumes from the latest saved epoch when checkpoints already exist. During training, GANalyzer saves:
+
+- generator checkpoints,
+- discriminator checkpoints,
+- sample generated images,
+- CSV statistics for loss and discriminator output values.
+
+### 3. Start the visualization backend
+
+From `model_creator/`, run:
+
+```bash
+python run_UI_server.py
+```
+
+By default, `GUI_tkinter = False` in `model_creator/config.py`, so this starts the Flask backend used by the web UI.
+
+### 4. Start the web UI
+
+In another terminal, run:
+
+```bash
+cd web-ui
+npm install
+npm run dev
+```
+
+Open the Vite URL shown in the terminal. The UI will connect to the backend API, load available layers and epochs, and let you inspect the generator and discriminator live.
+
+## Using the web UI
+
+The web UI is organized around three live panels:
+
+- **Generator input panel**: control the latent vector by randomizing it, setting constant values, or changing distribution parameters.
+- **Generator visualization panel**: choose a generator epoch and layer to inspect the generator's internal representation or final output.
+- **Discriminator visualization panel**: choose a discriminator epoch and layer to inspect how the discriminator processes the current generated image.
+
+The core workflow is:
+
+1. Pick or randomize a latent input.
+2. Select a generator layer to view.
+3. Move through generator epochs to watch training progress.
+4. Send the resulting generated image through the discriminator.
+5. Select discriminator layers and epochs to compare internal responses.
+
+## Current status
+
+GANalyzer is a research/prototype project. Expect the codebase to favor experimentation over polished production ergonomics. Some paths and defaults are configured for the author's local datasets and model names, so you may need to update `model_creator/config.py` before running the project on your own data.
+
