@@ -17,7 +17,7 @@ from tensorflow import keras
 from tqdm import tqdm
 
 from config import (batch_size, dataset_path, latent_dimension_generator, rgb_images, sample_outputs_root_directory, save_train_epoch_every, statistics_file_path)
-from ganalyzer.misc import (get_current_epoch, get_discriminator_model_path_at_given_epoch, get_generator_model_path_at_given_epoch)
+from ganalyzer.misc import (get_available_epochs, get_discriminator_model_path_at_given_epoch, get_generator_model_path_at_given_epoch)
 from ganalyzer.models import get_discriminator, get_generator
 
 SAMPLE_OUTPUT_PREFIX = "sample_output_epoch_"
@@ -52,8 +52,8 @@ def _train_step(images, *, latent_dim, generator, discriminator, generator_optim
 
 	return gen_loss, dis_loss, fake_output, real_output
 
-def train(current_epoch, dataset, cross_entropy, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
-	epoch = current_epoch
+def train(start_epoch, dataset, cross_entropy, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer):
+	epoch = start_epoch
 	pending_statistics = []
 
 	while True:
@@ -90,6 +90,16 @@ def train(current_epoch, dataset, cross_entropy, latent_dim, generator, discrimi
 def _should_save_models(epoch):
 	return epoch == 0 or epoch % save_train_epoch_every == 0
 
+def _get_latest_complete_checkpoint_epoch():
+	for epoch in sorted(get_available_epochs(), reverse = True):
+		generator_path = Path(get_generator_model_path_at_given_epoch(epoch))
+		discriminator_path = Path(get_discriminator_model_path_at_given_epoch(epoch))
+
+		if generator_path.exists() and discriminator_path.exists():
+			return epoch
+
+	return None
+
 def _save_models(generator, discriminator, epoch, latent_dim):
 	print("===> saving models")
 	generator.save(get_generator_model_path_at_given_epoch(epoch))
@@ -122,17 +132,46 @@ def add_statistics_entries_to_file(entries):
 	statistics_path = Path(statistics_file_path)
 	statistics_path.parent.mkdir(parents = True, exist_ok = True)
 
-	file_exists = statistics_path.exists()
-	headers = list(entries[0][1].keys())
+	logged_epochs = _get_logged_statistics_epochs(statistics_path)
+	entries_to_write = []
+	for epoch, stats in entries:
+		if epoch in logged_epochs:
+			continue
+
+		entries_to_write.append((epoch, stats))
+		logged_epochs.add(epoch)
+
+	if not entries_to_write:
+		print("===> no new statistics to write; all pending epochs are already logged")
+		return
+
+	file_has_content = statistics_path.exists() and statistics_path.stat().st_size > 0
+	headers = list(entries_to_write[0][1].keys())
 
 	with statistics_path.open(mode = "a", newline = "", encoding = "utf-8") as statistics_file:
 		writer = csv.writer(statistics_file)
 
-		if not file_exists:
+		if not file_has_content:
 			writer.writerow(["epoch_id", *headers])
 
-		for epoch, new_stats in entries:
+		for epoch, new_stats in entries_to_write:
 			writer.writerow([str(epoch), *[new_stats[key] for key in headers]])
+
+
+def _get_logged_statistics_epochs(statistics_path: Path):
+	if not statistics_path.exists() or statistics_path.stat().st_size == 0:
+		return set()
+
+	logged_epochs = set()
+	with statistics_path.open(mode = "r", newline = "", encoding = "utf-8") as statistics_file:
+		reader = csv.reader(statistics_file)
+		for row in reader:
+			if not row or row[0] == "epoch_id":
+				continue
+
+			logged_epochs.add(int(row[0]))
+
+	return logged_epochs
 
 def generator_loss(fake_output, cross_entropy):
 	return cross_entropy(tf.ones_like(fake_output), fake_output)
@@ -210,8 +249,11 @@ def _array_to_pil_image(image_array):
 	return Image.fromarray(image_array, mode = "RGB")
 
 def launch_training() -> None:
-	current_epoch = get_current_epoch()
-	print("==> will start from epoch  : ", current_epoch)
+	latest_saved_epoch = _get_latest_complete_checkpoint_epoch()
+	model_checkpoint_exists = latest_saved_epoch is not None
+	start_epoch = latest_saved_epoch + 1 if latest_saved_epoch is not None else 0
+	print("==> latest saved epoch  : ", latest_saved_epoch if latest_saved_epoch is not None else "none")
+	print("==> will start from epoch  : ", start_epoch)
 
 	dataset = get_dataset()
 
@@ -222,14 +264,14 @@ def launch_training() -> None:
 		.prefetch(tf.data.AUTOTUNE)
 	)
 
-	if current_epoch == 0:
+	if model_checkpoint_exists:
+		print("==> Loading latest models")
+		discriminator = keras.models.load_model(get_discriminator_model_path_at_given_epoch(latest_saved_epoch))
+		generator = keras.models.load_model(get_generator_model_path_at_given_epoch(latest_saved_epoch))
+	else:
 		print("==> Creating models")
 		generator = get_generator()
 		discriminator = get_discriminator()
-	else:
-		print("==> Loading latest models")
-		discriminator = keras.models.load_model(get_discriminator_model_path_at_given_epoch(current_epoch))
-		generator = keras.models.load_model(get_generator_model_path_at_given_epoch(current_epoch))
 
 	generator.summary()
 	discriminator.summary()
@@ -245,7 +287,7 @@ def launch_training() -> None:
 	else:
 		print(f"==> Number of batches : {int(cardinality)}")
 
-	train(current_epoch, dataset_batches, cross_entropy, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
+	train(start_epoch, dataset_batches, cross_entropy, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
 if __name__ == "__main__":
 	launch_training()
