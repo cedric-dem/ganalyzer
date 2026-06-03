@@ -26,13 +26,18 @@ GENERATOR_GLOBAL_NAME = "generator"
 EPOCH_GLOBAL_NAME = "epoch"
 LATENT_SPACE_GLOBAL_NAME = "ls"
 
-EVOLUTION_IMG_PREFIX = "evo"
+CONTINUOUS_MOVEMENT_IMAGE_PREFIX = "continuous_movement"
+EVOLUTION_SAMPLE_PREFIX = "evolution_sample"
 
 # reproduce
 QUANTITY_INITIAL_RANDOM = 10
 QUANTITY_GENETIC_EVO = 10
 QUANTITY_GENETIC_ALGO = 1
 NB_RETRIES_AVG = 10
+
+# continuous movement
+CONTINUOUS_MOVEMENT_LENGTH = 100
+CONTINUOUS_MOVEMENT_NUMBER_CHANGES = 2
 
 # Plot Names
 PLOT_NAMES = {
@@ -106,11 +111,12 @@ PATH_LOSS_BY_MODEL_PLOTS = PATH_LOSS_PLOTS + "/by_model_name"
 
 # Path Sample outputs
 SAMPLE_OUTPUT_ROOT_DIRECTORY = MODELS_PATH + "/sample_outputs"
-EVOLUTION_SAMPLE_DIRECTORY = MODELS_PATH + "/evolution_sample"
 
-# Path evolution
-EVOLUTION_LENGTH = 100
-EVOLUTION_NUMBER_CHANGE = 2
+# Path continuous movement
+CONTINUOUS_MOVEMENT_DIRECTORY = MODELS_PATH + "/continuous_movement"
+
+# Path evolution sample
+EVOLUTION_SAMPLE_PATH = MODELS_PATH + "/evolution_sample"
 
 # Path reproduction
 REPRODUCED_IMAGES_OUTPUT_DIRECTORY = MODELS_PATH + "/reproduced_images"
