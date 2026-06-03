@@ -1,3 +1,4 @@
 from ganalyzer.GUIWebPage import GUIWebPage
 
-main_gui = GUIWebPage()
+if __name__ == '__main__':
+	main_gui = GUIWebPage()

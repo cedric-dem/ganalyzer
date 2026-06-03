@@ -26,8 +26,10 @@ GENERATOR_GLOBAL_NAME = "generator"
 EPOCH_GLOBAL_NAME = "epoch"
 LATENT_SPACE_GLOBAL_NAME = "ls"
 
+# prefix
 CONTINUOUS_MOVEMENT_IMAGE_PREFIX = "continuous_movement"
 EVOLUTION_SAMPLE_PREFIX = "evolution_sample"
+SAMPLE_OUTPUT_PREFIX = "sample_output_epoch_"
 
 # reproduce
 QUANTITY_INITIAL_RANDOM = 10
