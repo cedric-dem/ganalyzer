@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Tuple
 
 import tensorflow as tf
 
-from config import models_as_tflite, models_directory
+from config import models_as_tflite, models_directory, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME
 from ganalyzer.misc import get_list_of_keras_models
 
 def _load_model(model_path):
@@ -44,16 +43,16 @@ def _default_models():
 
 	for model_name in get_list_of_keras_models():
 		model_path = Path(models_directory) / model_name
-		if model_name.startswith("discriminator"):
+		if model_name.startswith(DISCRIMINATOR_GLOBAL_NAME):
 			last_discriminator = model_path
-		elif model_name.startswith("generator"):
+		elif model_name.startswith(GENERATOR_GLOBAL_NAME):
 			last_generator = model_path
 
 	results = []
 	if last_generator is not None:
-		results.append((last_generator, Path(models_as_tflite) / "generator.tflite"))
+		results.append((last_generator, Path(models_as_tflite) / str(GENERATOR_GLOBAL_NAME + ".tflite")))
 	if last_discriminator is not None:
-		results.append((last_discriminator, Path(models_as_tflite) / "discriminator.tflite"))
+		results.append((last_discriminator, Path(models_as_tflite) / str(DISCRIMINATOR_GLOBAL_NAME + ".tflite")))
 	return results
 
 def main():

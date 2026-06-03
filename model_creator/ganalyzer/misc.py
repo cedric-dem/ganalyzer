@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import os
-from typing import List, Optional
+from typing import Optional
 
 import keras
-import numpy as np
 
-from config import load_quantity_gui, models_directory, models_root_path
+from config import load_quantity_gui, models_directory, models_directory_name, models_root_path
 
 def get_generator_model_path_at_given_epoch(epoch):
 	return get_model_path_at_given_epoch("generator", epoch)
@@ -18,10 +17,10 @@ def _model_directory_for(model_name: str, latent_space_size: int) -> str:
 	return os.path.join(
 		models_root_path,
 		f"{model_name}-ls_{latent_space_size:04d}",
-		"models",
+		models_directory_name,
 	)
 
-def get_model_path_at_given_epoch(model_type, epoch, models_dir: Optional[str] = None):
+def get_model_path_at_given_epoch(model_type, epoch, models_dir = None):
 	filename = f"{model_type}_epoch_{epoch:06d}.keras"
 	current_models_directory = models_dir or models_directory
 	return os.path.join(current_models_directory, filename)
@@ -41,7 +40,7 @@ def get_model_path_at_given_epoch_closest_possible(model_type, epoch, available_
 
 	return get_model_path_at_given_epoch(model_type, current_best_result, models_dir)
 
-def get_available_epochs(models_dir: Optional[str] = None):
+def get_available_epochs(models_dir = None):
 	models_list = get_list_of_keras_models(models_dir)
 	return [int(model.split("_")[-1].split(".")[0]) for model in models_list if model.startswith("discriminator")]
 
@@ -88,24 +87,25 @@ def project_array(arr, destination_max, project_from, project_to):
 		return ((arr - project_from) / delta) * destination_max
 	return arr
 
-def get_list_of_keras_models(models_dir: Optional[str] = None):
+def get_list_of_keras_models(models_dir = None):
 	current_models_directory = models_dir or models_directory
 
 	if not os.path.isdir(current_models_directory):
 		return []
 
 	complete_list = sorted(os.listdir(current_models_directory))
-	return [filename for filename in complete_list if not filename.endswith(".csv")]
+	return [filename for filename in complete_list] # if not filename.endswith(".csv")
 
-def get_current_epoch(models_dir: Optional[str] = None):
+def get_current_epoch(models_dir = None):
 	keras_models = get_list_of_keras_models(models_dir)
 	if not keras_models:
 		return 0
 	return int(keras_models[-1].split("_")[-1].split(".")[0])
 
 
-def get_last_epoch_available(model_type: str, models_dir: Optional[str] = None) -> int:
-	models_list = get_list_of_keras_models(models_dir)
+def get_last_epoch_available(model_type, models_dir = None):
+	current_models_directory = models_directory
+	models_list = get_list_of_keras_models(current_models_directory)
 	candidates = [
 		int(model.split("_")[-1].split(".")[0])
 		for model in models_list
@@ -113,6 +113,6 @@ def get_last_epoch_available(model_type: str, models_dir: Optional[str] = None) 
 	]
 
 	if not candidates:
-		raise ValueError(f"No {model_type} models available in {models_dir or models_directory}.")
+		raise ValueError(f"No {model_type} models available in {current_models_directory}.")
 
 	return max(candidates)

@@ -1,18 +1,20 @@
 from ganalyzer.misc import get_last_epoch_available
-from save_stats_plot import MODELS_ROOT_PATH, RESULTS_ROOT_PATH
+from pathlib import Path
+
 import keras
 import numpy as np
 import cv2
 from keras.preprocessing.image import img_to_array
-from config import latent_dimension_generator, model_name, rgb_images
+from config import latent_dimension_generator, model_name, rgb_images, models_directory, evolution_sample_dir, evolution_length, evolution_number_changes, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, EVOLUTION_IMG_PREFIX
 
 def get_fake_images_sample(generator_name, length_evolution, nb_changes):
-	models_dir = MODELS_ROOT_PATH / generator_name / "models"
-	gen_epoch = get_last_epoch_available("generator", str(models_dir))
+	models_dir = Path(models_directory)
+
+	gen_epoch = get_last_epoch_available(GENERATOR_GLOBAL_NAME, str(models_dir))
 	print('Generating fake images using ', generator_name, gen_epoch)
 
-	generator_path = models_dir / f"generator_epoch_{gen_epoch:06d}.keras"
-	output_dir = RESULTS_ROOT_PATH / "evolution_sample"
+	generator_path = models_dir / str(GENERATOR_GLOBAL_NAME + "_" + EPOCH_GLOBAL_NAME + f"_{gen_epoch:06d}.keras")
+	output_dir = Path(evolution_sample_dir)
 	output_dir.mkdir(parents = True, exist_ok = True)
 
 	generator = keras.models.load_model(generator_path)
@@ -44,10 +46,8 @@ def get_fake_images_sample(generator_name, length_evolution, nb_changes):
 
 		output_image = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)  ##temp fix 3
 
-		output_path = output_dir / f"evo_{i + 1:04d}.png"
+		output_path = output_dir / str(EVOLUTION_IMG_PREFIX+f"_{i + 1:04d}.png")
 		cv2.imwrite(str(output_path), output_image)
 
-length_evolution = 100
-nb_changes = 10
 generator_name = f"{model_name}-ls_{latent_dimension_generator:04d}"
-get_fake_images_sample(generator_name, length_evolution, nb_changes)
+get_fake_images_sample(generator_name, evolution_length, evolution_number_changes)

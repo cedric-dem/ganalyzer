@@ -1,5 +1,6 @@
-from config import latent_dimension_generator, model_name, rgb_images
-from save_stats_plot import MODELS_ROOT_PATH, RESULTS_ROOT_PATH
+from pathlib import Path
+
+from config import latent_dimension_generator, model_name, rgb_images, models_directory, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, reproduced_images_output_dir, IMAGE_TO_REPRODUCE, reproduced_image_prefix, model_name_explicit, QTY_INITIAL_RANDOM, QTY_GENETIC_EVO, QTY_GENETIC_ALGO, NB_RETRIES_AVG
 import keras
 import numpy as np
 import random
@@ -93,22 +94,21 @@ def search_genetic_algorithm(generator, initial_latent_vector, goal, quantity_ge
 
 def save_produced_result(generator, latent_vector, output_path):
 	result = apply_model(generator, latent_vector)
+	output_path.parent.mkdir(parents = True, exist_ok = True)
 
 	cv2.imwrite(str(output_path), result)
 
 def main_search(generator_name, quantity_initial_random, quantity_genetic_evolution, nb_difference_genetic_algo, nb_retries_avg):
 	# open generator
-	models_dir = MODELS_ROOT_PATH / generator_name / "models"
-	gen_epoch = get_last_epoch_available("generator", str(models_dir))
-	generator_path = models_dir / f"generator_epoch_{gen_epoch:06d}.keras"
-
-	output_dir = RESULTS_ROOT_PATH / "imitation"
+	models_dir = Path(models_directory)
+	gen_epoch = get_last_epoch_available(GENERATOR_GLOBAL_NAME, str(models_dir))
+	generator_path = models_dir / str(GENERATOR_GLOBAL_NAME + "_" + EPOCH_GLOBAL_NAME + f"_{gen_epoch:06d}.keras")
+	output_dir = Path(reproduced_images_output_dir)
 	generator = keras.models.load_model(generator_path)
 	ls_size = latent_dimension_generator
 
 	# open goal image
-	goal_image_path = output_dir / "goal_image.png"
-	goal = keras.utils.img_to_array(keras.utils.load_img(goal_image_path))
+	goal = keras.utils.img_to_array(keras.utils.load_img(IMAGE_TO_REPRODUCE))
 
 	all_best_latent_vectors = []
 
@@ -119,14 +119,14 @@ def main_search(generator_name, quantity_initial_random, quantity_genetic_evolut
 		best_latent_vector = search_genetic_algorithm(generator, best_latent_vector, goal, quantity_genetic_evolution, nb_difference_genetic_algo)
 
 		# produce best image and save it
-		save_produced_result(generator, best_latent_vector, output_dir / str("zz_reproduced_image_" + str(current_avg) + ".png"))
+		save_produced_result(generator, best_latent_vector, output_dir / str("tmp_" + reproduced_image_prefix + str(current_avg) + ".png"))
 
 		all_best_latent_vectors.append(best_latent_vector)
-		print('==> finihed, this Result : ', best_latent_vector)
+		print('==> finished, this Result : ', best_latent_vector)
 
 	overall_avg_latent_vector = get_avg_latent_vector(all_best_latent_vectors)
 
-	save_produced_result(generator, overall_avg_latent_vector, output_dir / "reproduced_image.png")
+	save_produced_result(generator, overall_avg_latent_vector, output_dir / str(reproduced_image_prefix + ".png"))
 
 	print('==> Result : ', overall_avg_latent_vector)
 	print("==> Total diff : ", get_difference_with_original(generator, overall_avg_latent_vector, goal))
@@ -143,5 +143,4 @@ def get_avg_latent_vector(all_best_latent_vectors):
 
 	return total
 
-generator_name = f"{model_name}-ls_{latent_dimension_generator:04d}"
-main_search(generator_name, 10, 10, 1, 10)
+main_search(model_name_explicit, QTY_INITIAL_RANDOM, QTY_GENETIC_EVO , QTY_GENETIC_ALGO, NB_RETRIES_AVG)

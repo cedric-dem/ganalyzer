@@ -5,8 +5,6 @@ import shutil
 import time
 from collections import defaultdict
 from pathlib import Path
-import random
-from typing import Dict, Iterable, Mapping
 
 import cv2
 import numpy as np
@@ -102,8 +100,11 @@ def _get_latest_complete_checkpoint_epoch():
 
 def _save_models(generator, discriminator, epoch, latent_dim):
 	print("===> saving models")
-	generator.save(get_generator_model_path_at_given_epoch(epoch))
-	discriminator.save(get_discriminator_model_path_at_given_epoch(epoch))
+	generator_path = Path(get_generator_model_path_at_given_epoch(epoch))
+	discriminator_path = Path(get_discriminator_model_path_at_given_epoch(epoch))
+	generator_path.parent.mkdir(parents = True, exist_ok = True)
+	generator.save(generator_path)
+	discriminator.save(discriminator_path)
 	save_generator_samples(generator, epoch, latent_dim)
 
 def _collect_batch_statistics(gen_loss, dis_loss, fake_output, real_output):
@@ -233,7 +234,7 @@ def save_generator_samples(generator, epoch, latent_dim, num_samples = 20):
 		image = _array_to_pil_image(image_array)
 		image.save(target_directory / f"sample_{index:02d}.png")
 
-def _cleanup_previous_samples(root_directory: Path, *, keep: Path) -> None:
+def _cleanup_previous_samples(root_directory: Path, *, keep: Path):
 	if not root_directory.is_dir():
 		return
 
@@ -248,7 +249,7 @@ def _array_to_pil_image(image_array):
 		return Image.fromarray(image_array.squeeze(-1), mode = "L")
 	return Image.fromarray(image_array, mode = "RGB")
 
-def launch_training() -> None:
+def launch_training():
 	latest_saved_epoch = _get_latest_complete_checkpoint_epoch()
 	model_checkpoint_exists = latest_saved_epoch is not None
 	start_epoch = latest_saved_epoch + 1 if latest_saved_epoch is not None else 0

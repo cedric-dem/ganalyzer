@@ -3,7 +3,6 @@ from config import *
 from keras import layers
 import tensorflow as tf
 import math
-from ganalyzer.model_config import *
 
 def _make_config(*, gen_base, gen_min, disc_seq, disc_fc, gen_ch0, gen_pre_dense = None, extra_conv = False):
 	return {

@@ -15,8 +15,7 @@ def _configure_model_paths(model_name, latent_space_size):
 		config.models_root_path,
 		f"{model_name}-ls_{latent_space_size:04d}",
 	)
-	config.models_directory = os.path.join(config.model_path, "models")
-	os.makedirs(config.models_directory, exist_ok = True)
+	config.models_directory = os.path.join(config.model_path, config.models_directory_name)
 
 def get_models_generator_and_discriminator(model_name, latent_space_size):  # TOdo : remove code duplication
 	_configure_model_paths(model_name, latent_space_size)
@@ -92,6 +91,12 @@ def shape(mat):
 		return ()
 	return (len(mat),) + shape(mat[0]) if mat else (0,)
 
+def get_first_loaded_model(models_list, model_type):
+	for model in models_list:
+		if model is not None:
+			return model
+	raise ValueError(f"No loaded {model_type} model available.")
+
 def get_layers_list(model):
 	list_layers = model.layers
 	result = []
@@ -122,15 +127,25 @@ class GUIWebPage(object):
 			t0 = time.time()
 			self.generators_list, self.discriminators_list = get_models_generator_and_discriminator(model_size_synced, latent_space_size_synced)
 			t1 = time.time()
-			models_quantity = len(self.generators_list)
+			models_quantity = max(len(self.generators_list), len(self.discriminators_list))
 			print("==> Time taken to load : ", round(t1 - t0, 2))
 			print("==> Number of loaded models : ", models_quantity)
 
 			print('====> synced with data', model_size_synced, latent_space_size_synced_str)
 
+			try:
+				generator = get_first_loaded_model(self.generators_list, "generator")
+				discriminator = get_first_loaded_model(self.discriminators_list, "discriminator")
+			except ValueError as error:
+				return jsonify({
+					"error": str(error),
+					"models_directory": config.models_directory,
+					"number_of_models": models_quantity,
+				}), 404
+
 			return jsonify({
-				"discriminator_layers": get_layers_list(self.discriminators_list[0]),
-				"generator_layers": get_layers_list(self.generators_list[0]),
+				"discriminator_layers": get_layers_list(discriminator),
+				"generator_layers": get_layers_list(generator),
 				"number_of_models": models_quantity,
 			})
 
