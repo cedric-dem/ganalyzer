@@ -69,7 +69,7 @@ evolution_number_changes = 2
 
 # reproduction
 reproduced_images_output_dir = model_path + "/reproduced_images"
-IMAGE_TO_REPRODUCE = dataset_path+"/2.png"
+IMAGE_TO_REPRODUCE = dataset_path + "/2.png"
 
 reproduced_image_prefix = "reproduced_image"
 QTY_INITIAL_RANDOM = 10

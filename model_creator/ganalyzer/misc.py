@@ -94,14 +94,13 @@ def get_list_of_keras_models(models_dir = None):
 		return []
 
 	complete_list = sorted(os.listdir(current_models_directory))
-	return [filename for filename in complete_list] # if not filename.endswith(".csv")
+	return [filename for filename in complete_list]  # if not filename.endswith(".csv")
 
 def get_current_epoch(models_dir = None):
 	keras_models = get_list_of_keras_models(models_dir)
 	if not keras_models:
 		return 0
 	return int(keras_models[-1].split("_")[-1].split(".")[0])
-
 
 def get_last_epoch_available(model_type, models_dir = None):
 	current_models_directory = models_directory

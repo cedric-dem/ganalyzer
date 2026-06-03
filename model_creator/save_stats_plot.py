@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 from config import PLOTS_ROOT_DIRECTORY, results_root_path, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator_available, models_root_path, nb_epoch_taken_comparison, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
 	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, PATH_LOSS_PLOTS, PATH_LOSS_BY_LS_PLOTS, PATH_LOSS_BY_MODEL_PLOTS, PLOTS_NUMBER_PARAMETERS_DIRECTORY, all_models, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, models_directory_name, \
-	plot_image_names, plot_names, LATENT_SPACE_GLOBAL_NAME, x_label_names, y_label_names, statistics_file_path, STATISTICS_CSV_FILENAME
+	plot_image_names, plot_names, LATENT_SPACE_GLOBAL_NAME, x_label_names, y_label_names, STATISTICS_CSV_FILENAME
 
 PLOTS_ROOT_DIRECTORY_PATH = Path(PLOTS_ROOT_DIRECTORY)
 RESULTS_ROOT_PATH = Path(results_root_path)
@@ -139,49 +139,46 @@ def _plot_combined_losses(color_list, stats_by_model):
 	# by ls_size
 	plot_split_by_ls_size(generator_series, discriminator_series)
 
-def plot_split_by_model_size(generator_series, discriminator_series):
-	for current_plot_model in all_models:
-		print('===> Current plot generator', current_plot_model)
-		this_generator_series = []
-		for current_elem_in_series in generator_series:
-			if current_elem_in_series[0].startswith(current_plot_model):
-				this_generator_series.append(current_elem_in_series)
+def plot_split_by_generic(generator_series, discriminator_series, split_names, output_path, series_matches_split):
+	for current_split_name in split_names:
+		print('===> Current plot generator', current_split_name)
+		this_generator_series = [
+			current_elem_in_series
+			for current_elem_in_series in generator_series
+			if series_matches_split(current_elem_in_series[0], current_split_name)
+		]
 
 		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
+		_plot_loss_series(color_list, this_generator_series, output_path / (plot_image_names["split_generator_loss"].replace("MODEL_NAME", current_split_name) + ".jpg"), plot_names["split_generator_loss"].replace("MODEL_NAME", current_split_name))
 
-		# _plot_loss_series(color_list, this_generator_series, PATH_LOSS_PLOTS_BY_MODEL_PATH / str(current_plot_model + "_generator_loss.jpg"), "Generator Loss Over Epochs for " + current_plot_model)
-		_plot_loss_series(color_list, this_generator_series, PATH_LOSS_PLOTS_BY_MODEL_PATH / (plot_image_names["split_generator_loss"].replace("MODEL_NAME", current_plot_model) + ".jpg"), plot_names["split_generator_loss"].replace("MODEL_NAME", current_plot_model))
-
-		print('===> Current plot discriminator', current_plot_model)
-		this_discriminator_series = []
-		for current_elem_in_series in discriminator_series:
-			if current_elem_in_series[0].startswith(current_plot_model):
-				this_discriminator_series.append(current_elem_in_series)
+		print('===> Current plot discriminator', current_split_name)
+		this_discriminator_series = [
+			current_elem_in_series
+			for current_elem_in_series in discriminator_series
+			if series_matches_split(current_elem_in_series[0], current_split_name)
+		]
 
 		color_list = get_colors_associated(generate_colors(len(this_discriminator_series)), [name[0] for name in this_discriminator_series])
-		_plot_loss_series(color_list, this_discriminator_series, PATH_LOSS_PLOTS_BY_MODEL_PATH / (plot_image_names["split_discriminator_loss"].replace("MODEL_NAME", current_plot_model) + ".jpg"), plot_names["split_discriminator_loss"].replace("MODEL_NAME", current_plot_model))
+		_plot_loss_series(color_list, this_discriminator_series, output_path / (plot_image_names["split_discriminator_loss"].replace("MODEL_NAME", current_split_name) + ".jpg"), plot_names["split_discriminator_loss"].replace("MODEL_NAME", current_split_name))
+
+def plot_split_by_model_size(generator_series, discriminator_series):
+	plot_split_by_generic(
+		generator_series,
+		discriminator_series,
+		all_models,
+		PATH_LOSS_PLOTS_BY_MODEL_PATH,
+		lambda series_name, current_plot_model: series_name.startswith(current_plot_model),
+	)
 
 def plot_split_by_ls_size(generator_series, discriminator_series):
 	ls_sizes_as_string = [get_ls_name(curr_ls) for curr_ls in latent_dimension_generator_available]
-
-	for current_plot_ls_size in ls_sizes_as_string:
-		print('===> Current plot generator', current_plot_ls_size)
-		this_generator_series = []
-		for current_elem_in_series in generator_series:
-			if current_elem_in_series[0].endswith(current_plot_ls_size):
-				this_generator_series.append(current_elem_in_series)
-
-		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
-		_plot_loss_series(color_list, this_generator_series, PATH_LOSS_PLOTS_BY_LS_PATH / (plot_image_names["split_generator_loss"].replace("MODEL_NAME", current_plot_ls_size) + ".jpg"), plot_names["split_generator_loss"].replace("MODEL_NAME", current_plot_ls_size))
-
-		print('===> Current plot discriminator', current_plot_ls_size)
-		this_discriminator_series = []
-		for current_elem_in_series in discriminator_series:
-			if current_elem_in_series[0].endswith(current_plot_ls_size):
-				this_discriminator_series.append(current_elem_in_series)
-
-		color_list = get_colors_associated(generate_colors(len(this_discriminator_series)), [name[0] for name in this_discriminator_series])
-		_plot_loss_series(color_list, this_discriminator_series, PATH_LOSS_PLOTS_BY_LS_PATH / (plot_image_names["split_discriminator_loss"].replace("MODEL_NAME", current_plot_ls_size) + ".jpg"), plot_names["split_discriminator_loss"].replace("MODEL_NAME", current_plot_ls_size))
+	plot_split_by_generic(
+		generator_series,
+		discriminator_series,
+		ls_sizes_as_string,
+		PATH_LOSS_PLOTS_BY_LS_PATH,
+		lambda series_name, current_plot_ls_size: series_name.endswith(current_plot_ls_size),
+	)
 
 def get_number_parameters(model_name, model_type):
 	model_path = _get_model_files_directory(model_name)

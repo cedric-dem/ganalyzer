@@ -158,7 +158,6 @@ def add_statistics_entries_to_file(entries):
 		for epoch, new_stats in entries_to_write:
 			writer.writerow([str(epoch), *[new_stats[key] for key in headers]])
 
-
 def _get_logged_statistics_epochs(statistics_path: Path):
 	if not statistics_path.exists() or statistics_path.stat().st_size == 0:
 		return set()

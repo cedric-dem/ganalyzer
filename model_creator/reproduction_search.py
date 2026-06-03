@@ -143,4 +143,4 @@ def get_avg_latent_vector(all_best_latent_vectors):
 
 	return total
 
-main_search(model_name_explicit, QTY_INITIAL_RANDOM, QTY_GENETIC_EVO , QTY_GENETIC_ALGO, NB_RETRIES_AVG)
+main_search(model_name_explicit, QTY_INITIAL_RANDOM, QTY_GENETIC_EVO, QTY_GENETIC_ALGO, NB_RETRIES_AVG)

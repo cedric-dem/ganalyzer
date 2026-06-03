@@ -46,7 +46,7 @@ def get_fake_images_sample(generator_name, length_evolution, nb_changes):
 
 		output_image = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)  ##temp fix 3
 
-		output_path = output_dir / str(EVOLUTION_IMG_PREFIX+f"_{i + 1:04d}.png")
+		output_path = output_dir / str(EVOLUTION_IMG_PREFIX + f"_{i + 1:04d}.png")
 		cv2.imwrite(str(output_path), output_image)
 
 generator_name = f"{model_name}-ls_{latent_dimension_generator:04d}"
