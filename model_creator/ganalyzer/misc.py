@@ -144,7 +144,6 @@ def _save_models(generator, discriminator, epoch, latent_dim):
 	generator_path.parent.mkdir(parents = True, exist_ok = True)
 	generator.save(generator_path)
 	discriminator.save(discriminator_path)
-	save_generator_samples(generator, epoch, latent_dim)
 
 def _collect_batch_statistics(gen_loss, dis_loss, fake_output, real_output):
 	real_output_np = real_output.numpy()
@@ -241,11 +240,12 @@ def _load_image(image_path):
 
 	return _normalize_image(image)
 
-def save_generator_samples(generator, epoch, latent_dim, num_samples = 20):
+def save_generator_samples(generator, epoch, latent_dim, num_samples = 20, cleanup_previous = True):
 	root_directory = Path(SAMPLE_OUTPUT_ROOT_DIRECTORY)
 	target_directory = root_directory / f"{SAMPLE_OUTPUT_PREFIX}{epoch:04d}"
 
-	_cleanup_previous_samples(root_directory, keep = target_directory)
+	if cleanup_previous:
+		_cleanup_previous_samples(root_directory, keep = target_directory)
 
 	if target_directory.exists():
 		shutil.rmtree(target_directory)
@@ -267,6 +267,9 @@ def _cleanup_previous_samples(root_directory: Path, *, keep: Path):
 		return
 
 	for entry in root_directory.iterdir():
+		if entry == keep:
+			continue
+
 		if entry.is_dir() and entry.name.startswith(SAMPLE_OUTPUT_PREFIX):
 			shutil.rmtree(entry)
 
@@ -274,6 +277,21 @@ def _array_to_pil_image(image_array):
 	if image_array.shape[-1] == 1:
 		return Image.fromarray(image_array.squeeze(-1), mode = "L")
 	return Image.fromarray(image_array, mode = "RGB")
+
+def produce_sample_outputs(num_samples = 20):
+	generator_paths = _get_available_generator_paths()
+	if not generator_paths:
+		raise ValueError(f"No generator checkpoints available in {MODELS_DIRECTORY}.")
+
+	root_directory = Path(SAMPLE_OUTPUT_ROOT_DIRECTORY)
+	_cleanup_previous_samples(root_directory, keep = root_directory)
+
+	print(f"==> generating sample outputs for {len(generator_paths)} generator checkpoints")
+	for index, generator_path in enumerate(generator_paths, start = 1):
+		epoch, _model_type = parse_model_filename(generator_path.name)
+		print(f"==> loading generator checkpoint {index}/{len(generator_paths)} from {generator_path}")
+		generator = keras.models.load_model(generator_path)
+		save_generator_samples(generator, epoch, LATENT_DIMENSION_GENERATOR, num_samples = num_samples, cleanup_previous = False)
 
 def _build_dataset_batches(dataset):
 	return (
@@ -464,7 +482,6 @@ def get_number_parameters(model_name, model_type):
 	return nb_params
 
 def _parse_setting_name(setting_name):
-
 	model_size, latent_space_name = setting_name.rsplit("-", 1)
 
 	latent_space_size = int(latent_space_name.removeprefix(LATENT_SPACE_GLOBAL_NAME + "_"))

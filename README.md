@@ -1,19 +1,3 @@
-# GANalyzer
-
-GANalyzer, GAN analyzer, is an experiment-first GAN workspace whose main goal is to **visualize a neural network live while it runs**.
-
-Instead of treating a generator and discriminator as black boxes, GANalyzer lets you move through saved training epochs, change the generator input, and inspect intermediate layer activations in real time. The project is built around the idea that watching a GAN think is often more useful than only looking at final generated images.
-
-## What this project is for
-
-GANalyzer helps you explore questions such as:
-
-- How does the generator output change as the latent vector changes?
-- What do intermediate generator layers look like for the same input?
-- How does the discriminator react to generated images across training epochs?
-- Where does the network become more confident, unstable, or visually interesting?
-- How does a GAN evolve over time when checkpoints are saved during training?
-
 The focus is live inspection: train or load a model, open the UI, adjust inputs and epochs, and immediately see what the network produces internally and externally.
 
 ## Main features
@@ -39,7 +23,8 @@ The focus is live inspection: train or load a model, open the UI, adjust inputs 
 
 Important entry points:
 
-- `model_creator/train_model.py` trains the GAN, saves generator/discriminator checkpoints, writes statistics, and exports sample outputs.
+- `model_creator/train_model.py` trains the GAN, saves generator/discriminator checkpoints, and writes statistics.
+- `model_creator/produce_sample_outputs.py` renders a standalone batch of generated images from the latest complete checkpoint.
 - `model_creator/produce_evolution_sample.py` renders one generated image per saved generator checkpoint from the same latent vector so you can compare how training changes a fixed sample over time.
 - `model_creator/produce_continuous_movement.py` renders a sequence from the latest generator checkpoint while gradually changing a few latent-vector values, creating a smooth latent-space movement sample.
 - `model_creator/run_UI_server.py` starts the Python visualization backend.
@@ -82,18 +67,26 @@ Training resumes from the latest saved epoch when checkpoints already exist. Dur
 
 - generator checkpoints,
 - discriminator checkpoints,
-- sample generated images,
 - CSV statistics for loss and discriminator output values.
 
 
 ### 3. Generate offline sample image sets
 
-After training has produced generator checkpoints, you can create two optional sample sets from `model_creator/`:
+After training has produced generator checkpoints, you can create optional sample sets from `model_creator/`:
 
 ```bash
+python produce_sample_outputs.py
 python produce_evolution_sample.py
 python produce_continuous_movement.py
 ```
+
+`produce_sample_outputs.py` loads every available generator checkpoint for the configured model and writes generated images named like `sample_00.png` under:
+
+```text
+model_creator/results/<dataset_name>/<model_name>-ls_<latent_size>/sample_outputs/sample_output_epoch_<epoch>/
+```
+
+Use this output to inspect fixed batches of standalone samples from every saved generator checkpoint without coupling sample generation to the training loop.
 
 `produce_evolution_sample.py` loads every saved generator checkpoint for the configured model, applies the same random latent vector to each checkpoint, and writes images named like `evolution_sample_<epoch>.png` under:
 
@@ -120,36 +113,3 @@ python run_ui_server.py
 ```
 
 By default, `GUI_tkinter = False` in `model_creator/config.py`, so this starts the Flask backend used by the web UI.
-
-### 5. Start the web UI
-
-In another terminal, run:
-
-```bash
-cd web-ui
-npm install
-npm run dev
-```
-
-Open the Vite URL shown in the terminal. The UI will connect to the backend API, load available layers and epochs, and let you inspect the generator and discriminator live.
-
-## Using the web UI
-
-The web UI is organized around three live panels:
-
-- **Generator input panel**: control the latent vector by randomizing it, setting constant values, or changing distribution parameters.
-- **Generator visualization panel**: choose a generator epoch and layer to inspect the generator's internal representation or final output.
-- **Discriminator visualization panel**: choose a discriminator epoch and layer to inspect how the discriminator processes the current generated image.
-
-The core workflow is:
-
-1. Pick or randomize a latent input.
-2. Select a generator layer to view.
-3. Move through generator epochs to watch training progress.
-4. Send the resulting generated image through the discriminator.
-5. Select discriminator layers and epochs to compare internal responses.
-
-## Current status
-
-GANalyzer is a research/prototype project. Expect the codebase to favor experimentation over polished production ergonomics. Some paths and defaults are configured for the author's local datasets and model names, so you may need to update `model_creator/config.py` before running the project on your own data.
-
