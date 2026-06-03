@@ -5,20 +5,20 @@ import keras
 import numpy as np
 import cv2
 from keras.preprocessing.image import img_to_array
-from config import latent_dimension_generator, model_name, rgb_images, models_directory, evolution_sample_dir, evolution_length, evolution_number_changes, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, EVOLUTION_IMG_PREFIX
+from config import LATENT_DIMENSION_GENERATOR, MODEL_NAME, IS_RGB_IMAGES, MODELS_DIRECTORY, EVOLUTION_SAMPLE_DIRECTORY, EVOLUTION_LENGTH, EVOLUTION_NUMBER_CHANGE, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, EVOLUTION_IMG_PREFIX
 
 def get_fake_images_sample(generator_name, length_evolution, nb_changes):
-	models_dir = Path(models_directory)
+	models_dir = Path(MODELS_DIRECTORY)
 
 	gen_epoch = get_last_epoch_available(GENERATOR_GLOBAL_NAME, str(models_dir))
 	print('Generating fake images using ', generator_name, gen_epoch)
 
 	generator_path = models_dir / str(GENERATOR_GLOBAL_NAME + "_" + EPOCH_GLOBAL_NAME + f"_{gen_epoch:06d}.keras")
-	output_dir = Path(evolution_sample_dir)
+	output_dir = Path(EVOLUTION_SAMPLE_DIRECTORY)
 	output_dir.mkdir(parents = True, exist_ok = True)
 
 	generator = keras.models.load_model(generator_path)
-	ls_size = latent_dimension_generator
+	ls_size = LATENT_DIMENSION_GENERATOR
 
 	latent_vector = np.random.normal(0.0, 1.0, size = (1, ls_size))
 
@@ -32,7 +32,7 @@ def get_fake_images_sample(generator_name, length_evolution, nb_changes):
 
 		image = generator(latent_vector, training = False).numpy()[0]
 
-		if not rgb_images and image.shape[-1] == 3:
+		if not IS_RGB_IMAGES and image.shape[-1] == 3:
 			image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 			image = np.expand_dims(image, axis = -1)
 
@@ -49,5 +49,5 @@ def get_fake_images_sample(generator_name, length_evolution, nb_changes):
 		output_path = output_dir / str(EVOLUTION_IMG_PREFIX + f"_{i + 1:04d}.png")
 		cv2.imwrite(str(output_path), output_image)
 
-generator_name = f"{model_name}-ls_{latent_dimension_generator:04d}"
-get_fake_images_sample(generator_name, evolution_length, evolution_number_changes)
+generator_name = f"{MODEL_NAME}-ls_{LATENT_DIMENSION_GENERATOR:04d}"
+get_fake_images_sample(generator_name, EVOLUTION_LENGTH, EVOLUTION_NUMBER_CHANGE)

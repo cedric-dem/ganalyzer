@@ -17,14 +17,14 @@ from tensorflow.keras.models import load_model
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from config import PLOTS_ROOT_DIRECTORY, results_root_path, rgb_images, nb_comparisons, dataset_path, latent_dimension_generator_available, models_root_path, nb_epoch_taken_comparison, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
-	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, PATH_LOSS_PLOTS, PATH_LOSS_BY_LS_PLOTS, PATH_LOSS_BY_MODEL_PLOTS, PLOTS_NUMBER_PARAMETERS_DIRECTORY, all_models, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, models_directory_name, \
-	plot_image_names, plot_names, LATENT_SPACE_GLOBAL_NAME, x_label_names, y_label_names, STATISTICS_CSV_FILENAME
+from config import PLOTS_ROOT_DIRECTORY, RESULTS_ROOT_PATH, IS_RGB_IMAGES, NUMBER_COMPARISON, DATASET_PATH, LATENT_DIMENSION_GENERATOR_AVAILABLE, MODELS_ROOT_PATH, NUMBER_EPOCH_TAKEN_COMPARISON, PLOTS_HEATMAP_EPOCHS_DIRECTORY, \
+	PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, PATH_LOSS_PLOTS, PATH_LOSS_BY_LS_PLOTS, PATH_LOSS_BY_MODEL_PLOTS, PLOTS_NUMBER_PARAMETERS_DIRECTORY, ALL_MODELS, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, MODELS_DIRECTORY_NAME, \
+	PLOT_IMAGE_NAMES, PLOT_NAMES, LATENT_SPACE_GLOBAL_NAME, X_LABEL_NAMES, Y_LABEL_NAMES, STATISTICS_CSV_FILENAME
 
 PLOTS_ROOT_DIRECTORY_PATH = Path(PLOTS_ROOT_DIRECTORY)
-RESULTS_ROOT_PATH = Path(results_root_path)
-MODELS_ROOT_PATH = Path(models_root_path)
-DATASET_PATH = Path(dataset_path)
+RESULTS_ROOT_PATH = Path(RESULTS_ROOT_PATH)
+MODELS_ROOT_PATH = Path(MODELS_ROOT_PATH)
+DATASET_PATH = Path(DATASET_PATH)
 PLOTS_NUMBER_PARAMETERS_PATH = Path(PLOTS_NUMBER_PARAMETERS_DIRECTORY)
 PLOTS_HEATMAP_EPOCHS_PATH = Path(PLOTS_HEATMAP_EPOCHS_DIRECTORY)
 PLOTS_HEATMAP_MODEL_SIZE_PATH = Path(PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY)
@@ -34,7 +34,7 @@ PATH_LOSS_PLOTS_BY_LS_PATH = Path(PATH_LOSS_BY_LS_PLOTS)
 PATH_LOSS_PLOTS_BY_MODEL_PATH = Path(PATH_LOSS_BY_MODEL_PLOTS)
 
 def _get_model_files_directory(setting_name):
-	return MODELS_ROOT_PATH / setting_name / models_directory_name
+	return MODELS_ROOT_PATH / setting_name / MODELS_DIRECTORY_NAME
 
 def _get_saved_model_path(setting_name, model_type, epoch_number):
 	return _get_model_files_directory(setting_name) / f"{model_type}_{EPOCH_GLOBAL_NAME}_{epoch_number:06d}.keras"
@@ -110,8 +110,8 @@ def _plot_loss_series(all_colors, series, output_path, title):
 		current_idx += 1
 
 	plt.title(title)
-	plt.xlabel(x_label_names["loss"])
-	plt.ylabel(y_label_names["loss"])
+	plt.xlabel(X_LABEL_NAMES["loss"])
+	plt.ylabel(Y_LABEL_NAMES["loss"])
 	if len(series) > 1:
 		plt.legend(loc = "center left", bbox_to_anchor = (1, 0.5))
 	plt.grid(True)
@@ -130,8 +130,8 @@ def _plot_combined_losses(color_list, stats_by_model):
 			discriminator_series.append((model_name, stats.discriminator_loss))
 
 	# original
-	_plot_loss_series(color_list, generator_series, PATH_LOSS_PLOTS_PATH / f"{plot_image_names['every_generator_loss']}.jpg", plot_names['every_generator_loss'])
-	_plot_loss_series(color_list, discriminator_series, PATH_LOSS_PLOTS_PATH / f"{plot_image_names['every_discriminator_loss']}.jpg", plot_names['every_discriminator_loss'])
+	_plot_loss_series(color_list, generator_series, PATH_LOSS_PLOTS_PATH / f"{PLOT_IMAGE_NAMES['every_generator_loss']}.jpg", PLOT_NAMES['every_generator_loss'])
+	_plot_loss_series(color_list, discriminator_series, PATH_LOSS_PLOTS_PATH / f"{PLOT_IMAGE_NAMES['every_discriminator_loss']}.jpg", PLOT_NAMES['every_discriminator_loss'])
 
 	# by model_sizes
 	plot_split_by_model_size(generator_series, discriminator_series)
@@ -149,7 +149,7 @@ def plot_split_by_generic(generator_series, discriminator_series, split_names, o
 		]
 
 		color_list = get_colors_associated(generate_colors(len(this_generator_series)), [name[0] for name in this_generator_series])
-		_plot_loss_series(color_list, this_generator_series, output_path / (plot_image_names["split_generator_loss"].replace("MODEL_NAME", current_split_name) + ".jpg"), plot_names["split_generator_loss"].replace("MODEL_NAME", current_split_name))
+		_plot_loss_series(color_list, this_generator_series, output_path / (PLOT_IMAGE_NAMES["split_generator_loss"].replace("MODEL_NAME", current_split_name) + ".jpg"), PLOT_NAMES["split_generator_loss"].replace("MODEL_NAME", current_split_name))
 
 		print('===> Current plot discriminator', current_split_name)
 		this_discriminator_series = [
@@ -159,19 +159,19 @@ def plot_split_by_generic(generator_series, discriminator_series, split_names, o
 		]
 
 		color_list = get_colors_associated(generate_colors(len(this_discriminator_series)), [name[0] for name in this_discriminator_series])
-		_plot_loss_series(color_list, this_discriminator_series, output_path / (plot_image_names["split_discriminator_loss"].replace("MODEL_NAME", current_split_name) + ".jpg"), plot_names["split_discriminator_loss"].replace("MODEL_NAME", current_split_name))
+		_plot_loss_series(color_list, this_discriminator_series, output_path / (PLOT_IMAGE_NAMES["split_discriminator_loss"].replace("MODEL_NAME", current_split_name) + ".jpg"), PLOT_NAMES["split_discriminator_loss"].replace("MODEL_NAME", current_split_name))
 
 def plot_split_by_model_size(generator_series, discriminator_series):
 	plot_split_by_generic(
 		generator_series,
 		discriminator_series,
-		all_models,
+		ALL_MODELS,
 		PATH_LOSS_PLOTS_BY_MODEL_PATH,
 		lambda series_name, current_plot_model: series_name.startswith(current_plot_model),
 	)
 
 def plot_split_by_ls_size(generator_series, discriminator_series):
-	ls_sizes_as_string = [get_ls_name(curr_ls) for curr_ls in latent_dimension_generator_available]
+	ls_sizes_as_string = [get_ls_name(curr_ls) for curr_ls in LATENT_DIMENSION_GENERATOR_AVAILABLE]
 	plot_split_by_generic(
 		generator_series,
 		discriminator_series,
@@ -219,7 +219,7 @@ def _is_configured_setting(setting_name):
 		return False
 
 	model_size, latent_space_size = parsed_setting
-	return model_size in all_models and latent_space_size in latent_dimension_generator_available
+	return model_size in ALL_MODELS and latent_space_size in LATENT_DIMENSION_GENERATOR_AVAILABLE
 
 def _get_model_indexes(model_name):
 	parsed_setting = _parse_setting_name(model_name)
@@ -227,8 +227,8 @@ def _get_model_indexes(model_name):
 		raise ValueError(f"Invalid model setting name: {model_name}")
 
 	model_size, latent_size = parsed_setting
-	idx_x = all_models.index(model_size)
-	idx_y = latent_dimension_generator_available.index(latent_size)
+	idx_x = ALL_MODELS.index(model_size)
+	idx_y = LATENT_DIMENSION_GENERATOR_AVAILABLE.index(latent_size)
 
 	return idx_x, idx_y
 
@@ -240,22 +240,22 @@ def _get_contrasting_text_color(background_color):
 
 def produce_heatmap(stats_by_model, output_dir, title, output_filename, value_getter, *, text_formatter):
 	output_dir.mkdir(parents = True, exist_ok = True)
-	data = np.zeros((len(all_models), len(latent_dimension_generator_available)))
+	data = np.zeros((len(ALL_MODELS), len(LATENT_DIMENSION_GENERATOR_AVAILABLE)))
 
 	for model_name, stats in stats_by_model.items():
 		idx_x, idx_y = _get_model_indexes(model_name)
 		data[idx_x, idx_y] = value_getter(model_name, stats)
 
-	x_labels = latent_dimension_generator_available
-	y_labels = all_models
+	x_labels = LATENT_DIMENSION_GENERATOR_AVAILABLE
+	y_labels = ALL_MODELS
 
 	plt.figure(figsize = (6, 5))
 
 	heatmap = plt.imshow(data, cmap = 'grey')
 
 	plt.title(title)
-	plt.xlabel(x_label_names["heatmap"])
-	plt.ylabel(y_label_names["heatmap"])
+	plt.xlabel(X_LABEL_NAMES["heatmap"])
+	plt.ylabel(Y_LABEL_NAMES["heatmap"])
 
 	plt.xticks(ticks = np.arange(len(x_labels)), labels = x_labels)
 	plt.yticks(ticks = np.arange(len(y_labels)), labels = y_labels)
@@ -276,8 +276,8 @@ def _plot_current_number_epoch(stats_by_model, output_dir):
 	produce_heatmap(
 		stats_by_model,
 		output_dir,
-		plot_names["current_number_epoch"],
-		plot_image_names["current_number_epoch"] + ".jpg",
+		PLOT_NAMES["current_number_epoch"],
+		PLOT_IMAGE_NAMES["current_number_epoch"] + ".jpg",
 		lambda _model_name, stats: len(stats.epoch_durations),
 		text_formatter = lambda value: str(int(value)),
 	)
@@ -286,8 +286,8 @@ def _plot_number_parameters(stats_by_model, output_dir, model_type):
 	produce_heatmap(
 		stats_by_model,
 		output_dir,
-		plot_names["number_parameters"].replace("MODEL_NAME", model_type),
-		plot_image_names["number_parameters"].replace("MODEL_NAME", model_type) + ".jpg",
+		PLOT_NAMES["number_parameters"].replace("MODEL_NAME", model_type),
+		PLOT_IMAGE_NAMES["number_parameters"].replace("MODEL_NAME", model_type) + ".jpg",
 		lambda model_name, _stats: int(get_number_parameters(model_name, model_type)),
 		text_formatter = lambda value: f"{int(value):,d}".replace(",", " "),
 	)
@@ -296,8 +296,8 @@ def _plot_median_time_per_epoch(stats_by_model, output_dir):  # todo merge with 
 	produce_heatmap(
 		stats_by_model,
 		output_dir,
-		plot_names["median_time_per_epoch"],
-		plot_image_names["median_time_per_epoch"] + ".jpg",
+		PLOT_NAMES["median_time_per_epoch"],
+		PLOT_IMAGE_NAMES["median_time_per_epoch"] + ".jpg",
 		lambda _model_name, stats: statistics.median(stats.epoch_durations),
 		text_formatter = lambda value: str(round(value, 2)),
 	)
@@ -374,9 +374,9 @@ def get_real_images_sample():
 
 	image_paths = [path for path in sorted(dataset_directory.iterdir()) if path.is_file()]
 
-	selected_paths = random.sample(image_paths, k = min(nb_comparisons, len(image_paths)))
+	selected_paths = random.sample(image_paths, k = min(NUMBER_COMPARISON, len(image_paths)))
 	images = []
-	read_mode = cv2.IMREAD_COLOR if rgb_images else cv2.IMREAD_GRAYSCALE
+	read_mode = cv2.IMREAD_COLOR if IS_RGB_IMAGES else cv2.IMREAD_GRAYSCALE
 
 	for image_path in selected_paths:
 		image = cv2.imread(str(image_path), read_mode)
@@ -384,7 +384,7 @@ def get_real_images_sample():
 			print(f"Failed to load image: {image_path}")
 			continue
 
-		if rgb_images:
+		if IS_RGB_IMAGES:
 			image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 		normalized = (image.astype("float32") - 127.5) / 127.5
@@ -400,13 +400,13 @@ def get_fake_images_sample(generator_name, generator_epoch):
 
 	generator = keras.models.load_model(generator_path)
 	ls_size = int(generator_name.split("_")[-1])
-	latent_vectors = np.random.normal(0.0, 1.0, size = (nb_comparisons, ls_size))
+	latent_vectors = np.random.normal(0.0, 1.0, size = (NUMBER_COMPARISON, ls_size))
 
 	generated_images = generator(latent_vectors, training = False).numpy()
 	images = []
 
 	for image in generated_images:
-		if not rgb_images and image.shape[-1] == 3:
+		if not IS_RGB_IMAGES and image.shape[-1] == 3:
 			image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 			image = np.expand_dims(image, axis = -1)
 
@@ -501,10 +501,10 @@ def produce_heatmap_epoch():
 		max_epoch = get_number_epoch_in_given_setting(current_setting)
 		if max_epoch == 100:
 			print("==> Has 100 epoch")
-			step = int(max_epoch / nb_epoch_taken_comparison)
+			step = int(max_epoch / NUMBER_EPOCH_TAKEN_COMPARISON)
 			current_epoch = 0
 			comparisons_elements = []
-			for i in range(nb_epoch_taken_comparison + 1):
+			for i in range(NUMBER_EPOCH_TAKEN_COMPARISON + 1):
 				epoch_name = get_epoch_name(current_epoch)
 				comparisons_elements.append((current_setting, epoch_name))
 				current_epoch = current_epoch + step
@@ -512,8 +512,8 @@ def produce_heatmap_epoch():
 			save_comparisons_models(
 				comparisons_elements,
 				PLOTS_HEATMAP_EPOCHS_PATH,
-				plot_names["comparison_heatmap"].replace("MODEL_NAME", current_setting),
-				plot_image_names["comparison_heatmap"].replace("MODEL_NAME", current_setting) + ".png",
+				PLOT_NAMES["comparison_heatmap"].replace("MODEL_NAME", current_setting),
+				PLOT_IMAGE_NAMES["comparison_heatmap"].replace("MODEL_NAME", current_setting) + ".png",
 			)
 
 def get_epoch_name(current_epoch):  # TODO use this in train etc
@@ -523,13 +523,13 @@ def get_ls_name(current_latent_dimension_generator):
 	return LATENT_SPACE_GLOBAL_NAME + "_" + ((4 - len(str(current_latent_dimension_generator))) * "0") + str(current_latent_dimension_generator)
 
 def produce_heatmap_model_size():
-	for current_latent_dimension_generator in latent_dimension_generator_available:
+	for current_latent_dimension_generator in LATENT_DIMENSION_GENERATOR_AVAILABLE:
 		comparisons_elements = []  # list every model size for that ls
 		current_latent_dimension_generator_str = get_ls_name(current_latent_dimension_generator)
 
 		print("====> now on ", current_latent_dimension_generator_str)
 
-		for current_model in all_models:
+		for current_model in ALL_MODELS:
 			total_name = current_model + "-" + current_latent_dimension_generator_str
 			available_epochs = get_number_epoch_in_given_setting(total_name)
 			epoch_name = get_epoch_name(available_epochs)
@@ -542,15 +542,15 @@ def produce_heatmap_model_size():
 		save_comparisons_models(
 			comparisons_elements,
 			PLOTS_HEATMAP_MODEL_SIZE_PATH,
-			plot_names["latent_space_size_comparison_heatmap"].replace("LATENT_SPACE_SIZE", str(current_latent_dimension_generator)),
-			plot_image_names["latent_space_size_comparison_heatmap"].replace("LATENT_SPACE_SIZE", str(current_latent_dimension_generator)) + ".png",
+			PLOT_NAMES["latent_space_size_comparison_heatmap"].replace("LATENT_SPACE_SIZE", str(current_latent_dimension_generator)),
+			PLOT_IMAGE_NAMES["latent_space_size_comparison_heatmap"].replace("LATENT_SPACE_SIZE", str(current_latent_dimension_generator)) + ".png",
 		)
 
 def produce_heatmap_latent_space():
-	for current_model in all_models:
+	for current_model in ALL_MODELS:
 		comparisons_elements = []  # list every ls for that model size
 		print("====> now on ", current_model)
-		for current_ls in latent_dimension_generator_available:
+		for current_ls in LATENT_DIMENSION_GENERATOR_AVAILABLE:
 			current_latent_dimension_generator_str = get_ls_name(current_ls)
 			print("==> Current ls ", current_latent_dimension_generator_str)
 			total_name = current_model + "-" + current_latent_dimension_generator_str
@@ -561,8 +561,8 @@ def produce_heatmap_latent_space():
 		save_comparisons_models(
 			comparisons_elements,
 			PLOTS_HEATMAP_LATENT_SPACE_SIZE_PATH,
-			plot_names["model_size_comparison_heatmap"].replace("MODEL_NAME", current_model),
-			plot_image_names["model_size_comparison_heatmap"].replace("MODEL_NAME", current_model) + ".png",
+			PLOT_NAMES["model_size_comparison_heatmap"].replace("MODEL_NAME", current_model),
+			PLOT_IMAGE_NAMES["model_size_comparison_heatmap"].replace("MODEL_NAME", current_model) + ".png",
 		)
 
 def generate_colors(n):
@@ -599,8 +599,8 @@ def save_comparisons_models(comparisons_elements, directory, title, output_filen
 
 	plt.colorbar(im)
 	plt.title(title)
-	ax.set_xlabel(x_label_names["comparison_heatmap"])
-	ax.set_ylabel(y_label_names["comparison_heatmap"])
+	ax.set_xlabel(X_LABEL_NAMES["comparison_heatmap"])
+	ax.set_ylabel(Y_LABEL_NAMES["comparison_heatmap"])
 
 	for i in range(len(data)):
 		for j in range(len(data[0])):

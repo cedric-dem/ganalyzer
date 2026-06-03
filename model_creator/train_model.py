@@ -14,14 +14,14 @@ from keras.preprocessing.image import img_to_array
 from tensorflow import keras
 from tqdm import tqdm
 
-from config import (batch_size, dataset_path, latent_dimension_generator, rgb_images, sample_outputs_root_directory, save_train_epoch_every, statistics_file_path)
+from config import (BATCH_SIZE, DATASET_PATH, LATENT_DIMENSION_GENERATOR, IS_RGB_IMAGES, SAMPLE_OUTPUT_ROOT_DIRECTORY, SAVE_TRAIN_EPOCH_EVERY, STATISTICS_FILE_PATH)
 from ganalyzer.misc import (get_available_epochs, get_discriminator_model_path_at_given_epoch, get_generator_model_path_at_given_epoch)
 from ganalyzer.models import get_discriminator, get_generator
 
 SAMPLE_OUTPUT_PREFIX = "sample_output_epoch_"
 
 def save_train_images(generated_images):
-	for i in range(batch_size):
+	for i in range(BATCH_SIZE):
 		this_array = generated_images[i, :, :, :]
 		this_img = np.clip((this_array + 1.0) * 127.5, 0, 255).astype(np.uint8)
 		filename = "subset_train/img_" + str(i) + ".png"
@@ -29,7 +29,7 @@ def save_train_images(generated_images):
 		print(f"Image saved to {filename}")
 
 def _train_step(images, *, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer, cross_entropy):
-	noise = tf.random.normal([batch_size, latent_dim], mean = 0.0, stddev = 1.0)
+	noise = tf.random.normal([BATCH_SIZE, latent_dim], mean = 0.0, stddev = 1.0)
 
 	with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
 		generated_images = generator(noise, training = True)
@@ -86,7 +86,7 @@ def train(start_epoch, dataset, cross_entropy, latent_dim, generator, discrimina
 		epoch += 1
 
 def _should_save_models(epoch):
-	return epoch == 0 or epoch % save_train_epoch_every == 0
+	return epoch == 0 or epoch % SAVE_TRAIN_EPOCH_EVERY == 0
 
 def _get_latest_complete_checkpoint_epoch():
 	for epoch in sorted(get_available_epochs(), reverse = True):
@@ -130,7 +130,7 @@ def add_statistics_entries_to_file(entries):
 	if not entries:
 		return
 
-	statistics_path = Path(statistics_file_path)
+	statistics_path = Path(STATISTICS_FILE_PATH)
 	statistics_path.parent.mkdir(parents = True, exist_ok = True)
 
 	logged_epochs = _get_logged_statistics_epochs(statistics_path)
@@ -182,7 +182,7 @@ def discriminator_loss(fake_output, real_output, cross_entropy):
 	return fake_loss + real_loss
 
 def get_dataset():
-	dataset_directory = Path(dataset_path)
+	dataset_directory = Path(DATASET_PATH)
 	if not dataset_directory.exists():
 		raise FileNotFoundError(f"Dataset path does not exist: {dataset_directory}")
 
@@ -201,19 +201,19 @@ def get_dataset():
 	return np.stack(dataset, axis = 0)
 
 def _load_image(image_path):
-	read_mode = cv2.IMREAD_COLOR if rgb_images else cv2.IMREAD_GRAYSCALE
+	read_mode = cv2.IMREAD_COLOR if IS_RGB_IMAGES else cv2.IMREAD_GRAYSCALE
 	image = cv2.imread(str(image_path), read_mode)
 	if image is None:
 		raise ValueError(f"Failed to load image: {image_path}")
 
-	if rgb_images:
+	if IS_RGB_IMAGES:
 		image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 	image = image.astype("float32")
 	return (image - 127.5) / 127.5
 
 def save_generator_samples(generator, epoch, latent_dim, num_samples = 20):
-	root_directory = Path(sample_outputs_root_directory)
+	root_directory = Path(SAMPLE_OUTPUT_ROOT_DIRECTORY)
 	target_directory = root_directory / f"{SAMPLE_OUTPUT_PREFIX}{epoch:04d}"
 
 	_cleanup_previous_samples(root_directory, keep = target_directory)
@@ -260,7 +260,7 @@ def launch_training():
 	dataset_batches = (
 		tf.data.Dataset.from_tensor_slices(dataset)
 		.shuffle(buffer_size = len(dataset), reshuffle_each_iteration = True)
-		.batch(batch_size)
+		.batch(BATCH_SIZE)
 		.prefetch(tf.data.AUTOTUNE)
 	)
 
@@ -287,7 +287,7 @@ def launch_training():
 	else:
 		print(f"==> Number of batches : {int(cardinality)}")
 
-	train(start_epoch, dataset_batches, cross_entropy, latent_dimension_generator, generator, discriminator, generator_optimizer, discriminator_optimizer)
+	train(start_epoch, dataset_batches, cross_entropy, LATENT_DIMENSION_GENERATOR, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
 if __name__ == "__main__":
 	launch_training()

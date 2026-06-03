@@ -87,7 +87,7 @@ Training resumes from the latest saved epoch when checkpoints already exist. Dur
 From `model_creator/`, run:
 
 ```bash
-python run_UI_server.py
+python run_ui_server.py
 ```
 
 By default, `GUI_tkinter = False` in `model_creator/config.py`, so this starts the Flask backend used by the web UI.

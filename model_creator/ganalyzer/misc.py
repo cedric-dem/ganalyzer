@@ -5,7 +5,7 @@ from typing import Optional
 
 import keras
 
-from config import load_quantity_gui, models_directory, models_directory_name, models_root_path
+from config import LOAD_QUANTITY_GUI, MODELS_DIRECTORY, MODELS_DIRECTORY_NAME, MODELS_ROOT_PATH
 
 def get_generator_model_path_at_given_epoch(epoch):
 	return get_model_path_at_given_epoch("generator", epoch)
@@ -15,14 +15,14 @@ def get_discriminator_model_path_at_given_epoch(epoch):
 
 def _model_directory_for(model_name: str, latent_space_size: int) -> str:
 	return os.path.join(
-		models_root_path,
+		MODELS_ROOT_PATH,
 		f"{model_name}-ls_{latent_space_size:04d}",
-		models_directory_name,
+		MODELS_DIRECTORY_NAME,
 	)
 
 def get_model_path_at_given_epoch(model_type, epoch, models_dir = None):
 	filename = f"{model_type}_epoch_{epoch:06d}.keras"
-	current_models_directory = models_dir or models_directory
+	current_models_directory = models_dir or MODELS_DIRECTORY
 	return os.path.join(current_models_directory, filename)
 
 def get_model_path_at_given_epoch_closest_possible(model_type, epoch, available_epochs, models_dir: Optional[str] = None):
@@ -48,10 +48,10 @@ def _indexes_to_load(models_quantity):
 	if models_quantity == 0:
 		return []
 
-	if load_quantity_gui >= models_quantity:
+	if LOAD_QUANTITY_GUI >= models_quantity:
 		return list(range(models_quantity))
 
-	target_count = min(load_quantity_gui, models_quantity)
+	target_count = min(LOAD_QUANTITY_GUI, models_quantity)
 	if target_count == 1:
 		return [0]
 
@@ -88,7 +88,7 @@ def project_array(arr, destination_max, project_from, project_to):
 	return arr
 
 def get_list_of_keras_models(models_dir = None):
-	current_models_directory = models_dir or models_directory
+	current_models_directory = models_dir or MODELS_DIRECTORY
 
 	if not os.path.isdir(current_models_directory):
 		return []
@@ -103,7 +103,7 @@ def get_current_epoch(models_dir = None):
 	return int(keras_models[-1].split("_")[-1].split(".")[0])
 
 def get_last_epoch_available(model_type, models_dir = None):
-	current_models_directory = models_directory
+	current_models_directory = MODELS_DIRECTORY
 	models_list = get_list_of_keras_models(current_models_directory)
 	candidates = [
 		int(model.split("_")[-1].split(".")[0])

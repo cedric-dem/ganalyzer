@@ -9,18 +9,18 @@ import numpy as np
 import tensorflow as tf
 
 def _configure_model_paths(model_name, latent_space_size):
-	config.model_name = model_name
-	config.latent_dimension_generator = latent_space_size
-	config.model_path = os.path.join(
-		config.models_root_path,
+	config.MODEL_NAME = model_name
+	config.LATENT_DIMENSION_GENERATOR = latent_space_size
+	config.MODELS_PATH = os.path.join(
+		config.MODELS_ROOT_PATH,
 		f"{model_name}-ls_{latent_space_size:04d}",
 	)
-	config.models_directory = os.path.join(config.model_path, config.models_directory_name)
+	config.MODELS_DIRECTORY = os.path.join(config.MODELS_PATH, config.MODELS_DIRECTORY_NAME)
 
 def get_models_generator_and_discriminator(model_name, latent_space_size):  # TOdo : remove code duplication
 	_configure_model_paths(model_name, latent_space_size)
 
-	available_epochs = get_available_epochs(config.models_directory)
+	available_epochs = get_available_epochs(config.MODELS_DIRECTORY)
 	generators_list = get_all_models(
 		model_type = "generator",
 		available_epochs = available_epochs,
@@ -139,7 +139,7 @@ class GUIWebPage(object):
 			except ValueError as error:
 				return jsonify({
 					"error": str(error),
-					"models_directory": config.models_directory,
+					"models_directory": config.MODELS_DIRECTORY,
 					"number_of_models": models_quantity,
 				}), 404
 

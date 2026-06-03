@@ -225,7 +225,7 @@ MODEL_CONFIGS_BY_SIZE = {
 	240: MODEL_CONFIGS_240,
 }
 
-MODEL_CONFIGS = MODEL_CONFIGS_BY_SIZE[model_output_size]
+MODEL_CONFIGS = MODEL_CONFIGS_BY_SIZE[MODEL_OUTPUT_SIZE]
 
 def _num_upsamples_to_reach(img_size, base = 4):
 	if img_size < base:
@@ -289,8 +289,8 @@ def _build_discriminator(image_size, disc_seq, disc_fc, *, extra_fc_units = 0):
 	return tf.keras.Model(inputs, outputs, name = f"Discriminator_{image_size}")
 
 def get_discriminator():
-	cfg = MODEL_CONFIGS[model_name]
-	image_size = int(dataset_dimension)
+	cfg = MODEL_CONFIGS[MODEL_NAME]
+	image_size = int(DATASET_DIMENSION)
 
 	assert image_size == int(image_size)
 	disc_seq = cfg["disc_seq"] or _auto_disc_sequence(cfg, image_size)
@@ -319,9 +319,9 @@ def get_discriminator():
 	return discriminator
 
 def get_generator():
-	cfg = MODEL_CONFIGS[model_name]
-	image_size = int(dataset_dimension)
-	latent_dim = latent_dimension_generator
+	cfg = MODEL_CONFIGS[MODEL_NAME]
+	image_size = int(DATASET_DIMENSION)
+	latent_dim = LATENT_DIMENSION_GENERATOR
 	base_spatial = 4
 
 	assert image_size == int(image_size)
