@@ -186,7 +186,8 @@ def _get_logged_statistics_epochs(statistics_path: Path):
 	with statistics_path.open(mode = "r", newline = "", encoding = "utf-8") as statistics_file:
 		reader = csv.reader(statistics_file)
 		for row in reader:
-			logged_epochs.add(int(row[0]))
+			if row[0] != 'epoch_id':
+				logged_epochs.add(int(row[0]))
 
 	return logged_epochs
 
