@@ -4,7 +4,7 @@ import os
 from config import LOAD_QUANTITY_GUI, MODELS_AS_TFLITE, CONTINUOUS_MOVEMENT_DIRECTORY, CONTINUOUS_MOVEMENT_LENGTH, CONTINUOUS_MOVEMENT_NUMBER_CHANGES, CONTINUOUS_MOVEMENT_IMAGE_PREFIX, REPRODUCED_IMAGES_OUTPUT_DIRECTORY, IMAGE_TO_REPRODUCE, REPRODUCED_IMAGE_SUFFIX, EVOLUTION_SAMPLE_PATH, \
 	EVOLUTION_SAMPLE_PREFIX, STR_PATH_PLOTS_ROOT_DIRECTORY, NUMBER_COMPARISON, LATENT_DIMENSION_GENERATOR_AVAILABLE, STR_PATH_MODELS_ROOT, NUMBER_EPOCH_TAKEN_COMPARISON, STR_PATH_PLOTS_HEATMAP_EPOCHS, STR_PATH_PLOTS_HEATMAP_MODEL_SIZE, STR_PATH_PLOTS_HEATMAP_LATENT_SPACE_SIZE, STR_PATH_LOSS_PLOTS, \
 	STR_PATH_LOSS_PLOTS_BY_LS, STR_PATH_LOSS_PLOTS_BY_MODEL, STR_PATH_PLOTS_NUMBER_PARAMETERS, ALL_MODELS, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, MODELS_DIRECTORY_NAME, PLOT_IMAGE_NAMES, PLOT_NAMES, LATENT_SPACE_GLOBAL_NAME, X_LABEL_NAMES, Y_LABEL_NAMES, \
-	STATISTICS_CSV_FILENAME, MODEL_NAME, MODELS_DIRECTORY, QUANTITY_INITIAL_RANDOM, QUANTITY_GENETIC_EVO, QUANTITY_GENETIC_ALGO, NB_RETRIES_AVG, SAMPLE_OUTPUT_PREFIX, IMAGE_NORMALIZATION_CENTER, IMAGE_NORMALIZATION_SCALE
+	STATISTICS_CSV_FILENAME, MODEL_NAME, MODELS_DIRECTORY, QUANTITY_INITIAL_RANDOM, QUANTITY_GENETIC_EVO, QUANTITY_GENETIC_ALGO, NB_RETRIES_AVG, SAMPLE_OUTPUT_PREFIX, IMAGE_NORMALIZATION_CENTER, IMAGE_NORMALIZATION_SCALE, SAMPLE_QUANTITY
 
 from dataclasses import dataclass
 
@@ -54,7 +54,7 @@ def save_train_images(generated_images):
 		Image.fromarray(image_array, 'RGB').save(filename, format = 'PNG')
 		print(f"Image saved to {filename}")
 
-def _train_step(images, *, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer, cross_entropy):
+def _train_step(images, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer, cross_entropy):
 	noise = tf.random.normal([BATCH_SIZE, latent_dim], mean = 0.0, stddev = 1.0)
 
 	with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
@@ -88,7 +88,7 @@ def train(start_epoch, dataset, cross_entropy, latent_dim, generator, discrimina
 		batch_count = 0
 
 		for batch in dataset:
-			gen_loss, dis_loss, fake_output, real_output = _train_step(batch, latent_dim = latent_dim, generator = generator, discriminator = discriminator, generator_optimizer = generator_optimizer, discriminator_optimizer = discriminator_optimizer, cross_entropy = cross_entropy, )
+			gen_loss, dis_loss, fake_output, real_output = _train_step(batch, latent_dim, generator, discriminator, generator_optimizer, discriminator_optimizer, cross_entropy)
 
 			batch_stats = _collect_batch_statistics(gen_loss, dis_loss, fake_output, real_output)
 
@@ -115,7 +115,7 @@ def _should_save_models(epoch):
 	return epoch == 0 or epoch % SAVE_TRAIN_EPOCH_EVERY == 0
 
 def _get_latest_complete_checkpoint_epoch():
-	for epoch in sorted(get_available_epochs(), reverse = True):
+	for epoch in sorted(get_available_epochs(MODELS_DIRECTORY), reverse = True):
 		generator_path = Path(get_generator_model_path_at_given_epoch(epoch))
 		discriminator_path = Path(get_discriminator_model_path_at_given_epoch(epoch))
 
@@ -225,12 +225,9 @@ def _load_image(image_path):
 
 	return _normalize_image(image)
 
-def save_generator_samples(generator, epoch, latent_dim, num_samples = 20, cleanup_previous = True):
+def save_generator_samples(generator, epoch, latent_dim, num_samples):
 	root_directory = Path(SAMPLE_OUTPUT_ROOT_DIRECTORY)
 	target_directory = root_directory / f"{SAMPLE_OUTPUT_PREFIX}{epoch:04d}"
-
-	if cleanup_previous:
-		_cleanup_previous_samples(root_directory, keep = target_directory)
 
 	if target_directory.exists():
 		shutil.rmtree(target_directory)
@@ -247,36 +244,22 @@ def save_generator_samples(generator, epoch, latent_dim, num_samples = 20, clean
 		image = _array_to_pil_image(image_array)
 		image.save(target_directory / f"sample_{index:02d}.png")
 
-def _cleanup_previous_samples(root_directory: Path, *, keep: Path):
-	if not root_directory.is_dir():
-		return
-
-	for entry in root_directory.iterdir():
-		if entry == keep:
-			continue
-
-		if entry.is_dir() and entry.name.startswith(SAMPLE_OUTPUT_PREFIX):
-			shutil.rmtree(entry)
-
 def _array_to_pil_image(image_array):
 	if image_array.shape[-1] == 1:
 		return Image.fromarray(image_array.squeeze(-1), mode = "L")
 	return Image.fromarray(image_array, mode = "RGB")
 
-def produce_sample_outputs(num_samples = 20):
+def produce_sample_outputs():
 	generator_paths = _get_available_generator_paths()
 	if not generator_paths:
 		raise ValueError(f"No generator checkpoints available in {MODELS_DIRECTORY}.")
-
-	root_directory = Path(SAMPLE_OUTPUT_ROOT_DIRECTORY)
-	_cleanup_previous_samples(root_directory, keep = root_directory)
 
 	print(f"==> generating sample outputs for {len(generator_paths)} generator checkpoints")
 	for index, generator_path in enumerate(generator_paths, start = 1):
 		epoch, _model_type = parse_model_filename(generator_path.name)
 		print(f"==> loading generator checkpoint {index}/{len(generator_paths)} from {generator_path}")
 		generator = keras.models.load_model(generator_path)
-		save_generator_samples(generator, epoch, LATENT_DIMENSION_GENERATOR, num_samples = num_samples, cleanup_previous = False)
+		save_generator_samples(generator, epoch, LATENT_DIMENSION_GENERATOR, num_samples = SAMPLE_QUANTITY)
 
 def _build_dataset_batches(dataset):
 	return (
@@ -498,7 +481,7 @@ def _get_contrasting_text_color(background_color):
 
 	return 'black' if background_intensity > 0.5 else 'white'
 
-def produce_heatmap(stats_by_model, output_dir, title, output_filename, value_getter, *, text_formatter):
+def produce_heatmap(stats_by_model, output_dir, title, output_filename, value_getter, text_formatter):
 	output_dir.mkdir(parents = True, exist_ok = True)
 	data = np.zeros((len(ALL_MODELS), len(LATENT_DIMENSION_GENERATOR_AVAILABLE)))
 
@@ -1070,7 +1053,7 @@ def _default_models():
 	last_generator = None
 	last_discriminator = None
 
-	for model_name in get_list_of_keras_models():
+	for model_name in get_list_of_keras_models(MODELS_DIRECTORY):
 		model_details = parse_model_filename(model_name)
 
 		_epoch, model_type = model_details
@@ -1093,10 +1076,10 @@ def convert_keras_to_tflite():
 		export_tflite(source, target)
 
 def get_generator_model_path_at_given_epoch(epoch):
-	return get_model_path_at_given_epoch("generator", epoch)
+	return get_model_path_at_given_epoch("generator", epoch, MODELS_DIRECTORY)
 
 def get_discriminator_model_path_at_given_epoch(epoch):
-	return get_model_path_at_given_epoch("discriminator", epoch)
+	return get_model_path_at_given_epoch("discriminator", epoch, MODELS_DIRECTORY)
 
 def _model_directory_for(model_name, latent_space_size):
 	return os.path.join(
@@ -1105,10 +1088,10 @@ def _model_directory_for(model_name, latent_space_size):
 		MODELS_DIRECTORY_NAME,
 	)
 
-def get_model_path_at_given_epoch(model_type, epoch, models_dir = MODELS_DIRECTORY):
+def get_model_path_at_given_epoch(model_type, epoch, models_dir):
 	return os.path.join(models_dir, get_model_filename(model_type, epoch))
 
-def get_model_path_at_given_epoch_closest_possible(model_type, epoch, available_epochs, models_dir = MODELS_DIRECTORY):
+def get_model_path_at_given_epoch_closest_possible(model_type, epoch, available_epochs, models_dir):
 	current_best_distance = None
 	current_best_result = None
 
@@ -1123,7 +1106,7 @@ def get_model_path_at_given_epoch_closest_possible(model_type, epoch, available_
 
 	return get_model_path_at_given_epoch(model_type, current_best_result, models_dir)
 
-def get_available_epochs(models_dir = MODELS_DIRECTORY):
+def get_available_epochs(models_dir):
 	models_list = get_list_of_keras_models(models_dir)
 	return [epoch for epoch, model_type in filter(None, (parse_model_filename(model) for model in models_list)) if model_type == DISCRIMINATOR_GLOBAL_NAME]
 
@@ -1170,19 +1153,19 @@ def project_array(arr, destination_max, project_from, project_to):
 		return ((arr - project_from) / delta) * destination_max
 	return arr
 
-def get_list_of_keras_models(models_dir = MODELS_DIRECTORY):
+def get_list_of_keras_models(models_dir):
 	if not os.path.isdir(models_dir):
 		return []
 
 	complete_list = sorted(os.listdir(models_dir))
 	return [filename for filename in complete_list]  # if not filename.endswith(".csv")
 
-def get_current_epoch(models_dir = MODELS_DIRECTORY):
+def get_current_epoch(models_dir):
 	keras_models = get_list_of_keras_models(models_dir)
 	available_epochs = [epoch for epoch, _model_type in filter(None, (parse_model_filename(model) for model in keras_models))]
 	return max(available_epochs)
 
-def get_last_epoch_available(model_type, models_dir = MODELS_DIRECTORY):
+def get_last_epoch_available(model_type, models_dir):
 	models_list = get_list_of_keras_models(models_dir)
 	candidates = [
 		epoch
