@@ -2,9 +2,9 @@ from __future__ import annotations
 import os
 
 from config import LOAD_QUANTITY_GUI, MODELS_AS_TFLITE, CONTINUOUS_MOVEMENT_DIRECTORY, CONTINUOUS_MOVEMENT_LENGTH, CONTINUOUS_MOVEMENT_NUMBER_CHANGES, CONTINUOUS_MOVEMENT_IMAGE_PREFIX, REPRODUCED_IMAGES_OUTPUT_DIRECTORY, IMAGE_TO_REPRODUCE, REPRODUCED_IMAGE_SUFFIX, EVOLUTION_SAMPLE_PATH, \
-	EVOLUTION_SAMPLE_PREFIX, PLOTS_ROOT_DIRECTORY, RESULTS_ROOT_PATH, NUMBER_COMPARISON, LATENT_DIMENSION_GENERATOR_AVAILABLE, MODELS_ROOT_PATH, NUMBER_EPOCH_TAKEN_COMPARISON, PLOTS_HEATMAP_EPOCHS_DIRECTORY, PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY, PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY, \
-	PATH_LOSS_PLOTS, PATH_LOSS_BY_LS_PLOTS, PATH_LOSS_BY_MODEL_PLOTS, PLOTS_NUMBER_PARAMETERS_DIRECTORY, ALL_MODELS, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, MODELS_DIRECTORY_NAME, PLOT_IMAGE_NAMES, PLOT_NAMES, LATENT_SPACE_GLOBAL_NAME, X_LABEL_NAMES, Y_LABEL_NAMES, \
-	STATISTICS_CSV_FILENAME, MODEL_NAME, MODELS_DIRECTORY, QUANTITY_INITIAL_RANDOM, QUANTITY_GENETIC_EVO, QUANTITY_GENETIC_ALGO, NB_RETRIES_AVG, SAMPLE_OUTPUT_PREFIX
+	EVOLUTION_SAMPLE_PREFIX, STR_PATH_PLOTS_ROOT_DIRECTORY, NUMBER_COMPARISON, LATENT_DIMENSION_GENERATOR_AVAILABLE, STR_PATH_MODELS_ROOT, NUMBER_EPOCH_TAKEN_COMPARISON, STR_PATH_PLOTS_HEATMAP_EPOCHS, STR_PATH_PLOTS_HEATMAP_MODEL_SIZE, STR_PATH_PLOTS_HEATMAP_LATENT_SPACE_SIZE, STR_PATH_LOSS_PLOTS, \
+	STR_PATH_LOSS_PLOTS_BY_LS, STR_PATH_LOSS_PLOTS_BY_MODEL, STR_PATH_PLOTS_NUMBER_PARAMETERS, ALL_MODELS, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, MODELS_DIRECTORY_NAME, PLOT_IMAGE_NAMES, PLOT_NAMES, LATENT_SPACE_GLOBAL_NAME, X_LABEL_NAMES, Y_LABEL_NAMES, \
+	STATISTICS_CSV_FILENAME, MODEL_NAME, MODELS_DIRECTORY, QUANTITY_INITIAL_RANDOM, QUANTITY_GENETIC_EVO, QUANTITY_GENETIC_ALGO, NB_RETRIES_AVG, SAMPLE_OUTPUT_PREFIX, IMAGE_NORMALIZATION_CENTER, IMAGE_NORMALIZATION_SCALE
 
 from dataclasses import dataclass
 
@@ -31,23 +31,8 @@ from keras.preprocessing.image import img_to_array
 from tensorflow import keras
 from tqdm import tqdm
 
-from config import (BATCH_SIZE, DATASET_PATH, LATENT_DIMENSION_GENERATOR, IS_RGB_IMAGES, SAMPLE_OUTPUT_ROOT_DIRECTORY, SAVE_TRAIN_EPOCH_EVERY, STATISTICS_FILE_PATH)
+from config import (BATCH_SIZE, DATASET_PATH as STR_PATH_DATASET, LATENT_DIMENSION_GENERATOR, IS_RGB_IMAGES, SAMPLE_OUTPUT_ROOT_DIRECTORY, SAVE_TRAIN_EPOCH_EVERY, STATISTICS_FILE_PATH)
 from ganalyzer.models import get_discriminator, get_generator
-
-IMAGE_NORMALIZATION_CENTER = 127.5
-IMAGE_NORMALIZATION_SCALE = 127.5
-
-PLOTS_ROOT_DIRECTORY_PATH = Path(PLOTS_ROOT_DIRECTORY)
-RESULTS_ROOT_PATH = Path(RESULTS_ROOT_PATH)
-MODELS_ROOT_PATH = Path(MODELS_ROOT_PATH)
-DATASET_PATH = Path(DATASET_PATH)
-PLOTS_NUMBER_PARAMETERS_PATH = Path(PLOTS_NUMBER_PARAMETERS_DIRECTORY)
-PLOTS_HEATMAP_EPOCHS_PATH = Path(PLOTS_HEATMAP_EPOCHS_DIRECTORY)
-PLOTS_HEATMAP_MODEL_SIZE_PATH = Path(PLOTS_HEATMAP_MODEL_SIZE_DIRECTORY)
-PLOTS_HEATMAP_LATENT_SPACE_SIZE_PATH = Path(PLOTS_HEATMAP_LATENT_SPACE_SIZE_DIRECTORY)
-PATH_LOSS_PLOTS_PATH = Path(PATH_LOSS_PLOTS)
-PATH_LOSS_PLOTS_BY_LS_PATH = Path(PATH_LOSS_BY_LS_PLOTS)
-PATH_LOSS_PLOTS_BY_MODEL_PATH = Path(PATH_LOSS_BY_MODEL_PLOTS)
 
 def get_model_filename(model_type, epoch):
 	return f"{model_type}_{EPOCH_GLOBAL_NAME}_{epoch:06d}.keras"
@@ -214,7 +199,7 @@ def discriminator_loss(fake_output, real_output, cross_entropy):
 	return fake_loss + real_loss
 
 def get_dataset():
-	dataset_directory = Path(DATASET_PATH)
+	dataset_directory = Path(STR_PATH_DATASET)
 	if not dataset_directory.exists():
 		raise FileNotFoundError(f"Dataset path does not exist: {dataset_directory}")
 
@@ -343,7 +328,7 @@ def launch_training():
 	train(start_epoch, dataset_batches, cross_entropy, LATENT_DIMENSION_GENERATOR, generator, discriminator, generator_optimizer, discriminator_optimizer)
 
 def _get_model_files_directory(setting_name):
-	return MODELS_ROOT_PATH / setting_name / MODELS_DIRECTORY_NAME
+	return Path(STR_PATH_MODELS_ROOT) / setting_name / MODELS_DIRECTORY_NAME
 
 def _get_saved_model_path(setting_name, model_type, epoch_number):
 	return _get_model_files_directory(setting_name) / get_model_filename(model_type, epoch_number)
@@ -421,8 +406,8 @@ def _plot_combined_losses(color_list, stats_by_model):
 			discriminator_series.append((model_name, stats.discriminator_loss))
 
 	# original
-	_plot_loss_series(color_list, generator_series, PATH_LOSS_PLOTS_PATH / f"{PLOT_IMAGE_NAMES['every_generator_loss']}.jpg", PLOT_NAMES['every_generator_loss'])
-	_plot_loss_series(color_list, discriminator_series, PATH_LOSS_PLOTS_PATH / f"{PLOT_IMAGE_NAMES['every_discriminator_loss']}.jpg", PLOT_NAMES['every_discriminator_loss'])
+	_plot_loss_series(color_list, generator_series, Path(STR_PATH_LOSS_PLOTS) / f"{PLOT_IMAGE_NAMES['every_generator_loss']}.jpg", PLOT_NAMES['every_generator_loss'])
+	_plot_loss_series(color_list, discriminator_series, Path(STR_PATH_LOSS_PLOTS) / f"{PLOT_IMAGE_NAMES['every_discriminator_loss']}.jpg", PLOT_NAMES['every_discriminator_loss'])
 
 	# by model_sizes
 	plot_split_by_model_size(generator_series, discriminator_series)
@@ -454,7 +439,7 @@ def plot_split_by_model_size(generator_series, discriminator_series):
 		generator_series,
 		discriminator_series,
 		ALL_MODELS,
-		PATH_LOSS_PLOTS_BY_MODEL_PATH,
+		Path(STR_PATH_LOSS_PLOTS_BY_MODEL),
 		lambda series_name, current_plot_model: series_name.startswith(current_plot_model),
 	)
 
@@ -464,7 +449,7 @@ def plot_split_by_ls_size(generator_series, discriminator_series):
 		generator_series,
 		discriminator_series,
 		ls_sizes_as_string,
-		PATH_LOSS_PLOTS_BY_LS_PATH,
+		Path(STR_PATH_LOSS_PLOTS_BY_LS),
 		lambda series_name, current_plot_ls_size: series_name.endswith(current_plot_ls_size),
 	)
 
@@ -580,10 +565,10 @@ def _plot_median_time_per_epoch(stats_by_model, output_dir):  # todo merge with 
 def _collect_statistics_by_model():
 	stats_by_model = {}
 
-	if not MODELS_ROOT_PATH.is_dir():
+	if not Path(STR_PATH_MODELS_ROOT).is_dir():
 		return stats_by_model
 
-	for directory_path in sorted(MODELS_ROOT_PATH.iterdir()):
+	for directory_path in sorted(Path(STR_PATH_MODELS_ROOT).iterdir()):
 		csv_path = directory_path / STATISTICS_CSV_FILENAME
 		stats = _load_statistics(csv_path)
 		stats_by_model[directory_path.name] = stats
@@ -602,14 +587,14 @@ def get_colors_associated(colors_list, stats):
 
 def _ensure_plot_directories():
 	for directory in (
-			PLOTS_ROOT_DIRECTORY_PATH,
-			PLOTS_NUMBER_PARAMETERS_PATH,
-			PLOTS_HEATMAP_EPOCHS_PATH,
-			PLOTS_HEATMAP_MODEL_SIZE_PATH,
-			PLOTS_HEATMAP_LATENT_SPACE_SIZE_PATH,
-			PATH_LOSS_PLOTS_PATH,
-			PATH_LOSS_PLOTS_BY_LS_PATH,
-			PATH_LOSS_PLOTS_BY_MODEL_PATH,
+			Path(STR_PATH_PLOTS_ROOT_DIRECTORY),
+			Path(STR_PATH_PLOTS_NUMBER_PARAMETERS),
+			Path(STR_PATH_PLOTS_HEATMAP_EPOCHS),
+			Path(STR_PATH_PLOTS_HEATMAP_MODEL_SIZE),
+			Path(STR_PATH_PLOTS_HEATMAP_LATENT_SPACE_SIZE),
+			Path(STR_PATH_LOSS_PLOTS),
+			Path(STR_PATH_LOSS_PLOTS_BY_LS),
+			Path(STR_PATH_LOSS_PLOTS_BY_MODEL),
 	):
 		directory.mkdir(parents = True, exist_ok = True)
 
@@ -624,16 +609,16 @@ def _generate_combined_statistics_plots():
 
 	_plot_combined_losses(colors_list_with_names, stats_by_model)
 
-	_plot_current_number_epoch(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
+	_plot_current_number_epoch(stats_by_model, Path(STR_PATH_PLOTS_ROOT_DIRECTORY))
 
-	_plot_number_parameters(stats_by_model, PLOTS_NUMBER_PARAMETERS_PATH, DISCRIMINATOR_GLOBAL_NAME)
-	_plot_number_parameters(stats_by_model, PLOTS_NUMBER_PARAMETERS_PATH, GENERATOR_GLOBAL_NAME)
+	_plot_number_parameters(stats_by_model, Path(STR_PATH_PLOTS_NUMBER_PARAMETERS), DISCRIMINATOR_GLOBAL_NAME)
+	_plot_number_parameters(stats_by_model, Path(STR_PATH_PLOTS_NUMBER_PARAMETERS), GENERATOR_GLOBAL_NAME)
 
-	_plot_median_time_per_epoch(stats_by_model, PLOTS_ROOT_DIRECTORY_PATH)
+	_plot_median_time_per_epoch(stats_by_model, Path(STR_PATH_PLOTS_ROOT_DIRECTORY))
 
 def get_real_images_sample():
 	print('getting real images ')
-	dataset_directory = DATASET_PATH
+	dataset_directory = Path(STR_PATH_DATASET)
 
 	image_paths = [path for path in sorted(dataset_directory.iterdir()) if path.is_file()]
 
@@ -732,9 +717,9 @@ def get_number_epoch_in_given_setting(setting):
 	return max_epoch
 
 def produce_heatmap_epoch():
-	available_settings = [entry.name for entry in MODELS_ROOT_PATH.iterdir() if entry.is_dir()]
-	if PLOTS_ROOT_DIRECTORY_PATH.name in available_settings:
-		available_settings.remove(PLOTS_ROOT_DIRECTORY_PATH.name)
+	available_settings = [entry.name for entry in Path(STR_PATH_MODELS_ROOT).iterdir() if entry.is_dir()]
+	if Path(STR_PATH_PLOTS_ROOT_DIRECTORY).name in available_settings:
+		available_settings.remove(Path(STR_PATH_PLOTS_ROOT_DIRECTORY).name)
 
 	for current_setting in available_settings:
 		print("====> Current setting : ", current_setting)
@@ -751,7 +736,7 @@ def produce_heatmap_epoch():
 
 			save_comparisons_models(
 				comparisons_elements,
-				PLOTS_HEATMAP_EPOCHS_PATH,
+				Path(STR_PATH_PLOTS_HEATMAP_EPOCHS),
 				PLOT_NAMES["comparison_heatmap"].replace("MODEL_NAME", current_setting),
 				PLOT_IMAGE_NAMES["comparison_heatmap"].replace("MODEL_NAME", current_setting) + ".png",
 			)
@@ -781,7 +766,7 @@ def produce_heatmap_model_size():
 
 		save_comparisons_models(
 			comparisons_elements,
-			PLOTS_HEATMAP_MODEL_SIZE_PATH,
+			Path(STR_PATH_PLOTS_HEATMAP_MODEL_SIZE),
 			PLOT_NAMES["latent_space_size_comparison_heatmap"].replace("LATENT_SPACE_SIZE", str(current_latent_dimension_generator)),
 			PLOT_IMAGE_NAMES["latent_space_size_comparison_heatmap"].replace("LATENT_SPACE_SIZE", str(current_latent_dimension_generator)) + ".png",
 		)
@@ -800,7 +785,7 @@ def produce_heatmap_latent_space():
 
 		save_comparisons_models(
 			comparisons_elements,
-			PLOTS_HEATMAP_LATENT_SPACE_SIZE_PATH,
+			Path(STR_PATH_PLOTS_HEATMAP_LATENT_SPACE_SIZE),
 			PLOT_NAMES["model_size_comparison_heatmap"].replace("MODEL_NAME", current_model),
 			PLOT_IMAGE_NAMES["model_size_comparison_heatmap"].replace("MODEL_NAME", current_model) + ".png",
 		)
@@ -854,7 +839,7 @@ def save_comparisons_models(comparisons_elements, directory, title, output_filen
 			ax.text(j, i, str(round(data_as_percentage, 1)) + "%", ha = "center", va = "center", color = color, fontsize = 4)
 
 	plt.subplots_adjust(bottom = 0.6)
-	# plt.savefig(Path(PLOTS_ROOT_DIRECTORY_PATH, "heatmap.png"), dpi = 300)
+	# plt.savefig(Path(STR_PATH_PLOTS_ROOT_DIRECTORY, "heatmap.png"), dpi = 300)
 	plt.savefig(Path(directory) / output_filename, dpi = 300)
 	plt.close()
 
@@ -1115,7 +1100,7 @@ def get_discriminator_model_path_at_given_epoch(epoch):
 
 def _model_directory_for(model_name, latent_space_size):
 	return os.path.join(
-		MODELS_ROOT_PATH,
+		Path(STR_PATH_MODELS_ROOT),
 		f"{model_name}-ls_{latent_space_size:04d}",
 		MODELS_DIRECTORY_NAME,
 	)
