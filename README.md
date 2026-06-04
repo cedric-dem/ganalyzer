@@ -7,7 +7,7 @@ The focus is live inspection: train or load a model, open the UI, adjust inputs 
 - **Layer-by-layer inspection**: choose network layers and visualize intermediate activations rather than only final outputs.
 - **Epoch navigation**: move between saved generator and discriminator checkpoints to watch the model evolve during training.
 - **Training statistics**: save losses and discriminator scores during training for later plotting and comparison.
-- **Offline sample generators**: produce checkpoint-by-checkpoint evolution samples and continuous latent-space movement sequences as PNG files.
+- **Post-training asset pipeline**: export TensorFlow Lite models, produce sample and reproduction images, and build training-comparison plots.
 - **Multiple interfaces**: a Vue web UI is the default interface, with a legacy Tkinter UI still available through configuration.
 - **Android model path**: trained models can be converted toward TensorFlow Lite usage for the included Android app experiment.
 
@@ -24,10 +24,8 @@ The focus is live inspection: train or load a model, open the UI, adjust inputs 
 Important entry points:
 
 - `model_creator/train_model.py` trains the GAN, saves generator/discriminator checkpoints, and writes statistics.
-- `model_creator/produce_sample_outputs.py` renders a standalone batch of generated images from the latest complete checkpoint.
-- `model_creator/produce_evolution_sample.py` renders one generated image per saved generator checkpoint from the same latent vector so you can compare how training changes a fixed sample over time.
-- `model_creator/produce_continuous_movement.py` renders a sequence from the latest generator checkpoint while gradually changing a few latent-vector values, creating a smooth latent-space movement sample.
-- `model_creator/run_UI_server.py` starts the Python visualization backend.
+- `model_creator/produce_assets.py` runs the post-training asset pipeline: TensorFlow Lite exports, generated sample sets, reproduction-search images, and comparison plots.
+- `model_creator/run_ui_server.py` starts the Python visualization backend.
 - `model_creator/ganalyzer/GUIWebPage.py` exposes the Flask API used by the web UI.
 - `web-ui/src/App.vue` mounts the generator input panel plus generator and discriminator visualization panels.
 - `web-ui/src/js/webUI.ts` coordinates frontend state, API calls, selected epochs, and layer visualization updates.
@@ -70,39 +68,46 @@ Training resumes from the latest saved epoch when checkpoints already exist. Dur
 - CSV statistics for loss and discriminator output values.
 
 
-### 3. Generate offline sample image sets
+### 3. Produce post-training assets
 
-After training has produced generator checkpoints, you can create optional sample sets from `model_creator/`:
+After training has produced checkpoints and statistics, run the complete asset pipeline from `model_creator/`:
 
 ```bash
-python produce_sample_outputs.py
-python produce_evolution_sample.py
-python produce_continuous_movement.py
+python produce_assets.py
 ```
 
-`produce_sample_outputs.py` loads every available generator checkpoint for the configured model and writes generated images named like `sample_00.png` under:
+`produce_assets.py` uses the active dataset, model, and latent-space settings from `config.py`. It runs the following tasks in order:
+
+1. Converts the latest saved generator and discriminator checkpoints to TensorFlow Lite files.
+2. Uses the latest generator checkpoint to create a continuous latent-space movement sequence.
+3. Uses one fixed random latent vector with every saved generator checkpoint to show how its output evolves during training.
+4. Creates a standalone batch of random samples for every saved generator checkpoint.
+5. Searches for a latent vector whose generated image resembles `IMAGE_TO_REPRODUCE`.
+6. Builds loss, training-duration, parameter-count, and cross-model comparison plots from the available model checkpoints and statistics CSV files.
+
+The command writes assets below the configured results directory:
 
 ```text
-model_creator/results/<dataset_name>/<model_name>-ls_<latent_size>/sample_outputs/sample_output_epoch_<epoch>/
+model_creator/results/<dataset_name>/
+├── models/<model_name>-ls_<latent_size>/
+│   ├── models_as_tf_lite/       # generator.tflite and discriminator.tflite
+│   ├── continuous_movement/     # numbered images from the latest generator
+│   ├── evolution_sample/        # one fixed input rendered by every generator checkpoint
+│   ├── sample_outputs/          # random sample batch for every generator checkpoint
+│   └── reproduced_images/       # candidates and final result from reproduction search
+└── plots/                        # combined statistics and model-comparison plots
 ```
 
-Use this output to inspect fixed batches of standalone samples from every saved generator checkpoint without coupling sample generation to the training loop.
+Before running the pipeline, verify these settings in `model_creator/config.py`:
 
-`produce_evolution_sample.py` loads every saved generator checkpoint for the configured model, applies the same random latent vector to each checkpoint, and writes images named like `evolution_sample_<epoch>.png` under:
+- `DATASET_NAME`, `MODEL_NAME`, and `LATENT_DIMENSION_GENERATOR` select the checkpoints and results directories.
+- `IMAGE_TO_REPRODUCE` selects the target image for reproduction search.
+- `SAMPLE_QUANTITY` controls the number of random samples generated per checkpoint.
+- `CONTINUOUS_MOVEMENT_LENGTH` and `CONTINUOUS_MOVEMENT_NUMBER_CHANGES` control the movement sequence.
+- `QUANTITY_INITIAL_RANDOM`, `QUANTITY_GENETIC_EVO`, `QUANTITY_GENETIC_ALGO`, and `NB_RETRIES_AVG` control the reproduction search effort.
+- `ALL_MODELS` and `LATENT_DIMENSION_GENERATOR_AVAILABLE` define the model combinations used by cross-model comparison plots.
 
-```text
-model_creator/results/<dataset_name>/<model_name>-ls_<latent_size>/evolution_sample/
-```
-
-Use this output to compare how one fixed latent input evolves as training progresses.
-
-`produce_continuous_movement.py` loads the latest saved generator checkpoint, starts from a random latent vector, changes a small number of latent dimensions on each step, and writes a numbered image sequence named like `continuous_movement_0001.png` under:
-
-```text
-model_creator/results/<dataset_name>/<model_name>-ls_<latent_size>/continuous_movement/
-```
-
-Use this output to inspect local movement through latent space with the final/current generator. The sequence length and number of changed latent dimensions are configured by `CONTINUOUS_MOVEMENT_LENGTH` and `CONTINUOUS_MOVEMENT_NUMBER_CHANGES` in `model_creator/config.py`.
+The pipeline is sequential: if a task cannot find a required checkpoint, target image, or statistics file, it raises an error and later tasks do not run. Run it from `model_creator/` because the configured paths are relative to that directory.
 
 ### 4. Start the visualization backend
 
