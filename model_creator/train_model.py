@@ -1,4 +1,4 @@
-from ganalyzer.misc import launch_training
+from ganalyzer.utils_train import launch_training
 
 if __name__ == "__main__":
 	launch_training()
