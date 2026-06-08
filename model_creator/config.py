@@ -1,11 +1,10 @@
-# General
 MODEL_OUTPUT_SIZE = 100
 
 ALL_MODELS = ["model_0_small", "model_1_medium", "model_2_large"]
-MODEL_NAME = ALL_MODELS[1]
+MODEL_NAME = ALL_MODELS[0]
 
 LATENT_DIMENSION_GENERATOR_AVAILABLE = [49, 100, 196]
-LATENT_DIMENSION_GENERATOR = LATENT_DIMENSION_GENERATOR_AVAILABLE[1]
+LATENT_DIMENSION_GENERATOR = LATENT_DIMENSION_GENERATOR_AVAILABLE[0]
 
 IS_RGB_IMAGES = True
 
@@ -15,6 +14,50 @@ IMAGE_NORMALIZATION_SCALE = 127.5
 # train
 BATCH_SIZE = 32
 SAVE_TRAIN_EPOCH_EVERY = 10
+
+# inverse generator train
+INVERSE_GENERATOR_TRAIN_EPOCHS = 100
+STEPS_PER_INVERSE_GENERATOR_EPOCH = 200
+AUTOENCODER_PIXEL_DIFFERENCE_BAR_COUNT = 100
+INVERSE_GENERATOR_MODEL_TYPE = "inverse_generator"
+INVERSE_GENERATOR_DIRECTORY_NAME = "inverse_generator"
+INVERSE_COMPARISON_DIRECTORY_NAME = "comparison"
+INVERSE_PLOTS_DIRECTORY_NAME = "plots_inverse"
+INVERSE_GENERATOR_STATISTICS_HEADERS = ("epoch_id", "time", "loss_mse", "loss_mae")
+
+# inverse generator plot names
+INVERSE_GENERATOR_PLOT_NAMES = {
+	"autoencoder_pixel_difference": "Autoencoder absolute pixel difference",
+	"generator_inverse_latent_difference": "Generator/inverse generator absolute latent-vector difference",
+	"inverse_loss_mse": "Inverse Generator MSE Loss Over Epochs",
+	"inverse_loss_mae": "Inverse Generator MAE Loss Over Epochs",
+}
+
+INVERSE_GENERATOR_PLOT_IMAGE_NAMES = {
+	"autoencoder_pixel_difference": "autoencoder_pixel_difference.png",
+	"generator_inverse_latent_difference": "generator_inverse_latent_difference.png",
+	"inverse_loss_mse": "loss_mse.png",
+	"inverse_loss_mae": "loss_mae.png",
+}
+
+INVERSE_GENERATOR_X_LABEL_NAMES = {
+	"autoencoder_pixel_difference": "Absolute pixel difference (%)",
+	"generator_inverse_latent_difference": "Absolute latent-vector difference",
+	"inverse_loss_mse": "Epoch",
+	"inverse_loss_mae": "Epoch",
+}
+
+INVERSE_GENERATOR_Y_LABEL_NAMES = {
+	"autoencoder_pixel_difference": "Pixels (%)",
+	"generator_inverse_latent_difference": "Latent vector values (%)",
+	"inverse_loss_mse": "Loss MSE",
+	"inverse_loss_mae": "Loss MAE",
+}
+
+AUTOENCODER_PIXEL_DIFFERENCE_BARPLOT_FILENAME = INVERSE_GENERATOR_PLOT_IMAGE_NAMES["autoencoder_pixel_difference"]
+INVERSE_LATENT_DIFFERENCE_BARPLOT_FILENAME = INVERSE_GENERATOR_PLOT_IMAGE_NAMES["generator_inverse_latent_difference"]
+INVERSE_LOSS_MSE_PLOT_FILENAME = INVERSE_GENERATOR_PLOT_IMAGE_NAMES["inverse_loss_mse"]
+INVERSE_LOSS_MAE_PLOT_FILENAME = INVERSE_GENERATOR_PLOT_IMAGE_NAMES["inverse_loss_mae"]
 
 # GUI
 LOAD_QUANTITY_GUI = 3  # max is around 160 for medium on my rtx 3060
@@ -98,6 +141,8 @@ STR_PATH_MODELS_ROOT = RESULTS_ROOT_PATH + "/models"
 MODELS_PATH = STR_PATH_MODELS_ROOT + "/" + MODEL_NAME_EXPLICIT
 MODELS_DIRECTORY_NAME = "models_files"
 MODELS_DIRECTORY = MODELS_PATH + "/" + MODELS_DIRECTORY_NAME
+
+MODELS_DIRECTORY_NAME_INVERSE = "models_files_inverse"
 
 MODELS_AS_TFLITE = MODELS_PATH + "/models_as_tf_lite"
 

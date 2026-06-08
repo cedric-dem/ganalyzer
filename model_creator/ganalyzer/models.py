@@ -358,3 +358,26 @@ def get_generator():
 
 	outputs = layers.Conv2D(3, kernel_size = 3, strides = 1, padding = "same", activation = "tanh")(x)
 	return tf.keras.Model(inputs, outputs, name = f"Generator_{image_size}")
+
+
+def get_inverse_generator():
+	image_size = int(DATASET_DIMENSION)
+	latent_dim = LATENT_DIMENSION_GENERATOR
+	inputs = layers.Input(shape = (image_size, image_size, 3))
+	x = inputs
+
+	filters = [32, 64, 128, 256]
+	cur = image_size
+	step = 0
+	while cur > 4:
+		x = layers.Conv2D(filters[min(step, len(filters) - 1)], kernel_size = 5, strides = 2, padding = "same")(x)
+		x = layers.BatchNormalization()(x)
+		x = layers.LeakyReLU(alpha = 0.2)(x)
+		cur = math.ceil(cur / 2)
+		step += 1
+
+	x = layers.GlobalAveragePooling2D()(x)
+	x = layers.Dense(max(128, latent_dim * 2))(x)
+	x = layers.LeakyReLU(alpha = 0.2)(x)
+	outputs = layers.Dense(latent_dim, activation = None)(x)
+	return tf.keras.Model(inputs, outputs, name = f"InverseGenerator_{image_size}")
