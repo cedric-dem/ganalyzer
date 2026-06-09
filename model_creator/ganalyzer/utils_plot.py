@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from config import STR_PATH_PLOTS_ROOT_DIRECTORY, NUMBER_EPOCH_TAKEN_COMPARISON, STR_PATH_PLOTS_HEATMAP_EPOCHS, STR_PATH_PLOTS_HEATMAP_MODEL_SIZE, STR_PATH_PLOTS_HEATMAP_LATENT_SPACE_SIZE, STR_PATH_LOSS_PLOTS, STR_PATH_LOSS_PLOTS_BY_LS, STR_PATH_LOSS_PLOTS_BY_MODEL, STR_PATH_PLOTS_NUMBER_PARAMETERS, \
-	PLOT_IMAGE_NAMES, PLOT_NAMES, X_LABEL_NAMES, Y_LABEL_NAMES, STATISTICS_CSV_FILENAME
+	PLOT_IMAGE_NAMES, PLOT_NAMES, X_LABEL_NAMES, Y_LABEL_NAMES, STATISTICS_CSV_FILENAME, EPOCH_WANTED
 
 import matplotlib
 import colorsys
@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from ganalyzer.misc import *
 
 def generate_combined_statistics_plots():
+	print("=> Producing combined assets")
 	stats_by_model = collect_statistics_by_model()
 
 	ensure_plot_directories()
@@ -31,13 +32,13 @@ def generate_combined_statistics_plots():
 	plot_median_time_per_epoch(stats_by_model, Path(STR_PATH_PLOTS_ROOT_DIRECTORY))
 
 def save_all_comparisons_models():
-	print('\n======> Generate heatmap epoch')
+	print('==> Generate heatmap epoch')
 	produce_heatmap_epoch()
 
-	print('\n======> Generate heatmap model size')
+	print('==> Generate heatmap model size')
 	produce_heatmap_model_size()
 
-	print('\n======> Generate heatmap latent space')
+	print('==> Generate heatmap latent space')
 	produce_heatmap_latent_space()
 
 def produce_heatmap_model_size():
@@ -45,7 +46,7 @@ def produce_heatmap_model_size():
 		comparisons_elements = []  # list every model size for that ls
 		current_latent_dimension_generator_str = get_ls_name(current_latent_dimension_generator)
 
-		print("====> now on ", current_latent_dimension_generator_str)
+		print(f"====> now on {current_latent_dimension_generator_str}")
 
 		for current_model in ALL_MODELS:
 			total_name = current_model + "-" + current_latent_dimension_generator_str
@@ -55,7 +56,7 @@ def produce_heatmap_model_size():
 			new_elem = (total_name, epoch_name)
 			comparisons_elements.append(new_elem)
 
-			print("==> Current model : ", current_model, " nb epochs ", epoch_name, " result ", new_elem)
+			print(f"======> Current model : {current_model}  nb epochs {epoch_name}")
 
 		save_comparisons_models(
 			comparisons_elements,
@@ -67,10 +68,10 @@ def produce_heatmap_model_size():
 def produce_heatmap_latent_space():
 	for current_model in ALL_MODELS:
 		comparisons_elements = []  # list every ls for that model size
-		print("====> now on ", current_model)
+		print(f"====> now on {current_model}")
 		for current_ls in LATENT_DIMENSION_GENERATOR_AVAILABLE:
 			current_latent_dimension_generator_str = get_ls_name(current_ls)
-			print("==> Current ls ", current_latent_dimension_generator_str)
+			print(f"======> Current ls {current_latent_dimension_generator_str}")
 			total_name = current_model + "-" + current_latent_dimension_generator_str
 			epoch_name = get_epoch_name(get_number_epoch_in_given_setting(total_name))
 			new_elem = (total_name, epoch_name)
@@ -126,6 +127,7 @@ def save_comparisons_models(comparisons_elements, directory, title, output_filen
 	plt.close()
 
 def get_values_comparisons(size, comparisons_elements):
+	print(f"========> Comparing {size}")
 	result = [[0.0 for _ in range(size)] for _ in range(size + 1)]
 	# nb_comparisons
 
@@ -154,10 +156,10 @@ def produce_heatmap_epoch():
 		available_settings.remove(Path(STR_PATH_PLOTS_ROOT_DIRECTORY).name)
 
 	for current_setting in available_settings:
-		print("====> Current setting : ", current_setting)
+		print(f'====> Current setting {current_setting}')
 		max_epoch = get_number_epoch_in_given_setting(current_setting)
-		if max_epoch == 100:
-			print("==> Has 100 epoch")
+		if max_epoch == EPOCH_WANTED:
+			print("======> setting is complete")
 			step = int(max_epoch / NUMBER_EPOCH_TAKEN_COMPARISON)
 			current_epoch = 0
 			comparisons_elements = []
@@ -172,6 +174,8 @@ def produce_heatmap_epoch():
 				PLOT_NAMES["comparison_heatmap"].replace("MODEL_NAME", current_setting),
 				PLOT_IMAGE_NAMES["comparison_heatmap"].replace("MODEL_NAME", current_setting) + ".png",
 			)
+		else:
+			print("======> setting is  not complete")
 
 def collect_statistics_by_model():
 	stats_by_model = {}

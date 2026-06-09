@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from config import CONTINUOUS_MOVEMENT_DIRECTORY, CONTINUOUS_MOVEMENT_LENGTH, CONTINUOUS_MOVEMENT_NUMBER_CHANGES, CONTINUOUS_MOVEMENT_IMAGE_PREFIX, EVOLUTION_SAMPLE_PATH, EVOLUTION_SAMPLE_PREFIX, GENERATOR_GLOBAL_NAME, MODEL_NAME, MODELS_DIRECTORY, SAMPLE_OUTPUT_PREFIX, IMAGE_NORMALIZATION_CENTER, \
-	SAMPLE_QUANTITY, BATCH_SIZE, LATENT_DIMENSION_GENERATOR, IS_RGB_IMAGES, SAMPLE_OUTPUT_ROOT_DIRECTORY
+from config import CONTINUOUS_MOVEMENT_LENGTH, CONTINUOUS_MOVEMENT_NUMBER_CHANGES, CONTINUOUS_MOVEMENT_IMAGE_PREFIX, EVOLUTION_SAMPLE_PREFIX, GENERATOR_GLOBAL_NAME, SAMPLE_OUTPUT_PREFIX, IMAGE_NORMALIZATION_CENTER, \
+	SAMPLE_QUANTITY, BATCH_SIZE, IS_RGB_IMAGES
 
 import matplotlib
 import random
 
-from ganalyzer.misc import get_model_filename, get_last_epoch_available, parse_model_filename, get_list_of_keras_models
+from ganalyzer.misc import get_model_filename, get_last_epoch_available, parse_model_filename, get_list_of_keras_models, model_directory_for
 
 matplotlib.use("Agg")
 
@@ -20,13 +20,25 @@ from PIL import Image
 from keras.preprocessing.image import img_to_array
 from tensorflow import keras
 
-def produce_continuous_movement():
-	generator_name = f"{MODEL_NAME}-ls_{LATENT_DIMENSION_GENERATOR:04d}"
-	generate_fake_images_sample(generator_name, CONTINUOUS_MOVEMENT_LENGTH, CONTINUOUS_MOVEMENT_NUMBER_CHANGES)
+def model_asset_directory_for(model_name, latent_space_size, asset_directory_name):
+	return Path(model_directory_for(model_name, latent_space_size)).parent / asset_directory_name
 
-def produce_evolution_sample():
-	generator_name = f"{MODEL_NAME}-ls_{LATENT_DIMENSION_GENERATOR:04d}"
-	save_evolution_sample_images(generator_name)
+def model_setting_name(model_name, latent_space_size):
+	return f"{model_name}-ls_{latent_space_size:04d}"
+
+def produce_continuous_movement(curr_model_name, curr_latent_space_size):
+	print("====> producing continuous movement")
+	generator_name = model_setting_name(curr_model_name, curr_latent_space_size)
+	models_dir = Path(model_directory_for(curr_model_name, curr_latent_space_size))
+	output_dir = model_asset_directory_for(curr_model_name, curr_latent_space_size, "continuous_movement")
+	generate_fake_images_sample(generator_name, curr_latent_space_size, models_dir, output_dir, CONTINUOUS_MOVEMENT_LENGTH, CONTINUOUS_MOVEMENT_NUMBER_CHANGES)
+
+def produce_evolution_sample(curr_model_name, curr_latent_space_size):
+	print("====> producing evolution sample")
+	generator_name = model_setting_name(curr_model_name, curr_latent_space_size)
+	models_dir = Path(model_directory_for(curr_model_name, curr_latent_space_size))
+	output_dir = model_asset_directory_for(curr_model_name, curr_latent_space_size, "evolution_sample")
+	save_evolution_sample_images(generator_name, curr_latent_space_size, models_dir, output_dir)
 
 def denormalize_images(images):
 	return np.clip((images + 1.0) * IMAGE_NORMALIZATION_CENTER, 0, 255).astype(np.uint8)
@@ -50,8 +62,8 @@ def prepare_output_image(image):
 
 	return output_image
 
-def get_available_generator_paths():
-	models_dir = Path(MODELS_DIRECTORY)
+def get_available_generator_paths(models_dir):
+	models_dir = Path(models_dir)
 	generator_paths = []
 	for model_name in get_list_of_keras_models(str(models_dir)):
 		model_details = parse_model_filename(model_name)
@@ -62,20 +74,18 @@ def get_available_generator_paths():
 
 	return generator_paths
 
-def save_evolution_sample_images(generator_name):
-	generator_paths = get_available_generator_paths()
+def save_evolution_sample_images(generator_name, latent_space_size, models_dir, output_dir):
+	generator_paths = get_available_generator_paths(models_dir)
 	if not generator_paths:
-		raise ValueError(f"No generator models available in {MODELS_DIRECTORY}.")
+		raise ValueError(f"No generator models available in {models_dir}.")
 
-	print(f"Generating evolution sample for {generator_name} using {len(generator_paths)} generators")
-
-	output_dir = Path(EVOLUTION_SAMPLE_PATH)
+	output_dir = Path(output_dir)
 	output_dir.mkdir(parents = True, exist_ok = True)
 
-	latent_vector = np.random.normal(0.0, 1.0, size = (1, LATENT_DIMENSION_GENERATOR))
+	latent_vector = np.random.normal(0.0, 1.0, size = (1, latent_space_size))
 
 	for index, generator_path in enumerate(generator_paths, start = 1):
-		print(f"=> Generating image {index}/{len(generator_paths)} with {generator_path.name}")
+		print(f"=====> Generating evolution sample on model number {index}/{len(generator_paths)}")
 
 		generator = keras.models.load_model(generator_path)
 		image = generator(latent_vector, training = False).numpy()[0]
@@ -85,35 +95,36 @@ def save_evolution_sample_images(generator_name):
 		output_path = output_dir / f"{EVOLUTION_SAMPLE_PREFIX}_{epoch:06d}.png"
 		cv2.imwrite(str(output_path), output_image)
 
-def produce_sample_outputs():
-	generator_paths = get_available_generator_paths()
+def produce_sample_outputs(curr_model_name, curr_latent_space_size):
+	print("====> producing sample outputs")
+	models_dir = Path(model_directory_for(curr_model_name, curr_latent_space_size))
+	root_directory = model_asset_directory_for(curr_model_name, curr_latent_space_size, "sample_outputs")
+	generator_paths = get_available_generator_paths(models_dir)
 	if not generator_paths:
-		raise ValueError(f"No generator checkpoints available in {MODELS_DIRECTORY}.")
+		raise ValueError(f"No generator checkpoints available in {models_dir}.")
 
-	print(f"==> generating sample outputs for {len(generator_paths)} generator checkpoints")
 	for index, generator_path in enumerate(generator_paths, start = 1):
 		epoch, _model_type = parse_model_filename(generator_path.name)
-		print(f"==> loading generator checkpoint {index}/{len(generator_paths)} from {generator_path}")
+		print(f"======> generating sample on model number {index}/{len(generator_paths)}")
 		generator = keras.models.load_model(generator_path)
-		save_generator_samples(generator, epoch, LATENT_DIMENSION_GENERATOR, num_samples = SAMPLE_QUANTITY)
+		save_generator_samples(generator, epoch, curr_latent_space_size, root_directory, num_samples = SAMPLE_QUANTITY)
 
-def generate_fake_images_sample(generator_name, length_evolution, nb_changes):
-	models_dir = Path(MODELS_DIRECTORY)
+def generate_fake_images_sample(generator_name, latent_space_size, models_dir, output_dir, length_evolution, nb_changes):
+	models_dir = Path(models_dir)
 
 	gen_epoch = get_last_epoch_available(GENERATOR_GLOBAL_NAME, str(models_dir))
 	print('Generating fake images using ', generator_name, gen_epoch)
 
 	generator_path = models_dir / get_model_filename(GENERATOR_GLOBAL_NAME, gen_epoch)
-	output_dir = Path(CONTINUOUS_MOVEMENT_DIRECTORY)
+	output_dir = Path(output_dir)
 	output_dir.mkdir(parents = True, exist_ok = True)
 
 	generator = keras.models.load_model(generator_path)
 
-	latent_vector = np.random.normal(0.0, 1.0, size = (1, LATENT_DIMENSION_GENERATOR))
+	latent_vector = np.random.normal(0.0, 1.0, size = (1, latent_space_size))
 
 	for image_index in range(length_evolution):
-		print("=> Generating image ", image_index + 1, "/", length_evolution)
-		print(latent_vector.shape)
+		print(f"======> Generating evolution {image_index + 1}/{length_evolution}")
 
 		mutate_latent_vector_in_place(latent_vector, nb_changes)
 
@@ -202,16 +213,14 @@ def get_difference_with_original(generator, latent_vector, goal):
 	delta = np.abs(goal - reproduced_image)
 	return delta.reshape(-1).sum()
 
-def save_generator_samples(generator, epoch, latent_dim, num_samples):
-	root_directory = Path(SAMPLE_OUTPUT_ROOT_DIRECTORY)
+def save_generator_samples(generator, epoch, latent_dim, root_directory, num_samples):
+	root_directory = Path(root_directory)
 	target_directory = root_directory / f"{SAMPLE_OUTPUT_PREFIX}{epoch:04d}"
 
 	if target_directory.exists():
 		shutil.rmtree(target_directory)
 
 	target_directory.mkdir(parents = True, exist_ok = True)
-
-	print(f"===> generating sample outputs in {target_directory}")
 
 	noise = tf.random.normal([num_samples, latent_dim], mean = 0.0, stddev = 1.0)
 	generated_images = generator(noise, training = False).numpy()

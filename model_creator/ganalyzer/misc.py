@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 
-from config import LOAD_QUANTITY_GUI, MODELS_AS_TFLITE, NUMBER_COMPARISON, LATENT_DIMENSION_GENERATOR_AVAILABLE, STR_PATH_MODELS_ROOT, ALL_MODELS, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, MODELS_DIRECTORY_NAME, LATENT_SPACE_GLOBAL_NAME, MODELS_DIRECTORY, \
+from config import LOAD_QUANTITY_GUI, NUMBER_COMPARISON, LATENT_DIMENSION_GENERATOR_AVAILABLE, STR_PATH_MODELS_ROOT, ALL_MODELS, DISCRIMINATOR_GLOBAL_NAME, GENERATOR_GLOBAL_NAME, EPOCH_GLOBAL_NAME, MODELS_DIRECTORY_NAME, LATENT_SPACE_GLOBAL_NAME, MODELS_DIRECTORY, \
 	IMAGE_NORMALIZATION_CENTER, IMAGE_NORMALIZATION_SCALE, STR_PATH_DATASET, IS_RGB_IMAGES
 
 from dataclasses import dataclass
@@ -124,7 +124,7 @@ def get_model_indexes(model_name):
 	return idx_x, idx_y
 
 def get_real_images_sample():
-	print('getting real images ')
+	print(f'==========> Generating real images')
 	dataset_directory = Path(STR_PATH_DATASET)
 
 	image_paths = [path for path in sorted(dataset_directory.iterdir()) if path.is_file()]
@@ -140,7 +140,7 @@ def get_real_images_sample():
 	return images
 
 def get_fake_images_sample(generator_name, generator_epoch):
-	print('Generating fake images using ', generator_name, generator_epoch)
+	print(f'==========> Generating fake images using generator {generator_name}{generator_epoch}')
 	epoch_number = int(str(generator_epoch).replace(str(EPOCH_GLOBAL_NAME + "_"), ""))
 
 	generator_path = get_saved_model_path(generator_name, GENERATOR_GLOBAL_NAME, epoch_number)
@@ -230,38 +230,46 @@ def export_tflite(model_path_keras, model_path_tflite):
 	target_path.parent.mkdir(parents = True, exist_ok = True)
 	target_path.write_bytes(tflite_model)
 
-def default_models():
+def model_setting_directory_for(model_name, latent_space_size):
+	return Path(STR_PATH_MODELS_ROOT) / f"{model_name}-ls_{latent_space_size:04d}"
+
+def model_directory_for(model_name, latent_space_size):
+	return os.path.join(
+		model_setting_directory_for(model_name, latent_space_size),
+		MODELS_DIRECTORY_NAME,
+	)
+
+def models_as_tflite_directory_for(model_name, latent_space_size):
+	return model_setting_directory_for(model_name, latent_space_size) / "models_as_tf_lite"
+
+def default_models(curr_model_name, curr_latent_space_size):
 	last_generator = None
 	last_discriminator = None
+	models_dir = Path(model_directory_for(curr_model_name, curr_latent_space_size))
 
-	for model_name in get_list_of_keras_models(MODELS_DIRECTORY):
+	for model_name in get_list_of_keras_models(str(models_dir)):
 		model_details = parse_model_filename(model_name)
 
 		_epoch, model_type = model_details
-		model_path = Path(MODELS_DIRECTORY) / model_name
+		model_path = models_dir / model_name
 		if model_type == DISCRIMINATOR_GLOBAL_NAME:
 			last_discriminator = model_path
 		elif model_type == GENERATOR_GLOBAL_NAME:
 			last_generator = model_path
 
+	target_dir = models_as_tflite_directory_for(curr_model_name, curr_latent_space_size)
 	results = []
 	if last_generator is not None:
-		results.append((last_generator, Path(MODELS_AS_TFLITE) / str(GENERATOR_GLOBAL_NAME + ".tflite")))
+		results.append((last_generator, target_dir / str(GENERATOR_GLOBAL_NAME + ".tflite")))
 	if last_discriminator is not None:
-		results.append((last_discriminator, Path(MODELS_AS_TFLITE) / str(DISCRIMINATOR_GLOBAL_NAME + ".tflite")))
+		results.append((last_discriminator, target_dir / str(DISCRIMINATOR_GLOBAL_NAME + ".tflite")))
 	return results
 
-def convert_keras_to_tflite():
-	for source, target in default_models():
-		print(f"Converting {source} -> {target}")
+def convert_keras_to_tflite(curr_model_name, curr_latent_space_size):
+	print("====> converting keras to tflite")
+	for source, target in default_models(curr_model_name, curr_latent_space_size):
+		print(f"======> converting {source} -> {target}")
 		export_tflite(source, target)
-
-def model_directory_for(model_name, latent_space_size):
-	return os.path.join(
-		Path(STR_PATH_MODELS_ROOT),
-		f"{model_name}-ls_{latent_space_size:04d}",
-		MODELS_DIRECTORY_NAME,
-	)
 
 def get_model_path_at_given_epoch(model_type, epoch, models_dir):
 	return os.path.join(models_dir, get_model_filename(model_type, epoch))
