@@ -213,7 +213,7 @@ class GeneratorActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "GeneratorActivity"
-        private const val PREVIEW_GRID_SIZE = 11
+        private const val PREVIEW_GRID_SIZE = ModelConfig.PREVIEW_GRID_SIZE
         private const val PREVIEW_SCALE = 10
     }
 
