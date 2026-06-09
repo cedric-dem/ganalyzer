@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from config import CONTINUOUS_MOVEMENT_DIRECTORY, CONTINUOUS_MOVEMENT_LENGTH, CONTINUOUS_MOVEMENT_NUMBER_CHANGES, CONTINUOUS_MOVEMENT_IMAGE_PREFIX, REPRODUCED_IMAGES_OUTPUT_DIRECTORY, IMAGE_TO_REPRODUCE, REPRODUCED_IMAGE_SUFFIX, EVOLUTION_SAMPLE_PATH, EVOLUTION_SAMPLE_PREFIX, GENERATOR_GLOBAL_NAME, \
-	MODEL_NAME, MODELS_DIRECTORY, QUANTITY_INITIAL_RANDOM, QUANTITY_GENETIC_EVO, QUANTITY_GENETIC_ALGO, NB_RETRIES_AVG, SAMPLE_OUTPUT_PREFIX, IMAGE_NORMALIZATION_CENTER, SAMPLE_QUANTITY, BATCH_SIZE, LATENT_DIMENSION_GENERATOR, IS_RGB_IMAGES, SAMPLE_OUTPUT_ROOT_DIRECTORY
+from config import CONTINUOUS_MOVEMENT_DIRECTORY, CONTINUOUS_MOVEMENT_LENGTH, CONTINUOUS_MOVEMENT_NUMBER_CHANGES, CONTINUOUS_MOVEMENT_IMAGE_PREFIX, EVOLUTION_SAMPLE_PATH, EVOLUTION_SAMPLE_PREFIX, GENERATOR_GLOBAL_NAME, MODEL_NAME, MODELS_DIRECTORY, SAMPLE_OUTPUT_PREFIX, IMAGE_NORMALIZATION_CENTER, \
+	SAMPLE_QUANTITY, BATCH_SIZE, LATENT_DIMENSION_GENERATOR, IS_RGB_IMAGES, SAMPLE_OUTPUT_ROOT_DIRECTORY
 
 import matplotlib
 import random
@@ -182,38 +182,6 @@ def mutate_vector(current_vector, nb_diff):
 		new_vector[mutation_index] = random_latent_value()
 
 	return new_vector
-
-def reproduction_search():
-	# open generator
-	models_dir = Path(MODELS_DIRECTORY)
-	gen_epoch = get_last_epoch_available(GENERATOR_GLOBAL_NAME, str(models_dir))
-	generator_path = models_dir / get_model_filename(GENERATOR_GLOBAL_NAME, gen_epoch)
-	output_dir = Path(REPRODUCED_IMAGES_OUTPUT_DIRECTORY)
-	generator = keras.models.load_model(generator_path)
-
-	# open goal image
-	goal = keras.utils.img_to_array(keras.utils.load_img(IMAGE_TO_REPRODUCE))
-
-	all_best_latent_vectors = []
-
-	for current_avg in range(NB_RETRIES_AVG):
-		print("========> NEW ,", current_avg)
-		best_latent_vector = search_random(generator, goal, LATENT_DIMENSION_GENERATOR, QUANTITY_INITIAL_RANDOM)
-
-		best_latent_vector = search_genetic_algorithm(generator, best_latent_vector, goal, QUANTITY_GENETIC_EVO, QUANTITY_GENETIC_ALGO)
-
-		# produce best image and save it
-		save_produced_result(generator, best_latent_vector, output_dir / str("tmp_" + REPRODUCED_IMAGE_SUFFIX + str(current_avg) + ".png"))
-
-		all_best_latent_vectors.append(best_latent_vector)
-		print('==> finished, this Result : ', best_latent_vector)
-
-	overall_avg_latent_vector = get_avg_latent_vector(all_best_latent_vectors)
-
-	save_produced_result(generator, overall_avg_latent_vector, output_dir / str(REPRODUCED_IMAGE_SUFFIX + ".png"))
-
-	print('==> Result : ', overall_avg_latent_vector)
-	print("==> Total diff : ", get_difference_with_original(generator, overall_avg_latent_vector, goal))
 
 def get_avg_latent_vector(all_best_latent_vectors):
 	return np.mean(np.asarray(all_best_latent_vectors, dtype = np.float32), axis = 0).tolist()

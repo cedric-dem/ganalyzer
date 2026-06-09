@@ -64,7 +64,7 @@ LOAD_QUANTITY_GUI = 3  # max is around 160 for medium on my rtx 3060
 
 # statistics
 NUMBER_EPOCH_TAKEN_COMPARISON = 5
-NUMBER_COMPARISON = 1000
+NUMBER_COMPARISON = 100
 
 # NAMING
 DISCRIMINATOR_GLOBAL_NAME = "discriminator"
@@ -79,12 +79,6 @@ SAMPLE_QUANTITY = 20
 CONTINUOUS_MOVEMENT_IMAGE_PREFIX = "continuous_movement"
 EVOLUTION_SAMPLE_PREFIX = "evolution_sample"
 SAMPLE_OUTPUT_PREFIX = "sample_output_epoch_"
-
-# reproduce
-QUANTITY_INITIAL_RANDOM = 10
-QUANTITY_GENETIC_EVO = 10
-QUANTITY_GENETIC_ALGO = 1
-NB_RETRIES_AVG = 10
 
 # continuous movement
 CONTINUOUS_MOVEMENT_LENGTH = 100
@@ -170,8 +164,3 @@ CONTINUOUS_MOVEMENT_DIRECTORY = MODELS_PATH + "/continuous_movement"
 
 # Path evolution sample
 EVOLUTION_SAMPLE_PATH = MODELS_PATH + "/evolution_sample"
-
-# Path reproduction
-REPRODUCED_IMAGES_OUTPUT_DIRECTORY = MODELS_PATH + "/reproduced_images"
-IMAGE_TO_REPRODUCE = STR_PATH_DATASET + "/2.png"
-REPRODUCED_IMAGE_SUFFIX = "reproduced_image"
