@@ -118,7 +118,8 @@ def produce_autoencoder_assets():
 	pixel_differences = []
 
 	for image_index, image_path in enumerate(image_paths, start = 1):
-		print(f"=> producing autoencoder comparison {image_index}/{len(image_paths)} from {image_path}")
+		if image_index % 100 == 0:
+			print(f"=> producing autoencoder comparison {image_index}/{len(image_paths)} from {image_path}")
 		normalized_image = load_image(image_path)
 		model_input = image_to_model_batch(normalized_image)
 		latent_vector = inverse_generator(model_input, training = False)
@@ -261,7 +262,9 @@ def produce_generator_inverse_and_generator_assets():
 
 	latent_differences = []
 	for comparison_index in range(1, NUMBER_COMPARISON + 1):
-		print(f"=> producing generator/inverse comparison {comparison_index}/{NUMBER_COMPARISON}")
+
+		if comparison_index % 100 == 0:
+			print(f"=> producing generator/inverse comparison {comparison_index}/{NUMBER_COMPARISON}")
 		latent_vector = np.random.normal(0.0, 1.0, size = (1, LATENT_DIMENSION_GENERATOR)).astype(np.float32)
 		generated_image = generator(latent_vector, training = False)
 		reconstructed_latent_vector = inverse_generator(generated_image, training = False)
